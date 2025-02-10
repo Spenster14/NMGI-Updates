@@ -39,6 +39,7 @@ UT(UTversion, PostUpdate:=0)
 		Sleep 2000
 	}
 	WinWaitActive "UltraTax CS"
+	WinMaximize
 	WinClose "Onvio"
 
 	Loop 5{
@@ -63,12 +64,15 @@ UT(UTversion, PostUpdate:=0)
 	{
 		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
 		WinClose "UltraTax"
-		return "UltraTax" . UTversion . " - No updates`n"
+		FileAppend("- UltraTax " . UTversion . " - No updates`r`n",TodayDate . "-Update.log")
+		return
 	}
 	else
 	{
-		MsgBox "Not no new updates, something else"							;  Need logic here for when there are updates
+		MsgBox "Not no new updates, something else!  Exiting. Handle manually"							;  Need logic here for when there are updates
 		;~ UT("22", "Again")												; Run a second time to clear popup
-		return "UltraTax" . UTversion . " - Updates installed`n"
+		FileAppend("- UltraTax " . UTversion . " - Updates installed`r`n",TodayDate . "-Update.log")
+		ExitApp
+		return "UltraTax" . UTversion . " - Updates installed`r`n"
 	}
 }

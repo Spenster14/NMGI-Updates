@@ -34,7 +34,8 @@ Firefox(*)
 			result.Highlight(result.Lines[StatusLine])
 			WinClose "Firefox"
 			WinClose "Firefox"
-			return "Firefox - No Updates`n"
+			FileAppend("- Firefox - No updates`r`n",TodayDate . "-Update.log")
+			return
 		}
 		else if InStr(resultline, "Update to", false)
 		{
@@ -50,36 +51,10 @@ Firefox(*)
 			WinClose "Firefox"
 			Sleep 2000
 			Firefox()
-			return "Firefox - Updates installed`n"
+			RemoveOutput("Firefox")
+			FileAppend("- Firefox - Updates installed`r`n",TodayDate . "-Update.log")
+			return
 		}
 		Sleep 100
 	}
-	;~ Loop {
-		;~ cfirefoxEl := UIA_Browser("About Mozilla Firefox")
-		;~ try cfirefoxupdateEl := cfirefoxEl.FindElement({Name:"64-bit", Type:"Edit", mm:2}).WalkTree("P, -1, 1")
-		;~ catch {
-			;~ Sleep 100
-			;~ continue
-		;~ }
-		;~ if InStr(cfirefoxupdateEl.Name, "Firefox is up to date", false)
-		;~ {
-			;~ cfirefoxupdateEl.Highlight()
-			;~ WinClose "Firefox"
-			;~ WinClose "Firefox"
-			;~ return "Firefox - No Updates`n"
-		;~ }
-		;~ else if InStr(cfirefoxupdateEl.Name, "Update to", false)  ; Need correct restart msg
-		;~ {
-			;~ cfirefoxEl.WaitElement({Name:"Update to", Type:"Button", Order:"LastToFirstOrder"}).Click()
-		;~ }
-		;~ else if InStr(cfirefoxupdateEl.Name, "Restart to Update Firefox", false)  ; Need correct restart msg
-		;~ {
-			;~ WinClose "Firefox"
-			;~ WinClose "Firefox"
-			;~ Sleep 2000
-			;~ Firefox()
-			;~ return "Firefox - Updates installed`n"
-		;~ }
-		;~ Sleep 100
-	;~ }
 }

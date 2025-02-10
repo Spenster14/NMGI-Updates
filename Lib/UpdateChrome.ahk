@@ -35,7 +35,8 @@ Chrome(*)
                     result.Highlight(result.Lines[A_Index])
             }
 			WinClose "Chrome"
-			return "Chrome - No Updates`n"
+			FileAppend("- Google Chrome - No updates`r`n",TodayDate . "-Update.log")
+			return
 		}
 		else if InStr(result.Text, "Relaunch Chrome", false)
 		{
@@ -46,7 +47,9 @@ Chrome(*)
 			WinClose "Chrome"
 			Sleep 2000
 			Chrome()
-			return "Chrome - Updates installed`n"
+			RemoveOutput("Google Chrome")
+			FileAppend("- Google Chrome - Updates installed`r`n",TodayDate . "-Update.log")
+			return
 		}
 		Sleep 100
 	}

@@ -15,6 +15,8 @@
 SetTitleMatchMode 2
 CoordMode("ToolTip","Screen")
 
+TodayDate := FormatTime(A_Now, "yyMMdd")
+
 ClientList := Map()
 Loop Read, "GUIsettings.ini"
 {
@@ -65,8 +67,11 @@ Constructor()
 	DropDownList1.OnEvent("Change", PopulateListView)
 	ButtonRemove.OnEvent("Click", LV_DoubleClick)
 	myGui.OnEvent('Close', (*) => ExitApp())
-	myGui.Title := "Window"
+	myGui.Title := "Jacro Version 0.11"
 	
+	global StartGUI := 10
+	SetTimer(UpdateTimer, 1000)
+
 	LV_DoubleClick(LV, RowNum)
 	{
 		RowNum := LV_.GetNext(0)
@@ -77,31 +82,55 @@ Constructor()
 	
 	StartFunctions(*)
 	{
-		FileAppend("- WR to " . A_ComputerName . "`n","output.txt")
+		FileAppend("- WR to " . A_ComputerName . "`r`n",TodayDate . "-Update.log")
 		Loop LV_.GetCount()
 		{
 			%SubStr(LV_.GetText(A_Index),1,InStr(LV_.GetText(A_Index),"(")-1)%(Trim(SubStr(LV_.GetText(A_Index),InStr(LV_.GetText(A_Index),"(")),"()"))
 		}
-		FileAppend("END`n","output.txt")
+		FileAppend("END`r`n",TodayDate . "-Update.log")
+		if FileExist("output.bak")
+			FileDelete("output.bak")
 		ExitApp
 	}
 	
 	return myGui
 }
 
+~*::  ; Any key
+~LButton::  ; Left click
+~RButton::  ; Right click
+~MButton::  ; Middle click
+{
+    SetTimer(UpdateTimer, 0)
+	ToolTip
+    return
+}
+
+UpdateTimer() {
+    global StartGUI
+    StartGUI--
+    if (StartGUI >= 0)
+        ToolTip("Countdown before autostart: " . StartGui, 100, 100)
+    else {
+        SetTimer(UpdateTimer, 0)
+		ToolTip
+		ControlClick("ButtonBtnStart", "ahk_class #32770")
+    }
+}
+
 TestFunc(*)
 {
 	Msgbox "Testing Func"
-	return "Testing Func - Tested Positive`n"
+	return "Testing Func - Tested Positive`r`n"
 }
 
 RemoveOutput(RemoveLine){
-	UpdateText := FileRead("output.txt")
-    FileMove("output.txt","output.bak",true)
-	loop parse UpdateText,"`n"
+	UpdateText := FileRead(TodayDate . "-Update.log")
+    FileMove(TodayDate . "-Update.log","output.bak",true)
+	loop parse UpdateText,"`r`n"
 		if A_LoopField
 			if !InStr(A_LoopField,RemoveLine)
-				FileAppend(A_LoopField . "`n","output.txt")
+				FileAppend(A_LoopField . "`r`n",TodayDate . "-Update.log")
 }
 
 $Esc::

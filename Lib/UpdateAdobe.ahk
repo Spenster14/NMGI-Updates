@@ -34,13 +34,15 @@ Adobe(*)
 			acrobatupdateEl.FindElement({Name:"Close", Type:"Button", mm:2}).WalkTree("-2").Highlight()
 			WinClose "Updater"
 			Winclose "Adobe"
-			return "Adobe Acrobat - No Updates`n"
+			FileAppend("- Adobe Acrobat - No updates`r`n",TodayDate . "-Update.log")
+			return
 		}
 		if InStr(acrobatupdateEl.FindElement({Name:"Close", Type:"Button", mm:2}).WalkTree("-2").Name, "Stuff has been updated!", false)
 		{
 			WinClose "Updater"
 			Winclose "Adobe"
-			return "Adobe Acrobat - Updates installed`n"
+			FileAppend("- Adobe Acrobat - Updates installed`r`n",TodayDate . "-Update.log")
+			return
 		}
 		Sleep 250
 	}

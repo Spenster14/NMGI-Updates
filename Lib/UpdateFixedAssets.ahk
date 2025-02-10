@@ -52,12 +52,14 @@ FixedAssets(PostUpdate:=0)
 	{
 		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
 		WinClose "Fixed Assets CS"
-		return "Fixed Assets - No updates`n"
+		FileAppend("- Fixed Assets - Updates installed`r`n",TodayDate . "-Update.log")
+		return
 	}
 	else
 	{
 		MsgBox "Not no new updates, something else"							;  Need logic here for when there are updates
 		;~ FileCabinet("22", "Again")												; Run a second time to clear popup
-		return "Fixed Assets - Updates installed`n"
+		FileAppend("- Fixed Assets - Updates installed`r`n",TodayDate . "-Update.log")
+		return
 	}
 }

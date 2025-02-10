@@ -67,12 +67,13 @@ FPS(PostUpdate:=0)
 	{
 		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
 		WinClose "Fixed Assets CS"
-		return "Fixed Assets - No updates`n"
+		return "Fixed Assets - No updates`r`n"
 	}
 	else
 	{
 		MsgBox "Not no new updates, something else"							;  Need logic here for when there are updates
 		;~ FileCabinet("22", "Again")												; Run a second time to clear popup
-		return "Fixed Assets - Updates installed`n"
+		FileAppend("- FPS - Updates installed`r`n",TodayDate . "-Update.log")
+		return "Fixed Assets - Updates installed`r`n"
 	}
 }

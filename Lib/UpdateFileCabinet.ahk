@@ -52,12 +52,14 @@ FileCabinet(PostUpdate:=0)
 	{
 		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
 		WinClose "FileCabinet"
-		return "FileCabinet - No updates`n"
+		FileAppend("- FileCabinet - No updates`r`n",TodayDate . "-Update.log")
+		return
 	}
 	else
 	{
 		MsgBox "Not no new updates, something else"							;  Need logic here for when there are updates
 		;~ FileCabinet("22", "Again")												; Run a second time to clear popup
-		return "FileCabinet - Updates installed`n"
+		FileAppend("- FileCabinet - Updates installed`r`n",TodayDate . "-Update.log")
+		return
 	}
 }

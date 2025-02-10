@@ -3,37 +3,58 @@ QB(QBversion)
 	foundupdate:=""
 	previousline:=""
 	KillQBTasks()
+
+	;  Set variables
 	switch QBversion
 	{
 		case "21 Enterprise":
-			Run "C:\Program Files (x86)\Intuit\QuickBooks Enterprise Solutions 21.0\QBW32EnterpriseAccountant.exe"
+			QBLongName := "QuickBooks Enterprise Solutions 21.0"
+			QBExe := "QBW32EnterpriseAccountant.exe"
 		case "22 Enterprise":
-			Run "C:\Program Files\Intuit\QuickBooks Enterprise Solutions 22.0\QBWEnterpriseAccountant.exe"
+			QBLongName := "QuickBooks Enterprise Solutions 22.0"
+			QBExe := "QBWEnterpriseAccountant.exe"
 		case "23 Enterprise":
-			Run "C:\Program Files\Intuit\QuickBooks Enterprise Solutions 23.0\QBWEnterpriseAccountant.exe"
+			QBLongName := "QuickBooks Enterprise Solutions 23.0"
+			QBExe := "QBWEnterpriseAccountant.exe"
 		case "24 Enterprise":
-			Run "C:\Program Files\Intuit\QuickBooks Enterprise Solutions 24.0\QBWEnterpriseAccountant.exe"
+			QBLongName := "QuickBooks Enterprise Solutions 24.0"
+			QBExe := "QBWEnterpriseAccountant.exe"
 		case "21 Premier":
-			Run "C:\Program Files (x86)\Intuit\QuickBooks 2021\QBW32PremierAccountant.exe"
+			QBLongName := "QuickBooks 2021"
+			QBExe := "QBW32PremierAccountant.exe"
 		case "22 Premier":
-			Run "C:\Program Files\Intuit\QuickBooks 2022\QBWPremierAccountant.exe"
+			QBLongName := "QuickBooks 2022"
+			QBExe := "QBWPremierAccountant.exe"
 		case "23 Premier":
-			Run "C:\Program Files\Intuit\QuickBooks 2023\QBWPremierAccountant.exe"
+			QBLongName := "QuickBooks 2023"
+			QBExe := "QBWPremierAccountant.exe"
 		case "24 Premier":
-			Run "C:\Program Files\Intuit\QuickBooks 2024\QBWPremierAccountant.exe"
+			QBLongName := "QuickBooks 2024"
+			QBExe := "QBWPremierAccountant.exe"
 		case "23 Pro":
-			Run "C:\Program Files\Intuit\QuickBooks 2023\QBWPro.exe"
+			; Need to find ini location
 		case "24 Pro":
-			Run "C:\Program Files\Intuit\QuickBooks 2024\QBWPro.exe"
+			; Need to find ini location
 	}
+
+	;  Create generic INI
+	QBCreateINI(EnvGet("LocalAppData") . "\Intuit\" . QBLongName . "\QBWUSER.INI")
+
+	; Opening QB version
+	ToolTip("Waiting for Quickbooks to open.", 100, 100)
+	if FileExist("C:\Program Files\Intuit\" . QBLongName . "\" . QBExe)
+		Run "C:\Program Files\Intuit\" . QBLongName . "\" . QBExe
+	else if FileExist("C:\Program Files (x86)\Intuit\" . QBLongName . "\" . QBExe)
+		Run "C:\Program Files (x86)\Intuit\" . QBLongName . "\" . QBExe
+
 	WinWait("QuickBooks ")
+	ToolTip
 	if WinExist("QuickBooks ","Install "){                     ;  Handling major upgrade
 		WinActivate
 		qbEl := UIA.ElementFromHandle("QuickBooks")
 		qbEl.WaitElement({Name:"Install Now", Type:"Pane"}).Click("left")
 		WinWait("QuickBooks","restart your computer")
-		RemoveOutput(QBversion)
-		FileAppend("- QuickBooks " . QBversion . " - Updates installed`n","output.txt")
+		FileAppend("- QuickBooks " . QBversion . " - Updates installed`r`n",TodayDate . "-Update.log")
 		qbEl := UIA.ElementFromHandle("QuickBooks")
 		qbEl.WaitElement({Name:"Yes", Type:"Button"}).Click("left")  ;  Rebooting at the end
 		return
@@ -41,6 +62,7 @@ QB(QBversion)
 	WinWait("QuickBooks ",,,"Service")
 	Sleep 2000
 	WinActivate
+	WinMaximize
 	qbEl := UIA.ElementFromHandle("QuickBooks")
 	Send "!hd"
 	qbEl.WaitElement({Name:"Update Now", Type:"Pane"}).Click("left")
@@ -67,11 +89,8 @@ QB(QBversion)
 				foundupdate:=1
 				qbEl.FindElement({Name:"Close", Type:"Pane"}).Click("left")
 				WinClose "QuickBooks"
-				; ProcessWaitClose "QBW.exe"
-				QBWaitClose()
+				QBWaitClose(QBversion, QBLongName)
 				QB(QBversion)
-				RemoveOutput(QBversion)
-				FileAppend("- QuickBooks " . QBversion . " - Updates installed`n","output.txt")
 				return
 			}
 			else
@@ -79,9 +98,7 @@ QB(QBversion)
 				result.Highlight(result)
 				qbEl.FindElement({Name:"Close", Type:"Pane"}).Click("left")
 				WinClose "QuickBooks"
-				; ProcessWaitClose "QBW.exe"
-				QBWaitClose()
-				FileAppend("- QuickBooks " . QBversion . " - No updates`n","output.txt")
+				QBWaitClose(QBversion, QBLongName)
 				return
 			}
 		}
@@ -111,7 +128,17 @@ KillQBTasks() {
 }
 
 
-QBWaitClose(){
+QBWaitClose(QBversion, QBLongName){
+	;  *** Sneak in cleaning up our update output
+	RemoveOutput(QBversion)
+	;  Update log
+	if (TodayDate == (FormatTime(FileGetTime("C:\ProgramData\Intuit\" . QBLongName . "\Components\QBUpdate\Log\Install.log", "M"), "yyMMdd")))
+		FileAppend("- QuickBooks " . QBversion . " - Updates installed`r`n",TodayDate . "-Update.log")
+	else
+		FileAppend("- QuickBooks " . QBversion . " - No updates`r`n",TodayDate . "-Update.log")
+
+	;"C:\Program Files (x86)\Intuit\" . QBLongName . "\" . QBExe
+	;FileAppend("- QuickBooks " . QBversion . " - Updates installed`r`n",TodayDate . "-Update.log")
 	WaitCounter := 0
 	loop
 	{
@@ -122,4 +149,11 @@ QBWaitClose(){
 		Sleep(1000)
 	}
 	ToolTip
+}
+
+QBCreateINI(INIPath){
+	if FileExist(INIPath){
+		FileDelete(INIPath)   ;  Delete current INI file
+	}
+	FileAppend("[MRUFILES_STANDARD_STRATUM]`r`nFILE1=C:\Hide_The_Welcome_Screen.qbw`r`n[MRUFILES_BEL_STRATUM]`r`nFILE1=C:\Hide_The_Welcome_Screen.qbw`r`n", INIPath)  ; Recreated with just the lines I want
 }
