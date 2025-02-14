@@ -32,9 +32,11 @@ QB(QBversion)
 			QBLongName := "QuickBooks 2024"
 			QBExe := "QBWPremierAccountant.exe"
 		case "23 Pro":
-			; Need to find ini location
+			QBLongName := "QuickBooks 2023"
+			QBExe := "QBWPro.exe"
 		case "24 Pro":
-			; Need to find ini location
+			QBLongName := "QuickBooks 2024"
+			QBExe := "QBWPro.exe"
 	}
 
 	;  Create generic INI
@@ -124,7 +126,7 @@ KillQBTasks() {
 			if (InStr(process.Name,"QB") == 1)
 				RunWait("taskkill /f /im " . process.Name)
 		}
-	Sleep(2000)
+	Sleep(5000)
 }
 
 
@@ -148,6 +150,7 @@ QBWaitClose(QBversion, QBLongName){
 		ToolTip("Waiting for QBW.exe process to close. Seconds: " . WaitCounter, 100, 100)
 		Sleep(1000)
 	}
+	Sleep(1500)
 	ToolTip
 }
 

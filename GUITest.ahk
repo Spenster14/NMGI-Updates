@@ -67,9 +67,9 @@ Constructor()
 	DropDownList1.OnEvent("Change", PopulateListView)
 	ButtonRemove.OnEvent("Click", LV_DoubleClick)
 	myGui.OnEvent('Close', (*) => ExitApp())
-	myGui.Title := "Jacro Version 0.11"
+	myGui.Title := "Jacro Version 0.12"
 	
-	global StartGUI := 10
+	global StartGUI := 30
 	SetTimer(UpdateTimer, 1000)
 
 	LV_DoubleClick(LV, RowNum)
@@ -114,7 +114,7 @@ UpdateTimer() {
     else {
         SetTimer(UpdateTimer, 0)
 		ToolTip
-		ControlClick("ButtonBtnStart", "ahk_class #32770")
+		ControlClick("Button1","Jacro")
     }
 }
 
@@ -131,6 +131,31 @@ RemoveOutput(RemoveLine){
 		if A_LoopField
 			if !InStr(A_LoopField,RemoveLine)
 				FileAppend(A_LoopField . "`r`n",TodayDate . "-Update.log")
+}
+
+TRLogin(){
+	WinWait "Sign In | Firm ID"
+	WinActivate
+	UIA.ElementFromHandle("Sign In | Firm ID").WaitElement({AutomationId:"SignInButton"}).Click()
+	if WinWait("Onvio",,15)								;  15 second test to see if we're already logged in
+	{
+		; do nothing
+	}
+	else
+	{
+		WinWait "Sign in to"
+		WinActivate
+		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Email", Type:"Edit"}).Value :=	InputBox("Please enter the user name.","User Name").Value
+		WinActivate "Sign in to"
+		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Sign in", Type:"Button"}).Click("left")
+		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Password", Type:"Edit"}).Value :=	InputBox("Please enter the user password.","User password", "password").Value
+		WinActivate "Sign in to"
+		UIA.ElementFromHandle("Sign in to CS Professional Suite").FindElement({Name:"Sign in", Type:"Button"}).Click("left")
+		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Enter your one-time code", Type:"Edit"}).Value :=	InputBox("Please enter the one-time code.","One-time code").Value
+		WinActivate "Enter your one"
+		UIA.ElementFromHandle("Enter your one").FindElement({Name:"Continue", Type:"Button"}).Click("left")
+		Sleep 2000
+	}
 }
 
 $Esc::

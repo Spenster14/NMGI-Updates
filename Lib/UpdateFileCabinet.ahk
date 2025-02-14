@@ -2,28 +2,7 @@ FileCabinet(PostUpdate:=0)
 {
 	found:=""
 	Run "C:\WinCSI\CABINET\fcab.exe"
-	WinWait "Sign In | Firm ID"
-	WinActivate
-	UIA.ElementFromHandle("Sign In | Firm ID").WaitElement({AutomationId:"SignInButton"}).Click()
-	if WinWait("Onvio",,10)								;  10 second test to see if we're already logged in
-	{
-		; do nothing
-	}
-	else
-	{
-		WinWait "Sign in to"
-		WinActivate
-		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Email", Type:"Edit"}).Value :=	InputBox("Please enter the user name.","User Name").Value
-		WinActivate "Sign in to"
-		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Sign in", Type:"Button"}).Click()
-		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Password", Type:"Edit"}).Value :=	InputBox("Please enter the user password.","User password", "password").Value
-		WinActivate "Sign in to"
-		UIA.ElementFromHandle("Sign in to CS Professional Suite").FindElement({Name:"Sign in", Type:"Button"}).Click()
-		UIA.ElementFromHandle("Sign in to CS Professional Suite").WaitElement({Name:"Enter your one-time code", Type:"Edit"}).Value :=	InputBox("Please enter the one-time code.","One-time code").Value
-		WinActivate "Enter your one"
-		UIA.ElementFromHandle("Enter your one").FindElement({Name:"Continue", Type:"Button"}).Click()
-		Sleep 2000
-	}
+	TRLogin()
 	if PostUpdate
 	{
 		WinWaitActive "User Bulletin"
