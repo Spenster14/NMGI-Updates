@@ -1,24 +1,26 @@
 UT(UTversion, PostUpdate:=0)
 {
-	switch UTversion
-	{
-		case "21":
-			Run "C:\WinCSI\UT21\utw21.exe"
-		case "22":
-			Run "C:\WinCSI\UT22\utw22.exe"
-		case "23":
-			Run "C:\WinCSI\UT23\utw23.exe"
-		case "24":
-			{
-				if FileExist("C:\WinCSI\UT24\utw24.exe")
-					Run "C:\WinCSI\UT24\utw24.exe"
-				else
-					Run "W:\UT24\utw24.exe"
-			}
+	If !PostUpdate {
+		switch UTversion
+		{
+			case "21":
+				Run "C:\WinCSI\UT21\utw21.exe"
+			case "22":
+				Run "C:\WinCSI\UT22\utw22.exe"
+			case "23":
+				Run "C:\WinCSI\UT23\utw23.exe"
+			case "24":
+				{
+					if FileExist("C:\WinCSI\UT24\utw24.exe")
+						Run "C:\WinCSI\UT24\utw24.exe"
+					else
+						Run "W:\UT24\utw24.exe"
+				}
+		}
+		
+		TRLogin()
 	}
 	
-	TRLogin()
-
 	WinWaitActive "UltraTax CS"
 	WinMaximize
 	WinClose "Onvio"
@@ -50,8 +52,14 @@ UT(UTversion, PostUpdate:=0)
 	}
 	else
 	{
-		MsgBox "Not no new updates, something else!  Exiting. Handle manually"							;  Need logic here for when there are updates
-		;~ UT("22", "Again")												; Run a second time to clear popup
+		;  MsgBox "Not no new updates, something else!  Exiting. Handle manually"							;  Need logic here for when there are updates
+		;  Test Stuff
+		ToolTip("Testing update...", 100, 100)
+		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
+		WinWait("UltraTax CS ahk_class #32770","Updates have been")
+		UIA.ElementFromHandle("UltraTax CS ahk_class #32770").WaitElement({Name:"Close", Type:"OK"}).Highlight().Click()
+		ToolTip
+		UT(UTversion, "1")												; Run a second time to clear popup
 		FileAppend("- UltraTax " . UTversion . " - Updates installed`r`n",TodayDate . "-Update.log")
 		ExitApp
 		return "UltraTax" . UTversion . " - Updates installed`r`n"

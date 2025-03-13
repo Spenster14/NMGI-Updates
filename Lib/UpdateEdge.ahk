@@ -8,11 +8,17 @@ Edge(*)
 		Sleep 250
 		WinMaximize "Edge"
 	}
-	Sleep 1000
 	edgeEl := UIA.ElementFromHandle("ahk_exe msedge.exe")
-	edgeEl.WaitElement({Name:"(Alt+F)", Type:"Button", mm:2}).ControlClick()
-	edgeEl.WaitElement({Name:"Help and feedback", Type:"MenuItem"}).Click()
-	edgeEl.WaitElement({Name:"About Microsoft Edge", Type:"MenuItem"}).Click()
+	Sleep 1000		
+	try {
+		edgeEl.FindElement({Name:"Settings and more", Type:"Button", mm:1}).ControlClick()
+		edgeEl.FindElement({Name:"Help and feedback", Type:"MenuItem"}).Click()
+		edgeEl.FindElement({Name:"About Microsoft Edge", Type:"MenuItem"}).Click()
+	} catch Error as e {
+		Send("!f")
+		Sleep 250
+		Send("bm")
+	}
 	Sleep 1000
 	Loop {
 		result := OCR.FromWindow("Edge",,2)

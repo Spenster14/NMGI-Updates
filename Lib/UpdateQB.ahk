@@ -21,7 +21,7 @@ QB(QBversion)
 			QBExe := "QBWEnterpriseAccountant.exe"
 		case "21 Premier":
 			QBLongName := "QuickBooks 2021"
-			QBExe := "QBW32PremierAccountant.exe"
+			QBExe := "QBW32Pro.exe"
 		case "22 Premier":
 			QBLongName := "QuickBooks 2022"
 			QBExe := "QBWPremierAccountant.exe"
@@ -48,6 +48,10 @@ QB(QBversion)
 		Run "C:\Program Files\Intuit\" . QBLongName . "\" . QBExe
 	else if FileExist("C:\Program Files (x86)\Intuit\" . QBLongName . "\" . QBExe)
 		Run "C:\Program Files (x86)\Intuit\" . QBLongName . "\" . QBExe
+	else {
+		MsgBox("Could not find the install location.  Please let Jon Y know and do this one manually for now.")
+		ExitApp
+	}
 
 	WinWait("QuickBooks ")
 	ToolTip
@@ -158,5 +162,8 @@ QBCreateINI(INIPath){
 	if FileExist(INIPath){
 		FileDelete(INIPath)   ;  Delete current INI file
 	}
+	INIDirectory := SubStr(INIPath, 1, StrLen(INIPath)-12)
+	If !DirExist(INIDirectory)
+		DirCreate(INIDirectory)
 	FileAppend("[MRUFILES_STANDARD_STRATUM]`r`nFILE1=C:\Hide_The_Welcome_Screen.qbw`r`n[MRUFILES_BEL_STRATUM]`r`nFILE1=C:\Hide_The_Welcome_Screen.qbw`r`n", INIPath)  ; Recreated with just the lines I want
 }

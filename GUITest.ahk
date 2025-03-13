@@ -90,6 +90,7 @@ Constructor()
 		FileAppend("END`r`n",TodayDate . "-Update.log")
 		if FileExist("output.bak")
 			FileDelete("output.bak")
+		MsgBox("Updates are complete.  Have a nice day.")
 		ExitApp
 	}
 	

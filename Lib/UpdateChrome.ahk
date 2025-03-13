@@ -1,9 +1,18 @@
 Chrome(*)
 {
-	if (StrLower(GetDomainName()) == "greenwoodcpa.com")
+/* 	if (StrLower(GetDomainName()) == "greenwoodcpa.com")
 		Run "C:\Program Files\Google\Chrome\Application\chrome.exe"
 	else
 		Run "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+ */
+	if FileExist("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
+		Run "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+	else if FileExist("C:\Program Files\Google\Chrome\Application\chrome.exe")
+		Run "C:\Program Files\Google\Chrome\Application\chrome.exe"
+	else {
+		MsgBox("Could not find the install location.  Please let Jon Y know and do this one manually for now.")
+		ExitApp
+	}
 	WinWaitActive "Chrome"
 	WinMaximize "Chrome"
 	while !(WinGetMinMax("Chrome")=="1")
@@ -13,7 +22,23 @@ Chrome(*)
 	}
 	Sleep 1000
 	chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
-	chromeEl.WaitElement({Name:"Chrome", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
+	Loop {
+		try {
+			chromeEl.FindElement({Name:"Chrome", Type:"Button", Order:"LastToFirstOrder"}).Click()
+		} catch Error as e {
+			; did not find the Button
+		} else {
+			break
+		}
+		try {
+			chromeEl.FindElement({Name:"Chrome", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
+		} catch Error as e {
+			; did not find the menuItem
+		} else {
+			break
+		}
+		Sleep 250
+	}
 	chromeEl.WaitElement({Name:"Help", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
 	chromeEl.WaitElement({Name:"About Google Chrome", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
 	Sleep 1000
