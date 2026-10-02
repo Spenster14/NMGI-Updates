@@ -1,0 +1,11 @@
+#Requires AutoHotkey v2.0
+MyGui := Gui()
+cb := MyGui.Add("Checkbox", "cRed", "Test Checkbox")
+MyGui.Show("w200 h100")
+Sleep(1000)
+cb.SetFont("cBlue")
+cb.Opt("cBlue")
+cb.Redraw()
+Sleep(1000)
+FileAppend("Done", "test_cb_out.txt")
+ExitApp()

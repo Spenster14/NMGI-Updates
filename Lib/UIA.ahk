@@ -1,4 +1,4 @@
-﻿/*
+/*
     Introduction & credits
     This library implements Microsoft's UI Automation framework.
     Microsoft's official documentation:: https://docs.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32
@@ -924,8 +924,19 @@ static ElementFromHandle(hwnd:="", cacheRequest?, activateChromiumAccessibility:
     if IsSet(cacheRequest)
         return this.ElementFromHandleBuildCache(cacheRequest, hwnd)
 
-    if (ComCall(6, this, "ptr", hwnd, "ptr*", &element := 0), element)
-        return this.IUIAutomationElement(element)
+    Loop 20 {
+        try {
+            if (ComCall(6, this, "ptr", hwnd, "ptr*", &element := 0), element)
+                return this.IUIAutomationElement(element)
+            break
+        } catch as e {
+            if (InStr(e.Message, "0x80131505") || (IsSet(e) && e.HasProp("Extra") && InStr(e.Extra, "0x80131505"))) && A_Index < 20 {
+                Sleep 1000
+                continue
+            }
+            throw
+        }
+    }
     throw UnsetError("No element returned by " A_ThisFunc, -1)
 }
 static ElementFromWindow(WinTitle:="", cacheRequest?, activateChromiumAccessibility:=500) => this.ElementFromHandle(WinTitle, cacheRequest?, activateChromiumAccessibility)
@@ -1054,8 +1065,19 @@ static GetRootElementBuildCache(cacheRequest) {
 ; This is a raw wrapper, instead use ElementFromHandle and specify cacheRequest.
 static ElementFromHandleBuildCache(cacheRequest, hwnd) {
     local element
-    if (ComCall(10, this, "ptr", hwnd, "ptr", this.TypeValidation.CacheRequest(cacheRequest), "ptr*", &element := 0), element)
-        return this.IUIAutomationElement(element)
+    Loop 20 {
+        try {
+            if (ComCall(10, this, "ptr", hwnd, "ptr", this.TypeValidation.CacheRequest(cacheRequest), "ptr*", &element := 0), element)
+                return this.IUIAutomationElement(element)
+            break
+        } catch as e {
+            if (InStr(e.Message, "0x80131505") || (IsSet(e) && e.HasProp("Extra") && InStr(e.Extra, "0x80131505"))) && A_Index < 20 {
+                Sleep 1000
+                continue
+            }
+            throw
+        }
+    }
     throw UnsetError("No element returned by " A_ThisFunc, -1)
 }
 

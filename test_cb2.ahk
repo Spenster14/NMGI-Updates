@@ -1,0 +1,11 @@
+#Requires AutoHotkey v2.0
+MyGui := Gui()
+MyGui.Add("Checkbox", "Section", "")
+MyGui.Add("Text", "x+5 yp cRed", "App 1")
+MyGui.Add("Checkbox", "xs", "")
+MyGui.Add("Text", "x+5 yp cBlue", "App 2")
+MyGui.Add("Checkbox", "ys", "")
+MyGui.Add("Text", "x+5 yp cGreen", "App 3")
+MyGui.Show("w300 h200")
+Sleep(1000)
+ExitApp()

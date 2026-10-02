@@ -1,10 +1,141 @@
+﻿#Requires AutoHotkey v2.0
+
+GetChromePath() {
+    if FileExist("C:\Program Files\Google\Chrome\Application\chrome.exe")
+        return "C:\Program Files\Google\Chrome\Application\chrome.exe"
+    else if FileExist("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
+        return "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+    return ""
+}
+
 Chrome(*)
 {
-/* 	if (StrLower(GetDomainName()) == "greenwoodcpa.com")
-		Run "C:\Program Files\Google\Chrome\Application\chrome.exe"
-	else
-		Run "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
- */
+	; --- 0. CLEANUP: Close existing instances ---
+    if ProcessExist("chrome.exe") {
+        UpdateStatus("Closing existing Chrome instances...", 100, 100)
+        try {
+            ; Try gentle close first
+            if WinExist("ahk_exe chrome.exe")
+                WinClose("ahk_exe chrome.exe")
+            
+            ; Wait 2 seconds for it to close gracefully
+            ProcessWaitClose("chrome.exe", 2)
+            if ProcessExist("chrome.exe") {
+                ; If still running, force kill
+                RunWait("taskkill /F /IM chrome.exe /T",, "Hide")
+            }
+        }
+        UpdateStatus() ; Clear tooltip
+    }
+
+    ; --- 1. Launch Chrome Normally ---
+    chromePath := GetChromePath()
+    if (chromePath = "") {
+        MsgBox("Chrome not found.")
+        return " - Error"
+    }
+
+    UpdateStatus("Launching Chrome...", 100, 100)
+    Run(chromePath)
+    
+    UpdateStatus("Waiting for Chrome to open...", 100, 100)
+    if !WinWait("ahk_exe chrome.exe",, 10) {
+        return " - Error (Did not open)"
+    }
+    
+    WinActivate("ahk_exe chrome.exe")
+    WinMaximize("ahk_exe chrome.exe")
+    WinWaitActive("ahk_exe chrome.exe")
+    
+    UpdateStatus("Waiting for Chrome to initialize...", 100, 100)
+    ; Wait for UI to load, login screens to appear, and dismiss any focus-stealing bubbles
+    Sleep(15000)
+    Send("{Esc}")
+    Sleep(500)
+    Send("{Esc}")
+    Sleep(500)
+    
+    WinActivate("ahk_exe chrome.exe") ; Ensure focus wasn't lost
+    
+    UpdateStatus("Navigating to Settings...", 100, 100)
+    ; Navigate to settings page via a New Tab
+    Send("^t")
+    Sleep(1000)
+    SendText("chrome://settings/help")
+    Sleep(100)
+    Send("{Enter}")
+    
+    ; Wait up to 5 seconds for the settings page title
+    WinWait("Settings - About Chrome ahk_exe chrome.exe",, 5)
+
+    ; --- 3. Monitor Update Status ---
+    Loop {
+        UpdateStatus("Checking Chrome status... " . A_Index, 100, 100)
+        Sleep(1000)
+        
+        try {
+            ; Re-acquire element in case the window refreshed
+            chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
+        } catch {
+            continue
+        }
+            
+        try {
+            ; Check Success
+            successEl := chromeEl.FindElement({Name:"Chrome is up to date", Type:"Text", MatchMode:"Substring"})
+            if successEl {
+                successEl.Highlight()
+                UpdateStatus()
+                if WinExist("ahk_exe chrome.exe")
+                    WinClose("ahk_exe chrome.exe")
+                ProcessWaitClose("chrome.exe", 2)
+                if ProcessExist("chrome.exe")
+                    RunWait("taskkill /F /IM chrome.exe /T",, "Hide")
+                return " - No updates"
+            }
+        } catch {
+            ; Not found, continue
+        }
+
+        try {
+            ; Check Restart
+            relaunchBtn := chromeEl.FindElement({Name:"Nearly up to date", Type:"Text", MatchMode:"Substring"})
+            if (relaunchBtn) {
+                UpdateStatus("Relaunching Chrome...", 100, 100)
+                pid := 0
+                try pid := WinGetPID("ahk_exe chrome.exe")
+                try {
+                    btn := chromeEl.FindElement({Name:"Relaunch", Type:"Button", MatchMode:"Substring"})
+                    btn.Highlight()
+                    btn.Click()
+                } catch {
+                    WinClose("ahk_exe chrome.exe")
+                }
+                WinWaitClose("ahk_exe chrome.exe",, 10)
+                if (pid)
+                    ProcessWaitClose(pid)
+                Sleep(3000)
+				Chrome() 
+                return " - Updates installed"
+            }
+        } catch {
+            ; Keep looping
+        }
+
+        if (A_Index > 500) {
+            UpdateStatus()
+            if WinExist("ahk_exe chrome.exe")
+                WinClose("ahk_exe chrome.exe")
+            ProcessWaitClose("chrome.exe", 2)
+            if ProcessExist("chrome.exe")
+                RunWait("taskkill /F /IM chrome.exe /T",, "Hide")
+            return " - Error (Timeout)"
+        }
+    }
+}
+
+/* Chrome(*)
+{
 	if FileExist("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
 		Run "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 	else if FileExist("C:\Program Files\Google\Chrome\Application\chrome.exe")
@@ -21,8 +152,9 @@ Chrome(*)
 		WinMaximize "Chrome"
 	}
 	Sleep 1000
-	chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
 	Loop {
+		chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
+		UpdateStatus("Waiting to find ChromeMenu button 1", 100, 100)
 		try {
 			chromeEl.FindElement({Name:"Chrome", Type:"Button", Order:"LastToFirstOrder"}).Click()
 		} catch Error as e {
@@ -39,43 +171,33 @@ Chrome(*)
 		}
 		Sleep 250
 	}
+	UpdateStatus("Waiting to find Help Button 2", 100, 100)
 	chromeEl.WaitElement({Name:"Help", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
+	UpdateStatus("Waiting to find About Google button 3", 100, 100)
 	chromeEl.WaitElement({Name:"About Google Chrome", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
 	Sleep 1000
 	Loop {
-		result := OCR.FromWindow("Chrome",,2)
-		Loop result.Lines.Length{
-			if InStr(result.Lines[A_Index].Text, "Version", false)
-			StatusLine := A_Index - 1
-		}
-		try resultline := result.Lines[StatusLine].Text
-		catch
-		{
-			continue
-		}
-		if InStr(result.Text, "Chrome is up to", false)
-		{
-            Loop result.Lines.Length{
-                if InStr(result.Lines[A_Index].Text, "Chrome is up to", false)
-                    result.Highlight(result.Lines[A_Index])
-            }
+		chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
+		UpdateStatus("Waiting to Uptodate or reboot message 4", 100, 100)
+		try {
+			chromeEl.FindElement({Name:"Chrome is up to date", Type:"Text"}).Highlight()
+		} catch Error as e {
+			; did not find the Button
+		} else {
+			UpdateStatus()
 			WinClose "Chrome"
-			FileAppend("- Google Chrome - No updates`r`n",TodayDate . "-Update.log")
-			return
+			return " - No updates"
 		}
-		else if InStr(result.Text, "Relaunch Chrome", false)
-		{
-            Loop result.Lines.Length{
-                if InStr(result.Lines[A_Index].Text, "Relaunch Chrome", false)
-                    result.Highlight(result.Lines[A_Index])
-            }
+		try {
+			chromeEl.FindElement({Name:"Nearly up to date! Relaunch Chrome to finish updating.", Type:"Text"}).Highlight()
+		} catch Error as e {
+			; did not find the menuItem
+		} else {
 			WinClose "Chrome"
-			Sleep 2000
+			Sleep(3000)
 			Chrome()
-			RemoveOutput("Google Chrome")
-			FileAppend("- Google Chrome - Updates installed`r`n",TodayDate . "-Update.log")
-			return
+			Sleep(1000)
+			return " - Updates installed"
 		}
-		Sleep 100
 	}
-}
+} */
