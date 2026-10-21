@@ -169,10 +169,16 @@ FPS(PostUpdate := false) {
         lblWeb := webUpdatesEl.WaitElement({AutomationId: "lblWebVersion"}, 5000)
         lblCur := webUpdatesEl.WaitElement({AutomationId: "lblVersion"}, 5000)
 
-        if (lblWeb)
+        ; Highlight both comparison indicators (the two lights) simultaneously
+        if (lblWeb) {
+            try lblWeb.Highlight(-3000, "Green", 3)
             webVer := (lblWeb.Value != "") ? lblWeb.Value : lblWeb.Name
-        if (lblCur)
+        }
+        if (lblCur) {
+            try lblCur.Highlight(-3000, "Blue", 3)
             curVer := (lblCur.Value != "") ? lblCur.Value : lblCur.Name
+        }
+        Sleep(1500)
     } catch {
         ; Fallback to WinGetText
         txt := WinGetText("Web Updates")
@@ -187,10 +193,12 @@ FPS(PostUpdate := false) {
         try {
             if (webUpdatesEl) {
                 closeBtn := webUpdatesEl.FindElement({Name: "Close", Type: "Button", mm: 2})
-                if (closeBtn)
+                if (closeBtn) {
+                    try closeBtn.Highlight()
                     closeBtn.Click()
-                else
+                } else {
                     Send("{Esc}")
+                }
             } else {
                 Send("{Esc}")
             }
@@ -198,7 +206,12 @@ FPS(PostUpdate := false) {
             Send("{Esc}")
         }
 
+        ; Wait for and dismiss "Web Registration" ("Do you want to run FAS Accounting? -> No")
+        DismissWebRegistration(10)
+
         try WinClose("ahk_id " . mainHwnd)
+        if ProcessExist("FAS.EXE")
+            TerminateProcessGracefully("FAS.EXE", 2, true)
         UpdateStatus()
         return " - No updates"
     }
@@ -221,12 +234,19 @@ FPS(PostUpdate := false) {
 
         if (installBtn) {
             UpdateStatus("Installing FPS updates...", 100, 100)
+            try installBtn.Highlight()
             try installBtn.Click()
             Sleep(3000)
+
+            DismissWebRegistration(10)
+            try WinClose("ahk_id " . mainHwnd)
+            if ProcessExist("FAS.EXE")
+                TerminateProcessGracefully("FAS.EXE", 2, true)
             UpdateStatus()
             return " - Updates installed"
         }
 
+        DismissWebRegistration(10)
         UpdateStatus()
         return " - Updates available (Manual)"
     }
@@ -235,11 +255,54 @@ FPS(PostUpdate := false) {
     txt := WinGetText("Web Updates")
     if InStr(txt, "No new updates") || InStr(txt, "up to date") {
         try WinClose("Web Updates")
+        DismissWebRegistration(10)
         try WinClose("ahk_id " . mainHwnd)
+        if ProcessExist("FAS.EXE")
+            TerminateProcessGracefully("FAS.EXE", 2, true)
         UpdateStatus()
         return " - No updates"
     }
 
+    DismissWebRegistration(10)
     UpdateStatus()
     return " - Updates available (Manual)"
+}
+
+; Dismisses the post-update "Web Registration" modal ("Do you want to run FAS Accounting?")
+DismissWebRegistration(timeoutSec := 10) {
+    UpdateStatus("Waiting for Web Registration prompt...", 100, 100)
+    if WinWait("Web Registration", , timeoutSec) {
+        WinActivate("Web Registration")
+        Sleep(300)
+        try {
+            regEl := UIA.ElementFromHandle("Web Registration")
+            noBtn := regEl.FindElement({Name: "No", Type: "Button", mm: 2})
+            if (noBtn) {
+                try noBtn.Highlight(1000)
+                noBtn.Click()
+                Sleep(500)
+                return true
+            }
+        }
+        ; Tier B: ControlClick &No
+        try {
+            ControlClick("&No", "Web Registration")
+            Sleep(500)
+            return true
+        } catch {
+            try {
+                ControlClick("Button2", "Web Registration")
+                Sleep(500)
+                return true
+            }
+        }
+        ; Tier C: Keyboard accelerator Alt+N
+        try {
+            WinActivate("Web Registration")
+            Send("!n")
+            Sleep(500)
+            return true
+        }
+    }
+    return false
 }

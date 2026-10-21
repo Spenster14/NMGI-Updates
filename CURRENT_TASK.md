@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Bugfix complete: Resolved "String has no property named Name" in `Core/Config.ahk` & `Lib/UpdateFPS.ahk`. Verified with compiled binary execution test. Ready for Step 4.4.
+- **Active Step**: Step 4.3c complete (FPS highlighting, Web Registration dismissal, and Category 0 priority ordering verified). Ready for Step 4.4: End-to-End Suite Smoke & Packaging.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -129,6 +129,12 @@
   - [x] Validate via `smoke.ps1`.
   - [x] Bugfix: Remove redundant nested `ResolveAppPath` call from `GetFPSPath` and make `ResolveAppPath` polymorphic to safely accept both `String` and `App` object. Verified with compiled `NMGIupdates.exe` smoke test.
   - [x] Atomically commit Step 4.3.
+- [x] **Step 4.3c**: FPS Visual Highlighting, Web Registration Dismissal, & Priority Ordering
+  - [x] Add UIA `.Highlight()` to version comparison elements (`lblWebVersion` and `lblVersion`) in `Lib/UpdateFPS.ahk`.
+  - [x] Implement `DismissWebRegistration()` in `Lib/UpdateFPS.ahk` to wait for and dismiss "Web Registration" ("Do you want to run FAS Accounting? -> No").
+  - [x] Assign Category 0 to FPS in `Core/AppRegistry.ahk` so it sorts before all other applications (including Accounting CS & Practice CS).
+  - [x] Validate via smoke test (`smoke.ps1`) and compile verification.
+  - [x] Atomically commit Step 4.3c.
 
 
 

@@ -73,13 +73,23 @@
   - `Practice: Call Now result = A:ControlClick` immediately triggered and dismissed dialog in <50ms.
 - Confirmed `UIA.TransactionTimeout` bounding completely eliminates the prior 40-second freeze.
 - Tier B updated to include `!o` accelerator fallback in addition to `{Enter}` and `!n`.
-- Validated category ordering logic: Category 1 items (`Accounting CS`, `Practice CS`, `FPS`) run first upfront, followed by automated TR apps (Category 2), QuickBooks (Category 3), Lacerte/Adobe (Category 4), and Browsers (Category 5).
+- **Step 4.3c**:
+  - Enhanced `Lib/UpdateFPS.ahk`:
+    - Added UIA visual highlighting to version elements in Web Updates (`lblWeb.Highlight(-3000, "Green", 3)` and `lblCur.Highlight(-3000, "Blue", 3)`) with 1.5s dwell for clear operator feedback.
+    - Implemented `DismissWebRegistration(10)` to detect the post-update "Web Registration" dialog ("Do you want to run FAS Accounting?") and select "No" via UIA Click, ControlClick, and `Alt+N` fallbacks.
+  - Priority Ordering in `Core/AppRegistry.ahk`:
+    - Moved FPS to index 1 of `global Apps` and assigned `Category 0` in `GetAppCategory()`, ensuring Financial Planning Suite launches first before all other applications (including Accounting CS and Practice CS) so the operator enters manual credentials immediately at startup.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly.
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 33280)`).
+- Validated category ordering logic: Category 0 (`FPS`) runs first upfront, followed by Category 1 interactive TR apps (`Accounting CS`, `Practice CS`), Category 2 automated TR apps (`UltraTax`, `FileCabinet`, `Fixed Assets`), Category 3 (`QuickBooks`), Category 4 (`Lacerte`, `Adobe`), and Category 5 (`Browsers`).
 
 ### Unfinished Logic / Known Quirks Documented
 - Do not spawn helper scripts/processes via `A_AhkPath`/`A_ScriptDir` from compiled `NMGIupdates.exe`: for compiled scripts this relaunches Jacro itself and `#SingleInstance force` kills the running instance (the "Could not close the previous instance" prompt). Keep all logic in-process.
 
 ### Next Step / Status
-- Step 4.3 complete.
+- Step 4.3c complete.
 - Ready for Step 4.4: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 
