@@ -13,18 +13,7 @@ Chrome(*)
 	; --- 0. CLEANUP: Close existing instances ---
     if ProcessExist("chrome.exe") {
         UpdateStatus("Closing existing Chrome instances...", 100, 100)
-        try {
-            ; Try gentle close first
-            if WinExist("ahk_exe chrome.exe")
-                WinClose("ahk_exe chrome.exe")
-            
-            ; Wait 2 seconds for it to close gracefully
-            ProcessWaitClose("chrome.exe", 2)
-            if ProcessExist("chrome.exe") {
-                ; If still running, force kill
-                RunWait("taskkill /F /IM chrome.exe /T",, "Hide")
-            }
-        }
+        TerminateProcessGracefully("chrome.exe", 2, true)
         UpdateStatus() ; Clear tooltip
     }
 
@@ -86,11 +75,7 @@ Chrome(*)
             if successEl {
                 successEl.Highlight()
                 UpdateStatus()
-                if WinExist("ahk_exe chrome.exe")
-                    WinClose("ahk_exe chrome.exe")
-                ProcessWaitClose("chrome.exe", 2)
-                if ProcessExist("chrome.exe")
-                    RunWait("taskkill /F /IM chrome.exe /T",, "Hide")
+                TerminateProcessGracefully("chrome.exe", 2, true)
                 return " - No updates"
             }
         } catch {
@@ -124,11 +109,7 @@ Chrome(*)
 
         if (A_Index > 500) {
             UpdateStatus()
-            if WinExist("ahk_exe chrome.exe")
-                WinClose("ahk_exe chrome.exe")
-            ProcessWaitClose("chrome.exe", 2)
-            if ProcessExist("chrome.exe")
-                RunWait("taskkill /F /IM chrome.exe /T",, "Hide")
+            TerminateProcessGracefully("chrome.exe", 2, true)
             return " - Error (Timeout)"
         }
     }

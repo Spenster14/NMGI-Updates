@@ -13,16 +13,7 @@ Firefox(*)
     ; --- 0. CLEANUP: Close existing instances ---
     if ProcessExist("firefox.exe") {
         UpdateStatus("Closing existing Firefox instances...", 100, 100)
-        try {
-            if WinExist("ahk_exe firefox.exe")
-                WinClose("ahk_exe firefox.exe")
-            
-            ; Wait 2 seconds for graceful close
-            ProcessWaitClose("firefox.exe", 2)
-            if ProcessExist("firefox.exe") {
-                RunWait("taskkill /F /IM firefox.exe /T",, "Hide")
-            }
-        }
+        TerminateProcessGracefully("firefox.exe", 2, true)
         UpdateStatus()
     }
 
@@ -104,12 +95,8 @@ Firefox(*)
             try {
                 if aboutEl.FindElement({Name:"Firefox is up to date", Type:"Group", MatchMode:"Substring"}).Highlight() {
                     UpdateStatus()
-                    WinClose("About Mozilla Firefox")
-                    if WinExist("ahk_exe firefox.exe")
-                        WinClose("ahk_exe firefox.exe")
-                    ProcessWaitClose("firefox.exe", 2)
-                    if ProcessExist("firefox.exe")
-                        RunWait("taskkill /F /IM firefox.exe /T",, "Hide")
+                    try WinClose("About Mozilla Firefox")
+                    TerminateProcessGracefully("firefox.exe", 2, true)
                     return " - No updates"
                 }
             }
@@ -165,12 +152,8 @@ Firefox(*)
         ; Safety Break: 500 seconds
         if (A_Index > 500) {
             UpdateStatus()
-            WinClose("About Mozilla Firefox")
-            if WinExist("ahk_exe firefox.exe")
-                WinClose("ahk_exe firefox.exe")
-            ProcessWaitClose("firefox.exe", 2)
-            if ProcessExist("firefox.exe")
-                RunWait("taskkill /F /IM firefox.exe /T",, "Hide")
+            try WinClose("About Mozilla Firefox")
+            TerminateProcessGracefully("firefox.exe", 2, true)
             return " - Error (Timeout)"
         }
     }

@@ -229,15 +229,7 @@ HandleIEPopup() {
 
 KillQBTasks() {
     UpdateStatus("Killing open QB tasks...", 100, 100)
-    
-    try {
-        wmi := ComObjGet("winmgmts:")
-        processes := wmi.ExecQuery("Select * from Win32_Process Where Name LIKE 'QB%'")
-        
-        for process in processes {
-            RunWait("taskkill /F /PID " . process.ProcessId,, "Hide")
-        }
-    }
+    KillProcessesByPrefix("QB")
     Sleep(2500)
     UpdateStatus()
 }

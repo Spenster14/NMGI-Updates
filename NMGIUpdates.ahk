@@ -13,6 +13,7 @@
 #Include <UpdateAccountingCS>
 #Include <UpdateLacerte>
 #Include Core\Network.ahk
+#Include Core\Process.ahk
 #Include Core\Logger.ahk
 #Include Core\AppRegistry.ahk
 #Include Core\Config.ahk
@@ -229,6 +230,8 @@ RunSelectedApps(*) {
             return
     }
 
+    batchResults := []
+
     for app in SortedApps {
         if (app.cb.Value) {
             ActiveCheckbox := app
@@ -239,8 +242,7 @@ RunSelectedApps(*) {
             UpdateStatus("Cleaning up " app.Label "...")
             SplitPath(app.Path, &exeName)
             if (exeName) {
-                ; Universally wait up to 20 seconds for the process to fully exit RAM
-                ProcessWaitClose(exeName, 20)
+                TerminateProcessGracefully(exeName, 5, true)
             }
 
             if (result)
@@ -256,15 +258,69 @@ RunSelectedApps(*) {
             }
             app.txt.Redraw()
 
+            batchResults.Push({ App: app, Result: result, Status: app.Status })
+
             ActiveCheckbox := ""
             UpdateStatus("Idle...")
         }
     }
 
-    UpdateStatus("Updates are complete. Have a nice day.")
-    MsgBox("Updates are complete. Have a nice day.")
+    UpdateStatus("Updates complete.")
+    ShowSummaryReport(batchResults)
 }
-#Requires AutoHotkey v2.0
+
+ShowSummaryReport(results) {
+    if (results.Length == 0)
+        return
+
+    updated := []
+    current := []
+    attention := []
+    errors := []
+
+    for item in results {
+        if (item.Status == "Updated") {
+            updated.Push(item.App.Label)
+        } else if (item.Status == "NotUpdated") {
+            current.Push(item.App.Label)
+        } else if (item.Status == "Error") {
+            msg := RegExReplace(item.Result, "^\s*-\s*", "")
+            errors.Push(item.App.Label . (msg != "" ? " (" . msg . ")" : ""))
+        } else {
+            msg := RegExReplace(item.Result, "^\s*-\s*", "")
+            attention.Push(item.App.Label . (msg != "" ? " (" . msg . ")" : ""))
+        }
+    }
+
+    report := "Update batch processing complete.`n`n"
+    if (updated.Length > 0) {
+        report .= "✔ UPDATED (" . updated.Length . "):`n"
+        for name in updated
+            report .= "  • " . name . "`n"
+        report .= "`n"
+    }
+    if (current.Length > 0) {
+        report .= "✔ ALREADY UP-TO-DATE (" . current.Length . "):`n"
+        for name in current
+            report .= "  • " . name . "`n"
+        report .= "`n"
+    }
+    if (attention.Length > 0) {
+        report .= "⚠ ATTENTION REQUIRED (" . attention.Length . "):`n"
+        for name in attention
+            report .= "  • " . name . "`n"
+        report .= "`n"
+    }
+    if (errors.Length > 0) {
+        report .= "✖ ERRORS (" . errors.Length . "):`n"
+        for name in errors
+            report .= "  • " . name . "`n"
+        report .= "`n"
+    }
+
+    iconOpt := (errors.Length > 0) ? "Icon!" : ((attention.Length > 0) ? "Icon!" : "Iconi")
+    MsgBox(report, "Jacro - Batch Update Summary", iconOpt)
+}
 
 CloseApp(*) {
     ExitApp

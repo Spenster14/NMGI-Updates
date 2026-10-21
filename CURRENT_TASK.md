@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Milestone 3 (Interface Standardization & Error Resilience)
-- **Active Step**: Step 3.2 Complete. Ready for Step 3.3 (Hardening Status & Recovery Logic).
+- **Active Step**: Step 3.3 Complete. Ready for Step 3.4 (Final Verification & Documentation Update).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -60,9 +60,10 @@
   - Added `SafeFileExist(path)` to intercept UNC queries and instantly bypass unreachable hosts (reducing scan times from ~30s per file to ~0ms after the first host probe).
   - Integrated `SafeFileExist` into `Core/Config.ahk`, `Lib/UpdateFixedAssets.ahk`, `Lib/UpdateUT.ahk`, and `Lib/UpdateFileCabinet.ahk`.
   - Wired `ClearHostCache()` into `NMGIUpdates.ahk` to refresh host state whenever the operator clicks "Rescan".
-- [ ] **Step 3.3**: Hardening Status & Recovery Logic
-  - Unify timeout and kill routines across all modules.
-  - Provide a summary report modal upon completion of batch updates.
+- [x] **Step 3.3**: Hardening Status & Recovery Logic
+  - Extracted `Core/Process.ahk` providing `TerminateProcessGracefully(exeName, waitSeconds, forceKill)` and WMI-based `KillProcessesByPrefix(prefix)`.
+  - Replaced repetitive process kill blocks across `Lib/UpdateChrome.ahk`, `Lib/UpdateEdge.ahk`, `Lib/UpdateFirefox.ahk`, `Lib/UpdateQB.ahk`, and `NMGIUpdates.ahk`.
+  - Added `ShowSummaryReport(results)` to `NMGIUpdates.ahk` displaying a categorized report dialog (Updated, Already Current, Attention Required, Errors) upon batch completion.
 - [ ] **Step 3.4**: Final Verification & Documentation Update
   - Test end-to-end launch on test machine.
   - Update `CHANGELOG.md` with transition notes.

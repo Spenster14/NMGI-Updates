@@ -13,18 +13,7 @@ Edge(*)
 	; --- 0. CLEANUP: Close existing instances ---
     if ProcessExist("msedge.exe") {
         UpdateStatus("Closing existing Edge instances...", 100, 100)
-        try {
-            ; Try gentle close first
-            if WinExist("ahk_exe msedge.exe")
-                WinClose("ahk_exe msedge.exe")
-            
-            ; Wait 2 seconds for it to close gracefully
-            ProcessWaitClose("msedge.exe", 2)
-            if ProcessExist("msedge.exe") {
-                ; If still running, force kill
-                RunWait("taskkill /F /IM msedge.exe /T",, "Hide")
-            }
-        }
+        TerminateProcessGracefully("msedge.exe", 2, true)
         UpdateStatus()
     }
 
@@ -83,11 +72,7 @@ Edge(*)
             if successEl {
                 successEl.Highlight()
                 UpdateStatus()
-                if WinExist("ahk_exe msedge.exe")
-                    WinClose("ahk_exe msedge.exe")
-                ProcessWaitClose("msedge.exe", 2)
-                if ProcessExist("msedge.exe")
-                    RunWait("taskkill /F /IM msedge.exe /T",, "Hide")
+                TerminateProcessGracefully("msedge.exe", 2, true)
                 return " - No updates"
             }
         } catch {
@@ -140,11 +125,7 @@ Edge(*)
         
         if (A_Index > 500) {
             UpdateStatus()
-            if WinExist("ahk_exe msedge.exe")
-                WinClose("ahk_exe msedge.exe")
-            ProcessWaitClose("msedge.exe", 2)
-            if ProcessExist("msedge.exe")
-                RunWait("taskkill /F /IM msedge.exe /T",, "Hide")
+            TerminateProcessGracefully("msedge.exe", 2, true)
             return " - Error (Timeout)"
         }
     }
