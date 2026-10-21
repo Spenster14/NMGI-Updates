@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 \---
 
 trigger: always\_on
@@ -26,3 +30,4 @@ description: "Core architectural boundaries and vibe coding governance"
 
 &#x20;  - The exact next step in `CURRENT\_TASK.md`.
 
+5\. \*\*Pre-Execution Checkpoint Protocol\*\*: Before running multi-file code generation, modifying dependencies, or executing terminal actions, immediately record the active execution plan into `CURRENT\_TASK.md`. Always write documentation and state updates to disk first before executing code changes.
