@@ -118,45 +118,24 @@ Practice(PostUpdate := false) {
             return " - Error (CS Connect not found)"
         }
 
-        try {
-            btn.Click()
-        } catch {
-            ; ControlClick fallback if standard invoke throws
-        }
+        ; Invoke blocks while the modal CS Connect dialog is open - bound it so Jacro never freezes.
+        UpdateStatus("Opening Practice CS Connect...", 100, 100)
+        InvokeNoFreeze(btn)
 
         ; --- Trigger CS Connect Call ---
         UpdateStatus("Waiting for CS Connect window to load...", 100, 100)
-        if WinWait("CS Connect", , 20) {
-            WinActivate("CS Connect")
-            Sleep(500)
-            UpdateStatus("Pressing Call Now / Connect button...", 100, 100)
-
-            clickedCall := false
-            try {
-                csConnectEl := UIA.ElementFromHandle("CS Connect")
-                ; Try matching "Call Now" or "Connect" with a safe 3000ms timeout
-                callBtn := ""
-                try callBtn := csConnectEl.WaitElement({ Name: "Call Now", MatchMode: "Substring", Type: "Button" }, 3000)
-                if !callBtn {
-                    try callBtn := csConnectEl.WaitElement({ Name: "Connect", MatchMode: "Substring", Type: "Button" }, 3000)
-                }
-
-                if callBtn {
-                    try callBtn.Highlight()
-                    callBtn.Click()
-                    clickedCall := true
-                }
-            } catch {
-                clickedCall := false
-            }
-
-            if (!clickedCall) {
-                UpdateStatus("Using keyboard fallback for CS Connect...", 100, 100)
-                WinActivate("CS Connect")
-                Sleep(500)
-                Send("{Enter}")
-            }
+        csExe := ""
+        try csExe := WinGetProcessName("Practice CS -")
+        hCS := WaitForCSConnect(csExe, 20000)
+        if (!hCS) {
+            CSConnectLog("Practice: CS Connect window NOT found (exe=" . csExe . ")")
+            UpdateStatus()
+            return " - Error (CS Connect window not found)"
         }
+        CSConnectLog("Practice: CS Connect hwnd=" . hCS . " exe=" . csExe . " controls: " . DescribeControls(hCS))
+        UpdateStatus("CS Connect found (hwnd " . hCS . "). Pressing Call Now...", 100, 100)
+        callMethod := ClickCallNow(hCS)
+        CSConnectLog("Practice: Call Now result = " . (callMethod != "" ? callMethod : "NO TIER WORKED"))
 
         ; --- 3. Wait for Call Summary ---
         UpdateStatus("Waiting for Call Summary to appear...", 100, 100)

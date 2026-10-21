@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2e complete (Fixed false-positive update detection using DumpAll and Apply Updates modal gating in `Lib/UpdatePractice.ahk`).
+- **Active Step**: Step 4.2f complete (non-freezing CS Connect launch + tiered Call Now click via `Core/CSConnect.ahk`); awaiting operator verification on a live Practice CS / Accounting CS.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -106,5 +106,14 @@
   - [x] Gate `" - Updates available (Manual)"` on confirmed detection of the `"Apply Updates"` dialog rather than defaulting on read failures.
   - [x] Run smoke test verification via `smoke.ps1`.
   - [x] Atomically commit Step 4.2e.
+- [x] **Step 4.2f**: Non-freezing CS Connect launch + robust "Call Now" click (Practice CS & Accounting CS) — *baseline reset to `7410370`; prior 4.2f–4.2l experiments were rolled back*
+  - Diagnosis: `btn.Click()` => UIA `Invoke()` is a synchronous cross-process call; the CS Connect toolbar button opens a MODAL dialog so Invoke does not return until UIA's timeout (~20-40s). Jacro's single thread is blocked (busy cursor, status stuck on "Waiting for ... Connect button...").
+  - Plan:
+    - [x] New `Core/CSConnect.ahk` (shared by both modules, included from `NMGIUpdates.ahk`): `InvokeNoFreeze(btn)` bounds `UIA.TransactionTimeout` (restored afterwards) around the single blocking Invoke.
+    - [x] Poll for the dialog with yielding `Sleep(100)` loop (GUI stays responsive); match `CS Connect ahk_exe <exe of the main window>` with TitleMatchMode 2; hidden-window fallback (setting restored).
+    - [x] "Call Now" tiers: (a) exact-text control match -> `ControlClick` then `BM_CLICK` post; (b) `WinActivate` + `{Enter}` (default button) then `!n`; (c) client-relative coordinate click.
+    - [x] Diagnostics: HWND + control list (hwnd/class/text) to `CSConnect-debug.log` (git-ignored via `*.log`), HWND in status box.
+    - [x] Wire into `Lib/UpdatePractice.ahk` and `Lib/UpdateAccountingCS.ahk`; add `#Include Core\CSConnect.ahk`.
+    - [x] Smoke test via `smoke.ps1`; mock-dialog tests of tiers A and C pass (tier B needs a live interactive desktop). Atomic commit.
 
 

@@ -41,6 +41,7 @@ if (!A_IsAdmin) {
 #Include <UpdateLacerte>
 #Include Core\Network.ahk
 #Include Core\Process.ahk
+#Include Core\CSConnect.ahk
 #Include Core\Logger.ahk
 #Include Core\AppRegistry.ahk
 #Include Core\Config.ahk

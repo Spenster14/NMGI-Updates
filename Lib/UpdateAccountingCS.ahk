@@ -75,23 +75,23 @@ AccountingCS(PostUpdate := false) {
             return " - Error (CS Connect not found)"
         }
 
-        try {
-            btn.Click()
-        } catch {
-            ; Legacy UI might throw an error even though the click succeeds and opens the window
-        }
+        ; Invoke blocks while the modal CS Connect dialog is open - bound it so Jacro never freezes.
+        UpdateStatus("Opening Accounting CS Connect...", 100, 100)
+        InvokeNoFreeze(btn)
 
         UpdateStatus("Waiting for CS Connect window to load...", 100, 100)
-        WinWaitActive("CS Connect")
-        try {
-            UpdateStatus("Pressing Call Now button...", 100, 100)
-            UIA.ElementFromHandle("CS Connect").WaitElement({ Name: "Call Now", Type: "Button" }).Click()
-        } catch {
-            UpdateStatus("Could not find Call Now button...", 100, 100)
-            WinActivate("CS Connect")
-            Sleep(500)
-            Send("{Enter}")
+        csExe := ""
+        try csExe := WinGetProcessName("Accounting CS -")
+        hCS := WaitForCSConnect(csExe, 20000)
+        if (!hCS) {
+            CSConnectLog("AccountingCS: CS Connect window NOT found (exe=" . csExe . ")")
+            UpdateStatus()
+            return " - Error (CS Connect window not found)"
         }
+        CSConnectLog("AccountingCS: CS Connect hwnd=" . hCS . " exe=" . csExe . " controls: " . DescribeControls(hCS))
+        UpdateStatus("CS Connect found (hwnd " . hCS . "). Pressing Call Now...", 100, 100)
+        callMethod := ClickCallNow(hCS)
+        CSConnectLog("AccountingCS: Call Now result = " . (callMethod != "" ? callMethod : "NO TIER WORKED"))
 
         WinWait("Call Summary")
         callSumEl := UIA.ElementFromHandle("Call Summary")
