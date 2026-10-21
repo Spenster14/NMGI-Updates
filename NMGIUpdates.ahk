@@ -13,6 +13,7 @@
 #Include <UpdateAccountingCS>
 #Include <UpdateLacerte>
 #Include Core\Logger.ahk
+#Include Auth\Bulletins.ahk
 /* #Include <UpdateAdobe>
 #Include <UpdateFPS> */
 SetTitleMatchMode 2
@@ -490,46 +491,6 @@ CloseSignInTR(*) {
         ;ExitApp
     }
 }
-; ==============================================================================
-; Helper Function to kill popups
-; ==============================================================================
-HandleBulletins(loops := 5) {
-    loop loops {
-        Sleep(1000)
-
-        if WinExist("Choose Data Location") {
-            WinActivate("Choose Data Location")
-            try {
-                UIA.ElementFromHandle("Choose Data Location").FindElement({ Name: "OK", Type: "Button" }).Click()
-            } catch {
-                Send("{Enter}")
-            }
-        }
-
-        if WinExist("User already present") {
-            WinActivate("User already present")
-            try {
-                UIA.ElementFromHandle("User already present").FindElement({ Name: "OK", Type: "Button" }).Click()
-            } catch {
-                Send("{Enter}") ; Fallback to pressing Enter on the OK button
-            }
-        }
-
-        if WinExist("User Bulletin") {
-            WinActivate("User Bulletin")
-            try {
-                UIA.ElementFromHandle("User Bulletin").FindElement({ Name: "Close", Type: "Button" }).Highlight().Click()
-            } catch {
-                WinClose("User Bulletin")
-            }
-        }
-
-        ; If main window is active and no bulletins exist, we can exit early
-        /*         if WinActive("UltraTax CS") && !WinExist("User Bulletin") && !WinExist("Onvio")
-        continue */
-    }
-}
-
 CloseApp(*) {
     ExitApp
 }
