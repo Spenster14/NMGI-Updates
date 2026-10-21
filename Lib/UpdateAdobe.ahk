@@ -56,9 +56,11 @@ Adobe(*)
     ; --- 3. Instantly Trigger Update Check (Fast Path for Unlicensed/Trial Environments) ---
     UpdateStatus("Checking for Adobe updates...", 100, 100)
 
-    ; Detect whether Acrobat is running the New Experience UI or Classic UI
+    ; Detect whether Acrobat is running the New Experience UI, Classic DC UI, or Acrobat 2020
+    is2020 := InStr(adobePath, "2020") ? true : false
     isNewUI := true
-    if InStr(adobePath, "2020") {
+
+    if (is2020) {
         isNewUI := false
     } else {
         try {
@@ -79,11 +81,16 @@ Adobe(*)
         Send("l")
         Sleep(150)
         Send("c")
-    } else {
-        ; Classic Acrobat UI (Top-level Menu Bar: Alt+H -> U)
+    } else if (is2020) {
+        ; Acrobat 2020 (Top-level Menu Bar: Alt+H -> U)
         Send("!h")
         Sleep(150)
         Send("u")
+    } else {
+        ; Classic Acrobat DC UI (Top-level Menu Bar: Alt+H -> C)
+        Send("!h")
+        Sleep(150)
+        Send("c")
     }
 
     ; --- 4. Wait for AdobeARM / Updater Window ---
@@ -128,7 +135,10 @@ Adobe(*)
                         WinActivate("ahk_exe Acrobat.exe")
                         Send("!h")
                         Sleep(150)
-                        Send("u")
+                        if (is2020)
+                            Send("u")
+                        else
+                            Send("c")
                     }
                 }
             } catch {
@@ -139,7 +149,10 @@ Adobe(*)
                 if (isNewUI) {
                     Send("!h")
                     Sleep(150)
-                    Send("u")
+                    if (is2020)
+                        Send("u")
+                    else
+                        Send("c")
                 } else {
                     Send("!f")
                     Sleep(150)
