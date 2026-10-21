@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.4 complete (`Lib/UpdatePPC.ahk` implemented, registered in AppRegistry, wired into suite, and verified). Ready for Step 4.5: End-to-End Suite Smoke & Packaging.
+- **Active Step**: Step 4.4b: PPC Enhancements: (1) Status bar checkbox count & 1-second pause; (2) Handle cancel confirmation dialog ("Are you sure you want to cancel the installation? -> Yes").
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -146,8 +146,12 @@
     - Standard error handling for timeouts or missing paths.
   - [x] Register `PPC` in `Core/AppRegistry.ahk` (Category 2: Automated TR apps).
   - [x] Add `#Include <UpdatePPC>` to `NMGIUpdates.ahk`.
-  - [x] Validate via smoke test (`smoke.ps1`) and compile verification.
   - [x] Atomically commit Step 4.4.
+- [x] **Step 4.4b**: PPC Confirmation Dismissal & Status Checkbox Count
+  - [x] Update status to display number of detected checkboxes and checked count, then pause for 1 second.
+  - [x] After clicking Cancel, wait for "Thomson Reuters Setup - Client" ("Are you sure you want to cancel the installation?") and click "Yes".
+  - [x] Validate via smoke test (`smoke.ps1`) and compile verification.
+  - [x] Atomically commit Step 4.4b.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

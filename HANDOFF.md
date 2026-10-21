@@ -97,12 +97,27 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 14780)`).
 - Validated category ordering logic: Category 0 (`FPS`) runs first upfront, followed by Category 1 interactive TR apps (`Accounting CS`, `Practice CS`), Category 2 automated TR apps (`UltraTax`, `FileCabinet`, `Fixed Assets`, `PPC`), Category 3 (`QuickBooks`), Category 4 (`Lacerte`, `Adobe`), and Category 5 (`Browsers`).
 
+- **Step 4.4b**:
+  - Enhanced `Lib/UpdatePPC.ahk`:
+    - Updated status line to report the total detected checkbox count and checked count (e.g., `PPC: X checkboxes seen (Y checked)`), with an intentional 1-second pause (`Sleep(1000)`) for live visual verification.
+    - Improved checkbox inspection across both explicit `CheckBox` and `TreeItem` controls, as well as child items and `DumpAll()` string parsing fallback.
+    - Handled installer exit confirmation dialog:
+      - Detected `"Thomson Reuters Setup - Client"` modal popup containing `"Are you sure you want to cancel the installation?"`.
+      - Leveraged Z-order HWND matching via `WinGetList("Thomson Reuters Setup - Client")` where `hwnds[1]` is the top-most modal confirmation dialog over parent `hwnds[2]`.
+      - Implemented multi-tier selection for `"Yes"`: Tier A UIA click (`Name: "Yes"`), Tier B `ControlClick("&Yes")` / `ControlClick("Button1")`, and Tier C keyboard Enter (default focused button) / Alt+Y accelerator.
+      - Confirmed clean shutdown via `WinWaitClose` and `TerminateProcessGracefully`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly.
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True`).
+
 ### Unfinished Logic / Known Quirks Documented
-- Do not spawn helper scripts/processes via `A_AhkPath`/`A_ScriptDir` from compiled `NMGIupdates.exe`: for compiled scripts this relaunches Jacro itself and `#SingleInstance force` kills the running instance (the "Could not close the previous instance" prompt). Keep all logic in-process.
+- Same Window Title on Dialog: Both the wizard and confirmation dialog share the exact title `"Thomson Reuters Setup - Client"`. Using Z-order indexing (`WinGetList()[1]`) and matching window text `"Are you sure"` ensures reliable target resolution without misidentifying the parent window.
 
 ### Next Step / Status
-- Step 4.4 complete.
-- Ready for Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+- Step 4.4b complete. Ready for live workstation verification by operator.
+- Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 
