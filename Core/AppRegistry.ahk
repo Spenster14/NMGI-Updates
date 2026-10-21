@@ -16,6 +16,7 @@ global Apps := [
     { Name: "FixedAssetsCS",            Label: "Fixed Assets CS",    fn: (*) => FixedAssets(),       pathFn: (*) => GetFixedAssetsPath() },
     { Name: "AccountingCS",             Label: "Accounting CS",      fn: (*) => AccountingCS(),      pathFn: (*) => GetAccountingCSPath() },
     { Name: "PracticeCS",               Label: "Practice CS",        fn: (*) => Practice(),          pathFn: (*) => GetPracticePath() },
+    { Name: "FPS",                      Label: "Financial Planning Suite", fn: (*) => FPS(),         pathFn: (*) => GetFPSPath() },
     { Name: "Lacerte 22",               Label: "Lacerte 2022",       fn: (*) => Lacerte("22"),       pathFn: (*) => GetLacertePath("22") },
     { Name: "Lacerte 23",               Label: "Lacerte 2023",       fn: (*) => Lacerte("23"),       pathFn: (*) => GetLacertePath("23") },
     { Name: "Lacerte 24",               Label: "Lacerte 2024",       fn: (*) => Lacerte("24"),       pathFn: (*) => GetLacertePath("24") },
@@ -26,7 +27,7 @@ global Apps := [
 ]
 
 GetAppCategory(appName) {
-    if InStr(appName, "Accounting") || InStr(appName, "Practice")
+    if InStr(appName, "Accounting") || InStr(appName, "Practice") || InStr(appName, "Financial Planning") || InStr(appName, "FPS")
         return 1 ; Interactive TR apps (manual DB credentials first in line)
     if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets")
         return 2 ; Automated TR apps

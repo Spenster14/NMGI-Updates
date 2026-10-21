@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2 complete. Temporary CS Connect debug logging removed. Ready for Step 4.3 (`UpdateFPS.ahk`).
+- **Active Step**: Step 4.3 complete (`Lib/UpdateFPS.ahk` implemented, registered, and validated). Ready for Step 4.4: End-to-End Suite Smoke & Packaging.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -115,7 +115,20 @@
     - [x] Diagnostics: HWND + control list (hwnd/class/text) to `CSConnect-debug.log` used during investigation; removed once verified in live testing.
     - [x] Smoke test via `smoke.ps1`; mock-dialog tests of tiers A and C pass (tier B needs a live interactive desktop).
     - [x] Live operator verification confirmed: `InvokeNoFreeze` bounded to 3s (from 40s freeze), `Tier A: Call Now control` detected (`WindowsForms10.BUTTON.app.*`), and `A:ControlClick` successfully dismissed the dialog with zero GUI freeze. Step 4.2f complete.
-    - [x] Cleaned up temporary `CSConnect-debug.log` writes and status bar HWND details from production modules.
+- [x] **Step 4.3**: Modernize `archive/UpdateFPS.ahk` into `Lib/UpdateFPS.ahk`
+  - [x] Implement `GetFPSPath() -> String` with INI cache resolution (`ResolveAppPath`) and candidate paths via `SafeFileExist`.
+  - [x] Implement `FPS(PostUpdate := false) -> String`:
+    - Launch executable (`FAS.EXE -r`).
+    - Handle modal login ("Log User Into System") with graceful cancel support.
+    - Dismiss "Open a Client" dialog via `btnCancel`.
+    - Navigate menu to "Check for Updates" with keyboard fallback (`!h` -> `u`).
+    - Compare version labels in "Web Updates" (`lblWebVersion` vs `lblVersion`).
+    - Return standardized status strings (`" - No updates"`, `" - Updates installed"`, `" - Updates available (Manual)"`, `" - Error (<Reason>)"`).
+  - [x] Register `FPS` in `Core/AppRegistry.ahk` (Category 1: interactive upfront login).
+  - [x] Uncomment `#Include <UpdateFPS>` in `NMGIUpdates.ahk`.
+  - [x] Validate via `smoke.ps1`.
+  - [x] Atomically commit Step 4.3.
+
 
 
 

@@ -52,13 +52,33 @@
 - Tier B updated to include `!o` accelerator fallback in addition to `{Enter}` and `!n`.
 - Validated category ordering logic: Category 1 items (`Accounting CS`, `Practice CS`) run first upfront, followed by automated TR apps (Category 2), QuickBooks (Category 3), Lacerte/Adobe (Category 4), and Browsers (Category 5).
 
+- **Step 4.3**:
+  - Modernized `archive/UpdateFPS.ahk` into production `Lib/UpdateFPS.ahk`:
+    - Robust path discovery via `GetFPSPath()` utilizing `ResolveAppPath` INI cache and `SafeFileExist` checks across mapped drives (`F:`, `W:`, `X:`, `P:`, `S:`, `T:`, `C:`), UNC shares (`\\sql1`, `\\wbsql1`, `\\chfsapp1`, `\\agcfsapp1`, `\\app1`), and local Program Files.
+    - Launches `FAS.EXE -r` with cleanup of any existing instance via `TerminateProcessGracefully`.
+    - Handles "Log User Into System" modal with `InputBox` password entry and graceful cancellation.
+    - Dismisses "Open a Client" dialog via `btnCancel` automation.
+    - Navigates "Check for Updates" via UIA MenuItem and keyboard accelerator (`!h` -> `u`) fallback.
+    - Compares version labels in "Web Updates" (`lblWebVersion` vs `lblVersion`), returning standardized `" - No updates"`, `" - Updates installed"`, `" - Updates available (Manual)"`, or `" - Error (<Reason>)"`.
+  - Registered `FPS` in `Core/AppRegistry.ahk` (Category 1: interactive upfront credentials) and wired `#Include <UpdateFPS>` into `NMGIUpdates.ahk`.
+  - Updated `PROJECT_SPEC.md` active modules list.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly after integrating `Lib/UpdateFPS.ahk`.
+- Live verification confirmed by operator on live Practice CS workstation (`CSConnect-debug.log`):
+  - `Toolbar Invoke returned after 3031 ms (bound 1500 ms)` - blocking call bounded, no thread freeze or spinning cursor.
+  - `Tier A: Call Now control = WindowsForms10.BUTTON.app.* [hwnd]` detected `Call N&ow`.
+  - `Practice: Call Now result = A:ControlClick` immediately triggered and dismissed dialog in <50ms.
+- Confirmed `UIA.TransactionTimeout` bounding completely eliminates the prior 40-second freeze.
+- Tier B updated to include `!o` accelerator fallback in addition to `{Enter}` and `!n`.
+- Validated category ordering logic: Category 1 items (`Accounting CS`, `Practice CS`, `FPS`) run first upfront, followed by automated TR apps (Category 2), QuickBooks (Category 3), Lacerte/Adobe (Category 4), and Browsers (Category 5).
+
 ### Unfinished Logic / Known Quirks Documented
 - Do not spawn helper scripts/processes via `A_AhkPath`/`A_ScriptDir` from compiled `NMGIupdates.exe`: for compiled scripts this relaunches Jacro itself and `#SingleInstance force` kills the running instance (the "Could not close the previous instance" prompt). Keep all logic in-process.
-- Commented-out `#Include <UpdateFPS>` in `NMGIUpdates.ahk` remains in `archive/` awaiting Step 4.3 modernization.
 
 ### Next Step / Status
-- Step 4.2f verified live and complete.
-- Ready for Step 4.3: Modernize `archive/UpdateFPS.ahk` (Financial Planning Suite / Planner CS).
+- Step 4.3 complete.
+- Ready for Step 4.4: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 
 
