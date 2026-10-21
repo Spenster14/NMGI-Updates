@@ -15,7 +15,7 @@ GetFixedAssetsPath() {
     ]
 
     for index, path in potentialPaths {
-        if FileExist(path) {
+        if SafeFileExist(path) {
             return path
         }
     }

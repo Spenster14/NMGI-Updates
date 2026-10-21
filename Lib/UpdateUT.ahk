@@ -19,7 +19,7 @@ GetUTPath(UTversion) {
         if (UTversion == "23" && (InStr(path, "\\kmitho1") || InStr(path, "\\swtho1"))) {
             continue
         }
-        if FileExist(path) {
+        if SafeFileExist(path) {
             return path
         }
     }

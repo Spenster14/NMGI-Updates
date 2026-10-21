@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Milestone 3 (Interface Standardization & Error Resilience)
-- **Active Step**: Step 3.1 Complete. Ready for Step 3.2 (Network UNC Reachability Guards).
+- **Active Step**: Step 3.2 Complete. Ready for Step 3.3 (Hardening Status & Recovery Logic).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -55,8 +55,11 @@
   - Replaced abrupt `ExitApp` in `UpdateQB.ahk` with graceful error returns to preserve batch execution.
   - Eliminated duplicate `FileAppend` calls and redundant variables in `UpdateLacerte.ahk`.
   - Stripped redundant commented-out legacy blocks across all updater modules in `Lib/` and `Core/Logger.ahk`.
-- [ ] **Step 3.2**: Network UNC Reachability Guards
-  - Implement fast network reachability pre-checks for UNC shares (`\\wbsql1`, `\\chfsapp1`, `\\tho1`, `\\agcfsapp1`, `\\przfsapp1`) to prevent lengthy OS-level timeouts when running offline or on disconnected client networks.
+- [x] **Step 3.2**: Network UNC Reachability Guards
+  - Extracted `Core/Network.ahk` implementing fast non-blocking Winsock connection checks (`IsHostReachable`) with per-session caching (`HostCache`).
+  - Added `SafeFileExist(path)` to intercept UNC queries and instantly bypass unreachable hosts (reducing scan times from ~30s per file to ~0ms after the first host probe).
+  - Integrated `SafeFileExist` into `Core/Config.ahk`, `Lib/UpdateFixedAssets.ahk`, `Lib/UpdateUT.ahk`, and `Lib/UpdateFileCabinet.ahk`.
+  - Wired `ClearHostCache()` into `NMGIUpdates.ahk` to refresh host state whenever the operator clicks "Rescan".
 - [ ] **Step 3.3**: Hardening Status & Recovery Logic
   - Unify timeout and kill routines across all modules.
   - Provide a summary report modal upon completion of batch updates.

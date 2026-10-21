@@ -17,7 +17,7 @@ ResolveAppPath(app, forceRescan := false, iniFile := "GUIsettings.ini") {
 
     if (cachedPath == "NotInstalled") {
         return ""
-    } else if (cachedPath != "" && FileExist(cachedPath)) {
+    } else if (cachedPath != "" && SafeFileExist(cachedPath)) {
         return cachedPath
     } else {
         resolved := app.pathFn()

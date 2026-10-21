@@ -12,6 +12,7 @@
 #Include <UpdateFixedAssets>
 #Include <UpdateAccountingCS>
 #Include <UpdateLacerte>
+#Include Core\Network.ahk
 #Include Core\Logger.ahk
 #Include Core\AppRegistry.ahk
 #Include Core\Config.ahk
@@ -80,6 +81,7 @@ BuildGUI(forceRescan := false) {
     }
 
     if (forceRescan) {
+        ClearHostCache()
         ToolTip("Scanning applications, please wait...", 100, 100)
     }
 
