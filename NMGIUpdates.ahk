@@ -1,5 +1,31 @@
 #Requires AutoHotkey v2.0
 #SingleInstance force
+
+; ==============================================================================
+; Self-Elevation Protocol: Ensure Administrative Privileges
+; ==============================================================================
+if (!A_IsAdmin) {
+    isSmokeTest := false
+    argStr := ""
+    for arg in A_Args {
+        if (arg = "/smoke" || arg = "/test")
+            isSmokeTest := true
+        argStr .= ' "' . arg . '"'
+    }
+
+    if (!isSmokeTest) {
+        try {
+            if A_IsCompiled
+                Run('*RunAs "' . A_ScriptFullPath . '" /restart' . argStr)
+            else
+                Run('*RunAs "' . A_AhkPath . '" /restart "' . A_ScriptFullPath . '"' . argStr)
+            ExitApp()
+        } catch {
+            MsgBox("Administrative privileges are required to run Jacro updates.", "Elevation Required", "Iconx")
+            ExitApp()
+        }
+    }
+}
 #include <UIA>
 #include <UIA_Browser>
 #include <OCR>
