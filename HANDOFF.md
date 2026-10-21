@@ -80,17 +80,29 @@
   - Priority Ordering in `Core/AppRegistry.ahk`:
     - Moved FPS to index 1 of `global Apps` and assigned `Category 0` in `GetAppCategory()`, ensuring Financial Planning Suite launches first before all other applications (including Accounting CS and Practice CS) so the operator enters manual credentials immediately at startup.
 
+- **Step 4.4**:
+  - Implemented `Lib/UpdatePPC.ahk`:
+    - Discovers `PPCWebMultiSelect.exe` via `GetPPCPath()`.
+    - Terminates any previous installer instances cleanly via `TerminateProcessGracefully`.
+    - Handles `Thomson Reuters Setup - Installation Type` window, selecting "Next >".
+    - Handles `Thomson Reuters Setup - Client` window, inspecting TreeView and CheckBox elements under "Products to be Installed:".
+    - Evaluates `ToggleState` (and `DumpAll` patterns); if any item is checked, marks `" - Updates available (Manual)"`; if no items are checked, marks `" - No updates"`.
+    - Dismisses the installer via "Cancel" / `!c` and terminates process cleanly.
+  - Registered `PPC` in `Core/AppRegistry.ahk` (`Apps` array, Category 2: Automated TR apps).
+  - Wired `#Include <UpdatePPC>` into `NMGIUpdates.ahk`.
+  - Updated `PROJECT_SPEC.md` active modules list.
+
 ### Tested
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly.
-- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 33280)`).
-- Validated category ordering logic: Category 0 (`FPS`) runs first upfront, followed by Category 1 interactive TR apps (`Accounting CS`, `Practice CS`), Category 2 automated TR apps (`UltraTax`, `FileCabinet`, `Fixed Assets`), Category 3 (`QuickBooks`), Category 4 (`Lacerte`, `Adobe`), and Category 5 (`Browsers`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 14780)`).
+- Validated category ordering logic: Category 0 (`FPS`) runs first upfront, followed by Category 1 interactive TR apps (`Accounting CS`, `Practice CS`), Category 2 automated TR apps (`UltraTax`, `FileCabinet`, `Fixed Assets`, `PPC`), Category 3 (`QuickBooks`), Category 4 (`Lacerte`, `Adobe`), and Category 5 (`Browsers`).
 
 ### Unfinished Logic / Known Quirks Documented
 - Do not spawn helper scripts/processes via `A_AhkPath`/`A_ScriptDir` from compiled `NMGIupdates.exe`: for compiled scripts this relaunches Jacro itself and `#SingleInstance force` kills the running instance (the "Could not close the previous instance" prompt). Keep all logic in-process.
 
 ### Next Step / Status
-- Step 4.3c complete.
-- Ready for Step 4.4: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+- Step 4.4 complete.
+- Ready for Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 
 

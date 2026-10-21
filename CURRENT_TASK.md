@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.3c complete (FPS highlighting, Web Registration dismissal, and Category 0 priority ordering verified). Ready for Step 4.4: End-to-End Suite Smoke & Packaging.
+- **Active Step**: Step 4.4 complete (`Lib/UpdatePPC.ahk` implemented, registered in AppRegistry, wired into suite, and verified). Ready for Step 4.5: End-to-End Suite Smoke & Packaging.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -134,7 +134,22 @@
   - [x] Implement `DismissWebRegistration()` in `Lib/UpdateFPS.ahk` to wait for and dismiss "Web Registration" ("Do you want to run FAS Accounting? -> No").
   - [x] Assign Category 0 to FPS in `Core/AppRegistry.ahk` so it sorts before all other applications (including Accounting CS & Practice CS).
   - [x] Validate via smoke test (`smoke.ps1`) and compile verification.
-  - [x] Atomically commit Step 4.3c.
+- [x] **Step 4.4**: Add and Integrate `Lib/UpdatePPC.ahk` (Thomson Reuters PPC Tools & Practice Aids Installer)
+  - [x] Implement `GetPPCPath() -> String` checking `"C:\Program Files (x86)\Common Files\PPC\PPCWebMultiSelectInstaller\PPCWebMultiSelect.exe"` and 64-bit variant.
+  - [x] Implement `PPC(PostUpdate := false) -> String`:
+    - Launch `PPCWebMultiSelect.exe` (with prior process cleanup via `TerminateProcessGracefully`).
+    - Handle `Thomson Reuters Setup - Installation Type` window: click "Next >".
+    - Handle `Thomson Reuters Setup - Client` window: inspect TreeView checkbox items in "Products to be Installed:".
+    - If any checkbox is checked: return `" - Updates available (Manual)"`.
+    - If no checkboxes are checked: return `" - No updates"`.
+    - Dismiss the installer cleanly by clicking "Cancel" (or sending `!c`).
+    - Standard error handling for timeouts or missing paths.
+  - [x] Register `PPC` in `Core/AppRegistry.ahk` (Category 2: Automated TR apps).
+  - [x] Add `#Include <UpdatePPC>` to `NMGIUpdates.ahk`.
+  - [x] Validate via smoke test (`smoke.ps1`) and compile verification.
+  - [x] Atomically commit Step 4.4.
+- [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
+
 
 
 

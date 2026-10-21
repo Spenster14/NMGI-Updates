@@ -50,6 +50,7 @@ if (!A_IsAdmin) {
 #Include Auth\LacerteLogin.ahk
 #Include <UpdateAdobe>
 #Include <UpdateFPS>
+#Include <UpdatePPC>
 SetTitleMatchMode 2
 CoordMode("ToolTip", "Screen")
 

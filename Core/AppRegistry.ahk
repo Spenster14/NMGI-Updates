@@ -15,6 +15,7 @@ global Apps := [
     { Name: "Ultratax 25",              Label: "UltraTax 2025",      fn: (*) => UT("25"),            pathFn: (*) => GetUTPath("25") },
     { Name: "FileCabinet",              Label: "FileCabinet",        fn: (*) => FileCabinet(),       pathFn: (*) => GetFileCabinetPath() },
     { Name: "FixedAssetsCS",            Label: "Fixed Assets CS",    fn: (*) => FixedAssets(),       pathFn: (*) => GetFixedAssetsPath() },
+    { Name: "PPC",                      Label: "PPC Tools & Practice Aids", fn: (*) => PPC(),        pathFn: (*) => GetPPCPath() },
     { Name: "AccountingCS",             Label: "Accounting CS",      fn: (*) => AccountingCS(),      pathFn: (*) => GetAccountingCSPath() },
     { Name: "PracticeCS",               Label: "Practice CS",        fn: (*) => Practice(),          pathFn: (*) => GetPracticePath() },
     { Name: "Lacerte 22",               Label: "Lacerte 2022",       fn: (*) => Lacerte("22"),       pathFn: (*) => GetLacertePath("22") },
@@ -31,7 +32,7 @@ GetAppCategory(appName) {
         return 0 ; Interactive TR apps requiring manual password (FPS first of all, before Accounting and Practice)
     if InStr(appName, "Accounting") || InStr(appName, "Practice")
         return 1 ; Interactive TR apps (Accounting CS, Practice CS)
-    if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets")
+    if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets") || InStr(appName, "PPC")
         return 2 ; Automated TR apps
     if InStr(appName, "QB") || InStr(appName, "Quickbooks")
         return 3 ; QuickBooks Desktop
