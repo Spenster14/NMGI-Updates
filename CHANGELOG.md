@@ -3,15 +3,38 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased] - 2026-10-21
+### Added
+- **Core Modularization**: Extracted core infrastructure into dedicated `Core/` modules:
+  - `Core/AppRegistry.ahk`: Declarative application table (`Apps`), priority category assignment, and sorting algorithms.
+  - `Core/Config.ahk`: Decoupled INI cache reader/writer (`ResolveAppPath`) operating strictly against `GUIsettings.ini [Paths]`.
+  - `Core/Logger.ahk`: Universal update log writer (`UpdateLog`), status lookup (`GetAppStatus`), and font color mapping (`GetColorByStatus`).
+  - `Core/Network.ahk`: Fast Win32 Winsock (`ws2_32`) non-blocking TCP reachability checks (`IsHostReachable`) with per-session caching (`HostCache`) and safe UNC file guards (`SafeFileExist`).
+  - `Core/Process.ahk`: Unified graceful process termination (`TerminateProcessGracefully`) with window messaging, process wait timeouts, and forceful taskkill fallbacks, plus WMI wildcard process cleanup (`KillProcessesByPrefix`).
+- **Auth Service Decoupling**: Extracted authentication dialogs and popup handlers into `Auth/`:
+  - `Auth/Bulletins.ahk`: Centralized startup bulletin and popup dismissal (`HandleBulletins`).
+  - `Auth/TRLogin.ahk`: Unified Thomson Reuters upfront credentials modal and window handlers (`TRLogin`, `CloseSignInTR`).
+  - `Auth/LacerteLogin.ahk`: Upfront Lacerte operator credential collection modal (`PromptLacerteLogin`).
+- **Batch Completion Summary**: Added `ShowSummaryReport(results)` to `NMGIUpdates.ahk`, displaying a clean categorized report modal with counts and itemized breakdowns of Updated, Already Current, Attention Required, and Error states upon batch completion.
+
 ### Changed
-- Renamed main entry point `CheckboxGUItest.ahk` to `NMGIUpdates.ahk`. Compile this file going forward.
+- Renamed main entry point `CheckboxGUItest.ahk` to `NMGIUpdates.ahk` reflecting production readiness.
 - Moved dormant `UpdateAdobe.ahk` and `UpdateFPS.ahk` from `Lib/` to `archive/` pending modernization.
 - Added `UpdateUT.ahk` / `UpdateFixedAssets.ahk` network locations (`\\wbsql1`, `\\agcfsapp1`).
+- Standardized return signatures across all active `Lib/Update*.ahk` modules to use uniform status prefixes (`" - Updates installed"`, `" - No updates"`, `" - Updates available (Manual)"`, `" - Error (<Reason>)"`).
+- Replaced repetitive process kill logic across `UpdateChrome.ahk`, `UpdateEdge.ahk`, `UpdateFirefox.ahk`, and `UpdateQB.ahk` with `Core/Process.ahk` helpers.
+- Wrapped UNC lookups in `UpdateUT.ahk`, `UpdateFixedAssets.ahk`, `UpdateFileCabinet.ahk`, and `Core/Config.ahk` with `SafeFileExist()` to eliminate 25–30s Windows SMB redirector freezes when disconnected from client networks or VPNs.
+
+### Fixed
+- Fixed Lacerte double-logging bug where `UpdateLacerte.ahk` wrote directly to `TodayDate-Update.log` via `FileAppend` in addition to `UpdateLog()` in `Core/Logger.ahk`.
+- Fixed batch execution aborts in `UpdateQB.ahk` by replacing abrupt `ExitApp` calls on missing paths/configurations with graceful error return strings.
+- Removed duplicate `#Requires AutoHotkey v2.0` directives.
 
 ### Removed
-- Stopped tracking compiled `.exe` files and the per-machine `GUIsettings.ini` (now in `.gitignore`; local copies untouched).
+- Stopped tracking compiled `.exe` binaries and per-machine `GUIsettings.ini` cache in Git (added to `.gitignore`).
 - Deleted legacy prototype `GUITest.ahk` and scratch scripts (`GetDomain.ahk`, `TestChrome.ahk`, `connectwise.ahk`, `test_cb.ahk`, `test_cb2.ahk`).
-- Deleted unused `Lib/FindText.ahk`, OCR-era backups, and UIA dump helpers.
+- Deleted unused external library `Lib/FindText.ahk`, legacy OCR backups, and UIA dump scripts.
+- Stripped over 600 lines of dead commented-out legacy code blocks across `Lib/Update*.ahk` and `Core/Logger.ahk`.
+
 
 ## [Unreleased] - 2026-10-01
 ### Added
