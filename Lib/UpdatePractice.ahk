@@ -9,6 +9,10 @@ GetPracticePath() {
         "X:\Creative Solutions\Practice CS\PracticeCS.exe",
         "P:\Creative Solutions\Practice CS\PracticeCS.exe",
         "S:\Creative Solutions\Practice CS\PracticeCS.exe",
+        "\\sql1\WinCSI\Practice CS\PracticeCS.exe",
+        "\\sql1\WINCSI$\Practice CS\PracticeCS.exe",
+        "\\sql1\Creative Solutions\Practice CS\PracticeCS.exe",
+        "\\sql1\Practice CS\PracticeCS.exe",
         "\\wbsql1\WINCSI$\Practice CS\PracticeCS.exe",
         "\\tho1\thomson\WINCSI\Practice CS\PracticeCS.exe",
         "\\agcfsapp1\WinCSI\Practice CS\PracticeCS.exe",
@@ -17,6 +21,8 @@ GetPracticePath() {
         "C:\WinCSI\Practice CS\PracticeCS.exe",
         "W:\Creative Solutions\Practice CS\practice.exe",
         "X:\Creative Solutions\Practice CS\practice.exe",
+        "\\sql1\WinCSI\Practice CS\practice.exe",
+        "\\sql1\WINCSI$\Practice CS\practice.exe",
         "C:\Program Files (x86)\Creative Solutions\Practice CS\practice.exe",
         "C:\Program Files\Creative Solutions\Practice CS\practice.exe"
     ]

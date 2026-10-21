@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Module Expansion (Integrating `Lib/UpdatePractice.ahk`)
-- **Active Step**: Step 4.2: Registering `PracticeCS` in `Core/AppRegistry.ahk`, queue prioritization, include in `NMGIUpdates.ahk`, and smoke testing.
+- **Current Phase**: Module Expansion (Milestone 4)
+- **Active Step**: Step 4.2b complete (Added `\\sql1` locations to `Lib/UpdatePractice.ahk`).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -88,5 +88,9 @@
   - [x] Update `PROJECT_SPEC.md` module registry.
   - [x] Run smoke test verification via `smoke.ps1` to ensure clean parsing and load.
   - [x] Atomically commit Step 4.2.
+- [x] **Step 4.2b**: Add `\\sql1` locations to `Lib/UpdatePractice.ahk`
+  - [x] Add `\\sql1\WinCSI\Practice CS\PracticeCS.exe`, `\\sql1\WINCSI$\Practice CS\PracticeCS.exe`, and `practice.exe` variants.
+  - [x] Run smoke test verification via `smoke.ps1`.
+  - [x] Atomically commit Step 4.2b.
 
 

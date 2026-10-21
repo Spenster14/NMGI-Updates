@@ -15,8 +15,11 @@
   - Added `#Include <UpdatePractice>` in `NMGIUpdates.ahk`.
   - Updated `PROJECT_SPEC.md` active modules list and directory layout.
 
+- **Step 4.2b**:
+  - Added `\\sql1` network paths (`\\sql1\WinCSI`, `\\sql1\WINCSI$`, `\\sql1\Creative Solutions`, and root share) for both `PracticeCS.exe` and `practice.exe` in `Lib/UpdatePractice.ahk`.
+
 ### Tested
-- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 20092)`).
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 10220)`).
 - Validated category ordering logic: Category 1 items (`Accounting CS`, `Practice CS`) run first upfront, followed by automated TR apps (Category 2), QuickBooks (Category 3), Lacerte/Adobe (Category 4), and Browsers (Category 5).
 
 ### Unfinished Logic / Known Quirks Documented
@@ -24,7 +27,7 @@
 - Commented-out `#Include <UpdateFPS>` in `NMGIUpdates.ahk` remains in `archive/` awaiting future modernization.
 
 ### Next Step / Status
-- Ready for operator verification of `Practice CS` check on test machine, or proceeding to modernize `UpdateFPS.ahk` (Step 4.3).
+- Ready for operator verification of `Practice CS` check on test machine with `\\sql1` network share, or proceeding to modernize `UpdateFPS.ahk` (Step 4.3).
 
 
 
