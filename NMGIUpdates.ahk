@@ -16,7 +16,6 @@
 #Include Auth\Bulletins.ahk
 #Include Auth\TRLogin.ahk
 #Include Auth\LacerteLogin.ahk
-#Include Auth\TRLogin.ahk
 /* #Include <UpdateAdobe>
 #Include <UpdateFPS> */
 SetTitleMatchMode 2
@@ -314,28 +313,8 @@ RunSelectedApps(*) {
     }
 
     if (needsLacerteLogin) {
-        lacerteGui := Gui("+AlwaysOnTop -MinimizeBox -MaximizeBox", "Lacerte Login")
-        lacerteGui.Add("Text", "w250", "Lacerte requires authentication.")
-        lacerteGui.Add("Text", "w250 y+10", "Email:")
-        lEmailEdit := lacerteGui.Add("Edit", "w250")
-        lacerteGui.Add("Text", "w250 y+10", "Password:")
-        lPassEdit := lacerteGui.Add("Edit", "w250 Password")
-        btnLacerte := lacerteGui.Add("Button", "w100 y+15 Default", "Submit")
-
-        SubmitLacerte(*) {
-            LacerteEmail := lEmailEdit.Value
-            LacertePassword := lPassEdit.Value
-            lacerteGui.Destroy()
-        }
-        btnLacerte.OnEvent("Click", SubmitLacerte)
-
-        lacerteGui.Show()
-        WinWaitClose(lacerteGui.Hwnd)
-
-        if (LacerteEmail == "" || LacertePassword == "") {
-            MsgBox("Lacerte login cancelled or incomplete. Aborting updates.")
+        if (!PromptLacerteLogin())
             return
-        }
     }
 
     for app in SortedApps {

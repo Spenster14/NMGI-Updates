@@ -1,9 +1,9 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Planning & Foundation Complete (Transition Specification Established)
-- **Active Step**: Awaiting user approval to begin Milestone 1 (Repository Hygiene & Dead Code Retirement).
-- **Rule Constraints**: Do not edit functional code until explicitly directed. Maintain atomic steps.
+- **Current Phase**: Milestone 2: Modular Architecture & Core Service Extraction
+- **Active Step**: Step 2.1 (Extract Declarative Application Registry to Core/AppRegistry.ahk).
+- **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
 
@@ -32,17 +32,17 @@
 ### Milestone 2: Modular Architecture & Core Service Extraction
 *Goal: Decouple presentation, application registry, authentication flows, and common utility routines into clean, maintainable modules.*
 
+- [x] **Step 2.3**: Common Utilities & State Logging
+  - Extracted log engine (`UpdateLog`, `GetAppStatus`, `GetColorByStatus`) into dedicated `Core/Logger.ahk` (`d012ce5`).
+- [x] **Step 2.2**: Centralize Shared Authentication & Dialog Services
+  - [x] Extracted bulletin and startup popup handlers (`HandleBulletins`) into `Auth/Bulletins.ahk` (`2563e5b`).
+  - [x] Extracted Thomson Reuters login orchestration (`TRLogin`, `CloseSignInTR`) into `Auth/TRLogin.ahk` (`cf68a84`).
+  - [x] Extracted Lacerte upfront authentication modal into `Auth/LacerteLogin.ahk` and wired into `NMGIUpdates.ahk`.
 - [ ] **Step 2.1**: Declarative Application Registry
-  - Extract the application definition list (`Apps` array and category sorter) into a standalone configuration table/class (`src/Core/AppRegistry.ahk`).
-  - Decouple the GUI layout rendering from individual application definitions.
-- [ ] **Step 2.2**: Centralize Shared Authentication & Dialog Services
-  - Extract Thomson Reuters login orchestration (`TRLogin`, `CloseSignInTR`) into `src/Auth/TRLogin.ahk`.
-  - Extract Lacerte upfront authentication modal into `src/Auth/LacerteLogin.ahk`.
-  - Extract bulletin and startup popup handlers (`HandleBulletins`) into `src/Auth/Bulletins.ahk`.
-- [ ] **Step 2.3**: Common Utilities & State Logging
-  - Extract log engine (`UpdateLog`, `GetAppStatus`, `GetColorByStatus`) into a dedicated `Logger.ahk` service.
-  - Consolidate universal process teardown and polling logic (`ProcessWaitClose` with timeout fallbacks) into a helper.
+  - Extract the application definition list (`Apps` array and category sorter) into `Core/AppRegistry.ahk`.
+  - Maintain correct load order (included above `BuildGUI()`).
 - [ ] **Step 2.4**: INI Cache Decoupling
+  - Encapsulate `[Paths]` cache operations into `Core/Config.ahk`.
   - Refactor `GUIsettings.ini` usage to drop legacy domain pipe mappings and standardize strictly on the `[Paths]` cache.
 
 ---
