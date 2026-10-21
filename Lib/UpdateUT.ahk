@@ -1,7 +1,9 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 GetUTPath(UTversion) {
     possiblePaths := [
+        "\\agcfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\wbsql1\WINCSI$\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\Tho1\thomson\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\przfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\swtho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",

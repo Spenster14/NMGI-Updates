@@ -105,15 +105,21 @@ global Apps := [{ Name: "Quickbooks Enterprise 22", Label: "QB Enterprise 2022",
                                 Label: "UltraTax 2025", fn: (*) => UT("25"), pathFn: (*) => GetUTPath("25") }, { Name: "FileCabinet",
                                     Label: "FileCabinet", fn: (*) => FileCabinet(), pathFn: (*) => GetFileCabinetPath() }, { Name: "FixedAssetsCS",
                                         Label: "Fixed Assets CS", fn: (*) => FixedAssets(), pathFn: (*) =>
-                                                GetFixedAssetsPath() }, { Name: "AccountingCS", Label: "Accounting CS", fn: (*
+                                            GetFixedAssetsPath() }, { Name: "AccountingCS", Label: "Accounting CS", fn: (*
                                             ) => AccountingCS(), pathFn: (*) => GetAccountingCSPath() }, { Name: "Lacerte 22",
-                                                Label: "Lacerte 2022", fn: (*) => Lacerte("22"), pathFn: (*) => GetLacertePath("22") }, { Name: "Lacerte 23",
-                                                    Label: "Lacerte 2023", fn: (*) => Lacerte("23"), pathFn: (*) => GetLacertePath("23") }, { Name: "Lacerte 24",
-                                                        Label: "Lacerte 2024", fn: (*) => Lacerte("24"), pathFn: (*) => GetLacertePath("24") }, { Name: "Chrome",
-                                                Label: "Chrome", fn: (*) => Chrome(), pathFn: (*) => GetChromePath() }, { Name: "Edge",
-                                                    Label: "Edge", fn: (*) => Edge(), pathFn: (*) => GetEdgePath() }, { Name: "Firefox",
-                                                        Label: "Firefox", fn: (*) => Firefox(), pathFn: (*) =>
-                                                            GetFirefoxPath() }
+                                                Label: "Lacerte 2022", fn: (*) => Lacerte("22"), pathFn: (*) =>
+                                                    GetLacertePath("22") }, { Name: "Lacerte 23",
+                                                        Label: "Lacerte 2023", fn: (*) => Lacerte("23"), pathFn: (*) =>
+                                                            GetLacertePath("23") }, { Name: "Lacerte 24",
+                                                                Label: "Lacerte 2024", fn: (*) => Lacerte("24"), pathFn: (*
+                                                                ) => GetLacertePath("24") }, { Name: "Chrome",
+                                                                    Label: "Chrome", fn: (*) => Chrome(), pathFn: (*) =>
+                                                                        GetChromePath() }, { Name: "Edge",
+                                                                            Label: "Edge", fn: (*) => Edge(), pathFn: (*
+                                                                            ) => GetEdgePath() }, { Name: "Firefox",
+                                                                                Label: "Firefox", fn: (*) => Firefox(),
+                                                                                pathFn: (*) =>
+                                                                                    GetFirefoxPath() }
 ]
 
 ; Initialize GUI
@@ -172,7 +178,8 @@ BuildGUI(forceRescan := false) {
         SortedApps.Push(app)
 
     GetAppCategory(appName) {
-        if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets") || InStr(appName, "Accounting")
+        if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets") || InStr(
+            appName, "Accounting")
             return 1
         if InStr(appName, "QB") || InStr(appName, "Quickbooks")
             return 2
@@ -186,10 +193,10 @@ BuildGUI(forceRescan := false) {
         i := A_Index
         loop SortedApps.Length - i {
             app1 := SortedApps[A_Index]
-            app2 := SortedApps[A_Index+1]
+            app2 := SortedApps[A_Index + 1]
             cat1 := GetAppCategory(app1.Label)
             cat2 := GetAppCategory(app2.Label)
-            
+
             swap := false
             if (cat1 > cat2) {
                 swap := true
@@ -197,11 +204,11 @@ BuildGUI(forceRescan := false) {
                 if (StrCompare(app1.Label, app2.Label) > 0)
                     swap := true
             }
-            
+
             if (swap) {
                 temp := SortedApps[A_Index]
-                SortedApps[A_Index] := SortedApps[A_Index+1]
-                SortedApps[A_Index+1] := temp
+                SortedApps[A_Index] := SortedApps[A_Index + 1]
+                SortedApps[A_Index + 1] := temp
             }
         }
     }
@@ -209,7 +216,7 @@ BuildGUI(forceRescan := false) {
     ; ==============================================================================
     ; GUI Setup
     ; ==============================================================================
-    MyGui := Gui("+AlwaysOnTop", "Jacro v261001")
+    MyGui := Gui("+AlwaysOnTop", "Jacro v261008")
     MyGui.SetFont("s10", "Segoe UI")
     MyGui.Add("Text", "xm", "Select the applications to start:")
 
@@ -237,10 +244,10 @@ BuildGUI(forceRescan := false) {
                 if (app.Status == "Updated") {
                     app.txt.SetFont("bold")
                 }
-                
+
                 ; Allow clicking the text to toggle the checkbox
                 app.txt.OnEvent("Click", ((cb, *) => cb.Value := !cb.Value).Bind(app.cb))
-                
+
                 app.cb.Value := 1
                 opts := "xs"
             }
@@ -261,21 +268,21 @@ BuildGUI(forceRescan := false) {
         lastApp.txt.GetPos(&cX, &cY, &cW, &cH)
         statusY := cY + cH + 20
         MyGui.Add("Text", "xm y" statusY, "Status:")
-        
+
         ; Calculate exact width to match the application columns
         rightApp := col3.Length > 0 ? col3[1] : (col2.Length > 0 ? col2[1] : col1[1])
         rightApp.txt.GetPos(&rX, &rY, &rW, &rH)
-        
+
         ; We need the start X from the very first checkbox
         col1[1].cb.GetPos(&startX)
-        
+
         boxWidth := (rX + rW) - startX
     } else {
         MyGui.Add("Text", "xm y+15", "Status:")
         boxWidth := 400
     }
     StatusBox := MyGui.Add("Edit", "xm w" boxWidth " h60 ReadOnly", "Idle...")
-    
+
     ; --- Buttons ---
     btnStart := MyGui.Add("Button", "xm w100 Default", "Start")
     btnRescan := MyGui.Add("Button", "x+10 w100", "Rescan")
@@ -284,7 +291,7 @@ BuildGUI(forceRescan := false) {
     ; Events
     btnStart.OnEvent("Click", RunSelectedApps)
     btnRescan.OnEvent("Click", (*) => BuildGUI(true))
-    
+
     btnRescan.OnEvent("ContextMenu", UncheckProcessedApps)
     UncheckProcessedApps(ctrl, item, isRightClick, x, y) {
         if (GetKeyState("Shift")) {
@@ -300,17 +307,17 @@ BuildGUI(forceRescan := false) {
             UpdateStatus("Unchecked " uncheckCount " processed applications.")
         }
     }
-    
+
     btnCancel.OnEvent("Click", CloseApp)
     MyGui.OnEvent("Close", CloseApp)
 
     MyGui.Show("Hide")
-    WinGetPos(,, &guiW, &guiH, MyGui.Hwnd)
+    WinGetPos(, , &guiW, &guiH, MyGui.Hwnd)
     primaryMonitor := MonitorGetPrimary()
     MonitorGetWorkArea(primaryMonitor, &MonLeft, &MonTop, &MonRight, &MonBottom)
     newX := MonRight - guiW - 25
     newY := MonBottom - guiH - 25
-    WinMove(newX, newY,,, MyGui.Hwnd)
+    WinMove(newX, newY, , , MyGui.Hwnd)
     MyGui.Show("NoActivate")
 
     if (forceRescan) {
@@ -339,17 +346,17 @@ RunSelectedApps(*) {
         lacerteGui.Add("Text", "w250 y+10", "Password:")
         lPassEdit := lacerteGui.Add("Edit", "w250 Password")
         btnLacerte := lacerteGui.Add("Button", "w100 y+15 Default", "Submit")
-        
+
         SubmitLacerte(*) {
             LacerteEmail := lEmailEdit.Value
             LacertePassword := lPassEdit.Value
             lacerteGui.Destroy()
         }
         btnLacerte.OnEvent("Click", SubmitLacerte)
-        
+
         lacerteGui.Show()
         WinWaitClose(lacerteGui.Hwnd)
-        
+
         if (LacerteEmail == "" || LacertePassword == "") {
             MsgBox("Lacerte login cancelled or incomplete. Aborting updates.")
             return
@@ -433,7 +440,7 @@ TRLogin() {
     WinActivate(loginTitle)
 
     userEmail := "", userPass := "", mfaCode := ""
-    
+
     ; Create a single prompt for all credentials
     credGui := Gui("+AlwaysOnTop -MinimizeBox -MaximizeBox", "TR Login")
     credGui.Add("Text", "w250", "Please enter your credentials:")
@@ -444,7 +451,7 @@ TRLogin() {
     credGui.Add("Text", "w250 y+10", "MFA Code:")
     mfaEdit := credGui.Add("Edit", "w250")
     btn := credGui.Add("Button", "w100 y+15 Default", "Submit")
-    
+
     SubmitCreds(*) {
         userEmail := emailEdit.Value
         userPass := passEdit.Value
@@ -452,7 +459,7 @@ TRLogin() {
         credGui.Destroy()
     }
     btn.OnEvent("Click", SubmitCreds)
-    
+
     credGui.Show()
     WinWaitClose(credGui.Hwnd)
 
