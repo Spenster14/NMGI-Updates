@@ -44,20 +44,22 @@
 
 ### Tested
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly.
-- Mock "CS Connect" dialog (radio "Connect now", "&Call Now", Cancel): HWND/exe detection correct; tier A clicked only Call Now; tier C (relative click) also works. Tier B (keystrokes) could not be validated in the headless session.
-- Confirmed `UIA.TransactionTimeout` default 20000 ms and read/write works.
-- NOT yet verified against live Practice CS / Accounting CS (cannot reproduce the modal-blocking provider here).
+- Live verification confirmed by operator on live Practice CS workstation (`CSConnect-debug.log`):
+  - `Toolbar Invoke returned after 3031 ms (bound 1500 ms)` - blocking call bounded, no thread freeze or spinning cursor.
+  - `Tier A: Call Now control = WindowsForms10.BUTTON.app.* [hwnd]` detected `Call N&ow`.
+  - `Practice: Call Now result = A:ControlClick` immediately triggered and dismissed dialog in <50ms.
+- Confirmed `UIA.TransactionTimeout` bounding completely eliminates the prior 40-second freeze.
+- Tier B updated to include `!o` accelerator fallback in addition to `{Enter}` and `!n`.
 - Validated category ordering logic: Category 1 items (`Accounting CS`, `Practice CS`) run first upfront, followed by automated TR apps (Category 2), QuickBooks (Category 3), Lacerte/Adobe (Category 4), and Browsers (Category 5).
 
 ### Unfinished Logic / Known Quirks Documented
-- Live CS Connect call and "Apply Updates" dismissal requires validation on an operator workstation with Thomson Reuters Practice CS installed.
-- The toolbar Invoke may still hold Jacro's thread for up to ~1.5 s (the bound). If that is unacceptable, next option is posting `WM_LBUTTONDOWN/UP` to the ToolbarWindow32 (needs TB_GETITEMRECT via remote memory).
-- If it still stalls, send `CSConnect-debug.log` (shows Invoke elapsed ms, HWND, control list, tier used).
-- Do not spawn helper scripts/processes via `A_AhkPath`/`A_ScriptDir` from the compiled `NMGIupdates.exe`: for compiled scripts this relaunches Jacro itself and `#SingleInstance force` kills the running instance (the "Could not close the previous instance" prompt).
-- Commented-out `#Include <UpdateFPS>` in `NMGIUpdates.ahk` remains in `archive/` awaiting future modernization.
+- Do not spawn helper scripts/processes via `A_AhkPath`/`A_ScriptDir` from compiled `NMGIupdates.exe`: for compiled scripts this relaunches Jacro itself and `#SingleInstance force` kills the running instance (the "Could not close the previous instance" prompt). Keep all logic in-process.
+- Commented-out `#Include <UpdateFPS>` in `NMGIUpdates.ahk` remains in `archive/` awaiting Step 4.3 modernization.
 
 ### Next Step / Status
-- Operator to run Practice CS (and Accounting CS) on a test machine and report timing/behaviour; attach `CSConnect-debug.log` if anything fails.
+- Step 4.2f verified live and complete.
+- Ready for Step 4.3: Modernize `archive/UpdateFPS.ahk` (Financial Planning Suite / Planner CS).
+
 
 
 

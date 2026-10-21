@@ -106,13 +106,16 @@ ClickCallNow(hwnd) {
         }
     }
 
-    ; Tier B: keyboard. "Call Now" is the dialog's default button (Enter); !n is its accelerator.
+    ; Tier B: keyboard. "Call Now" is the dialog's default button (Enter); !o / !n are accelerators.
     try {
         WinActivate(win)
         if WinWaitActive(win, , 1.5) {
             Send("{Enter}")
             if CSConnectClosed(hwnd, 1500)
                 return "B:Enter"
+            Send("!o")
+            if CSConnectClosed(hwnd, 1500)
+                return "B:Alt+O"
             Send("!n")
             if CSConnectClosed(hwnd, 1500)
                 return "B:Alt+N"

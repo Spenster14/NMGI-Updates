@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2f complete (non-freezing CS Connect launch + tiered Call Now click via `Core/CSConnect.ahk`); awaiting operator verification on a live Practice CS / Accounting CS.
+- **Active Step**: Step 4.2f verified live by operator (`A:ControlClick` executed cleanly in <50ms with zero freeze). Finalizing Step 4.2f and preparing for Step 4.3 (`UpdateFPS.ahk`).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -113,7 +113,8 @@
     - [x] Poll for the dialog with yielding `Sleep(100)` loop (GUI stays responsive); match `CS Connect ahk_exe <exe of the main window>` with TitleMatchMode 2; hidden-window fallback (setting restored).
     - [x] "Call Now" tiers: (a) exact-text control match -> `ControlClick` then `BM_CLICK` post; (b) `WinActivate` + `{Enter}` (default button) then `!n`; (c) client-relative coordinate click.
     - [x] Diagnostics: HWND + control list (hwnd/class/text) to `CSConnect-debug.log` (git-ignored via `*.log`), HWND in status box.
-    - [x] Wire into `Lib/UpdatePractice.ahk` and `Lib/UpdateAccountingCS.ahk`; add `#Include Core\CSConnect.ahk`.
-    - [x] Smoke test via `smoke.ps1`; mock-dialog tests of tiers A and C pass (tier B needs a live interactive desktop). Atomic commit.
+    - [x] Smoke test via `smoke.ps1`; mock-dialog tests of tiers A and C pass (tier B needs a live interactive desktop).
+    - [x] Live operator verification confirmed: `InvokeNoFreeze` bounded to 3s (from 40s freeze), `Tier A: Call Now control` detected (`WindowsForms10.BUTTON.app.*`), and `A:ControlClick` successfully dismissed the dialog with zero GUI freeze. Step 4.2f complete.
+
 
 
