@@ -38,6 +38,8 @@ The primary goal of Jacro is to automate the discovery, launching, update checki
 | `Lib/UpdateFixedAssets.ahk` | Thomson Reuters Fixed Assets CS Updater | Active & battle-tested. Navigates `dsw.exe`, CS Connect, and handles UltraTax-named restart dialogs. |
 | `Lib/UpdateFileCabinet.ahk` | Thomson Reuters FileCabinet CS Updater | Active & battle-tested. Handles `fcab.exe`, CS Connect ("Call Now"), pending updates, and active-user lock detection. |
 | `Lib/UpdateAccountingCS.ahk` | Thomson Reuters Accounting CS Updater | Active. Navigates `AccountingCS.exe`, CS Connect; currently sets updates to "install manually" to avoid disruptive uncoordinated firm-wide database updates. |
+| `Lib/UpdatePractice.ahk` | Thomson Reuters Practice CS Updater | Active. Navigates `PracticeCS.exe`, CS Connect; checks for updates and defers installation manually to avoid firm-wide database locks. Positioned upfront in queue. |
+| `Lib/UpdateAdobe.ahk` | Adobe Acrobat Updater | Active. Multi-version path discovery (DC & 2020), UI mode detection (New Experience vs Classic DC vs 2020), and sub-350ms unlicensed trial screen bypass. |
 | `Lib/UpdateQB.ahk` | Intuit QuickBooks Desktop Updater | Active. Comprehensive configuration for Enterprise, Premier, and Pro (versions 21–24). Suppresses welcome screen via `QBWUSER.INI`, handles installer prompts, and inspects `Install.log`. |
 | `Lib/UpdateLacerte.ahk` | Intuit Lacerte Tax Updater | Active. Supports tax years 22, 23, and 24. Features upfront credential input with keyboard-navigation fallback for WPF controls, Delphi menu automation, and WPF class regex matching. |
 | `Lib/UpdateChrome.ahk` | Google Chrome Updater | Active. Cleans up existing processes, opens `chrome://settings/help`, detects update status via UIA, and handles relaunch cycles. |
@@ -106,6 +108,8 @@ NMGI-Updates/
 │       ├── UpdateFixedAssets.ahk
 │       ├── UpdateFileCabinet.ahk
 │       ├── UpdateAccountingCS.ahk
+│       ├── UpdatePractice.ahk
+│       ├── UpdateAdobe.ahk
 │       ├── UpdateQB.ahk
 │       ├── UpdateLacerte.ahk
 │       ├── UpdateChrome.ahk

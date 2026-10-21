@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Module Expansion (Modernizing `Lib/UpdateAdobe.ahk`)
-- **Active Step**: Step 4.1: Planning interface, dependencies, and integration for `Lib/UpdateAdobe.ahk`.
+- **Current Phase**: Module Expansion (Integrating `Lib/UpdatePractice.ahk`)
+- **Active Step**: Step 4.2: Registering `PracticeCS` in `Core/AppRegistry.ahk`, queue prioritization, include in `NMGIUpdates.ahk`, and smoke testing.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -80,4 +80,13 @@
   - [x] Uncomment `#Include <UpdateAdobe>` in `NMGIUpdates.ahk`.
   - [x] Run smoke test verification via `smoke.ps1` to ensure clean parsing and load.
   - [x] Atomically commit Step 4.1.
+- [x] **Step 4.2**: Add and Integrate `Lib/UpdatePractice.ahk`
+  - [x] Create `Lib/UpdatePractice.ahk` with `GetPracticePath() -> String` and `Practice(PostUpdate := false) -> String`.
+  - [x] Register `{ Name: "PracticeCS", Label: "Practice CS", fn: (*) => Practice(), pathFn: (*) => GetPracticePath() }` in `Core/AppRegistry.ahk`.
+  - [x] Update `GetAppCategory` in `Core/AppRegistry.ahk` so interactive database-login apps (Accounting CS & Practice CS) sort to the beginning of Category 1.
+  - [x] Add `#Include <UpdatePractice>` in `NMGIUpdates.ahk`.
+  - [x] Update `PROJECT_SPEC.md` module registry.
+  - [x] Run smoke test verification via `smoke.ps1` to ensure clean parsing and load.
+  - [x] Atomically commit Step 4.2.
+
 

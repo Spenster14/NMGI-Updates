@@ -37,6 +37,7 @@ if (!A_IsAdmin) {
 #Include <UpdateFirefox>
 #Include <UpdateFixedAssets>
 #Include <UpdateAccountingCS>
+#Include <UpdatePractice>
 #Include <UpdateLacerte>
 #Include Core\Network.ahk
 #Include Core\Process.ahk

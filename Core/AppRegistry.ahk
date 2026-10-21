@@ -15,6 +15,7 @@ global Apps := [
     { Name: "FileCabinet",              Label: "FileCabinet",        fn: (*) => FileCabinet(),       pathFn: (*) => GetFileCabinetPath() },
     { Name: "FixedAssetsCS",            Label: "Fixed Assets CS",    fn: (*) => FixedAssets(),       pathFn: (*) => GetFixedAssetsPath() },
     { Name: "AccountingCS",             Label: "Accounting CS",      fn: (*) => AccountingCS(),      pathFn: (*) => GetAccountingCSPath() },
+    { Name: "PracticeCS",               Label: "Practice CS",        fn: (*) => Practice(),          pathFn: (*) => GetPracticePath() },
     { Name: "Lacerte 22",               Label: "Lacerte 2022",       fn: (*) => Lacerte("22"),       pathFn: (*) => GetLacertePath("22") },
     { Name: "Lacerte 23",               Label: "Lacerte 2023",       fn: (*) => Lacerte("23"),       pathFn: (*) => GetLacertePath("23") },
     { Name: "Lacerte 24",               Label: "Lacerte 2024",       fn: (*) => Lacerte("24"),       pathFn: (*) => GetLacertePath("24") },
@@ -25,13 +26,15 @@ global Apps := [
 ]
 
 GetAppCategory(appName) {
-    if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets") || InStr(appName, "Accounting")
-        return 1
+    if InStr(appName, "Accounting") || InStr(appName, "Practice")
+        return 1 ; Interactive TR apps (manual DB credentials first in line)
+    if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets")
+        return 2 ; Automated TR apps
     if InStr(appName, "QB") || InStr(appName, "Quickbooks")
-        return 2
+        return 3 ; QuickBooks Desktop
     if InStr(appName, "Chrome") || InStr(appName, "Edge") || InStr(appName, "Firefox")
-        return 4
-    return 3
+        return 5 ; Web Browsers
+    return 4 ; General / Productivity (Lacerte, Adobe)
 }
 
 SortApps(appList) {
