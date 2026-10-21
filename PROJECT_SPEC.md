@@ -33,7 +33,7 @@ The primary goal of Jacro is to automate the discovery, launching, update checki
 ### Active Core Production Files
 | File | Role / Purpose | Status / Notes |
 | :--- | :--- | :--- |
-| `CheckboxGUItest.ahk` | **Current Main Application Entry Point** | Fully functional. Contains the modern Jacro GUI (`Jacro v261008`), path caching, sorting, execution loop, TR login flow, bulletin management, and log engine. Needs renaming to a canonical name. |
+| `NMGIUpdates.ahk` | **Main Application Entry Point** | Fully functional (renamed from `CheckboxGUItest.ahk` in Milestone 1). Contains the modern Jacro GUI (`Jacro v261008`), path caching, sorting, execution loop, TR login flow, bulletin management, and log engine. |
 | `Lib/UpdateUT.ahk` | Thomson Reuters UltraTax CS Updater | Active & battle-tested. Supports versions 23, 24, 25 across multiple UNC/local paths. Handles CS Connect, Call Summary parsing, and restart prompts. |
 | `Lib/UpdateFixedAssets.ahk` | Thomson Reuters Fixed Assets CS Updater | Active & battle-tested. Navigates `dsw.exe`, CS Connect, and handles UltraTax-named restart dialogs. |
 | `Lib/UpdateFileCabinet.ahk` | Thomson Reuters FileCabinet CS Updater | Active & battle-tested. Handles `fcab.exe`, CS Connect ("Call Now"), pending updates, and active-user lock detection. |
@@ -45,8 +45,10 @@ The primary goal of Jacro is to automate the discovery, launching, update checki
 | `Lib/UpdateFirefox.ahk` | Mozilla Firefox Updater | Active. Cleans up stale processes, navigates to "About Mozilla Firefox", handles downloading, applying, and restart button clicks. |
 | `Lib/UIA.ahk` | UIAutomation Library for AHK v2 | Core Dependency. Descolada's UIA v2 wrapper; foundation for all window/control automation. |
 | `Lib/UIA_Browser.ahk` | UIA Browser Extension | Core Dependency. Complement to `UIA.ahk` for browser tree traversal. |
+| `Lib/OCR.ahk` | Windows Media OCR Library for AHK v2 | **Active Dependency**. Descolada's UWP OCR wrapper. Strictly required by `UpdateQB.ahk` (`OCR.FromRect`) to monitor QuickBooks Desktop's custom-painted update progress bar and status text, which does not expose accessible UIA elements. |
 
 ### Dead, Deprecated, and Redundant Code
+> **Status (Milestone 1 complete):** The items below were removed, untracked, or archived. `UpdateAdobe.ahk` and `UpdateFPS.ahk` now live in `archive/` pending modernization. The table is kept as an audit record.
 | File / Artifact | Classification | Rationale & Recommendation |
 | :--- | :--- | :--- |
 | `GUITest.ahk` | **Obsolete Prototype** | Legacy prototype using a single-column ListView, slow WMI domain checks (`GetDomainName`), and pipe-delimited client configs. Superseded by `CheckboxGUItest.ahk`. **Retire / Archive.** |
@@ -60,7 +62,6 @@ The primary goal of Jacro is to automate the discovery, launching, update checki
 | `Lib/DumpFirefoxUIA.ahk` | **One-off Diagnostic** | Scratch helper to dump Firefox UIA tree to file. **Move to tools/debug or remove.** |
 | `Lib/UpdateAdobe.ahk` | **Incomplete / Dormant** | Commented out in main app. Hardcoded to legacy domain check (`greenwoodcpa.com`), relies on outdated Acrobat paths, incomplete update handling. **Quarantine or Refactor.** |
 | `Lib/UpdateFPS.ahk` | **Broken / Dormant** | Commented out in main app. Contains broken copy-paste of Fixed Assets code and an early exit (`If (1=1) return`). **Quarantine or Remove.** |
-| `Lib/OCR.ahk` | **Dead Dependency** | Included in `CheckboxGUItest.ahk` line 5, but completely unused by modern UIA-based updaters. **Remove inclusion.** |
 | `Lib/FindText.ahk` | **Dead Dependency** | 126 KB screen-scraping library. Zero active references across the entire codebase. **Remove.** |
 | `*.exe` (in repo root) | **Tracked Compiled Binaries** | 8 compiled executables tracked in git (`CheckboxGUItest.exe`, `FindDomain.exe`, `GUITest.exe`, `GetDomain.exe`, `NMGIupdates.exe`, `NMGIupdates.exe.fake3`, `TestChrome.exe`, `firefoxdump.exe`). **Remove from git tracking and add to `.gitignore`.** |
 
@@ -70,7 +71,9 @@ The primary goal of Jacro is to automate the discovery, launching, update checki
 
 ### Technology Stack
 - **Language**: AutoHotkey v2.0+ (strict 64-bit compatibility).
-- **Automation Framework**: Microsoft UI Automation via `Lib/UIA.ahk` (Descolada).
+- **Automation Frameworks**: 
+  - Microsoft UI Automation via `Lib/UIA.ahk` and `Lib/UIA_Browser.ahk` (Descolada) — primary engine.
+  - Windows Media OCR via `Lib/OCR.ahk` (Descolada) — targeted secondary engine for canvas/non-UIA progress controls (QuickBooks).
 - **Process & System Controls**: Native Windows Win32 API / AHK v2 built-ins (`Run`, `ProcessWaitClose`, `WinActivate`, `DllCall`).
 - **Configuration & Cache**: Local INI storage (`GUIsettings.ini`).
 - **No Heavy Runtimes**: Zero reliance on Python, Node.js, Electron, or external non-native frameworks. Kept as a fast, single-binary portable tool.
@@ -88,7 +91,7 @@ NMGI-Updates/
 ├── HANDOFF.md                  # Session transition log
 ├── GUIsettings.ini             # Application path cache ([Paths] section)
 ├── src/                        # Clean source organization
-│   ├── Jacro.ahk               # Canonical entry point (renamed from CheckboxGUItest.ahk)
+│   ├── NMGIUpdates.ahk         # Canonical entry point (renamed from CheckboxGUItest.ahk)
 │   ├── Core/                   # Shared runtime services
 │   │   ├── AppRegistry.ahk     # Declarative list of supported applications & categories
 │   │   ├── Config.ahk          # INI cache read/write abstractions
@@ -110,7 +113,8 @@ NMGI-Updates/
 │       └── UpdateFirefox.ahk
 └── Lib/                        # Strictly vendor libraries
     ├── UIA.ahk
-    └── UIA_Browser.ahk
+    ├── UIA_Browser.ahk
+    └── OCR.ahk
 ```
 
 ### Data Model & Schemas
@@ -164,3 +168,4 @@ Lacerte 2024 - Error (Main window timeout)
 5. **No Screen-Scraping / OCR as Primary Automation**:
    - Screen-scraping and OCR (optical character recognition) are fragile across varying screen resolutions, DPI scaling, and font rendering.
    - All modern automation MUST prioritize Microsoft UIAutomation (UIA) element queries, window messaging, and structured keyboard sequences over pixel-matching.
+   - `Lib/OCR.ahk` is maintained solely as a targeted secondary engine for edge cases (specifically QuickBooks Desktop's custom-painted progress bar) where accessible UIA tree elements are entirely absent.

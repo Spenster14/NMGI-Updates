@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - 2026-10-21
+### Changed
+- Renamed main entry point `CheckboxGUItest.ahk` to `NMGIUpdates.ahk`. Compile this file going forward.
+- Moved dormant `UpdateAdobe.ahk` and `UpdateFPS.ahk` from `Lib/` to `archive/` pending modernization.
+- Added `UpdateUT.ahk` / `UpdateFixedAssets.ahk` network locations (`\\wbsql1`, `\\agcfsapp1`).
+
+### Removed
+- Stopped tracking compiled `.exe` files and the per-machine `GUIsettings.ini` (now in `.gitignore`; local copies untouched).
+- Deleted legacy prototype `GUITest.ahk` and scratch scripts (`GetDomain.ahk`, `TestChrome.ahk`, `connectwise.ahk`, `test_cb.ahk`, `test_cb2.ahk`).
+- Deleted unused `Lib/FindText.ahk`, OCR-era backups, and UIA dump helpers.
+
 ## [Unreleased] - 2026-10-01
 ### Added
 - Completely refactored the GUI in `CheckboxGUItest.ahk` to dynamically sort and display only installed applications.

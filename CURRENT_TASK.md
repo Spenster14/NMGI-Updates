@@ -12,20 +12,19 @@
 ### Milestone 1: Repository Hygiene & Dead Code Retirement
 *Goal: Purge dead code, test artifacts, unreferenced libraries, and tracked binaries to establish a clean, lightweight baseline.*
 
-- [ ] **Step 1.1**: Git Hygiene & Binaries Removal
+- [x] **Step 1.1**: Git Hygiene & Binaries Removal (also untracked per-machine `GUIsettings.ini`)
   - Untrack and remove compiled executables from repository tracking (`CheckboxGUItest.exe`, `FindDomain.exe`, `GUITest.exe`, `GetDomain.exe`, `NMGIupdates.exe`, `NMGIupdates.exe.fake3`, `TestChrome.exe`, `firefoxdump.exe`).
   - Create `.gitignore` to prevent tracking of `*.exe`, `*.log`, `*.bak`, and temporary dump files.
-- [ ] **Step 1.2**: Remove Dead Scratch & Test Scripts
+- [x] **Step 1.2**: Remove Dead Scratch & Test Scripts
   - Remove deprecated root scripts: `connectwise.ahk`, `TestChrome.ahk`, `test_cb.ahk`, `test_cb2.ahk`, `GetDomain.ahk`.
   - Archive/remove legacy prototype `GUITest.ahk`.
-- [ ] **Step 1.3**: Prune Unreferenced Dependencies & Backup Files in `Lib/`
+- [x] **Step 1.3**: Prune Unreferenced Dependencies & Backup Files in `Lib/` (Adobe/FPS moved to `archive/`)
   - Remove unused external library `Lib/FindText.ahk` (126 KB, 0 references).
   - Remove obsolete OCR backups: `Lib/PreChange250904UpdateEdge.ahk`, `Lib/Preupdate250904UpdateChrome.ahk`.
   - Remove one-off tree dumpers: `Lib/DumpACS.ahk`, `Lib/DumpFirefoxUIA.ahk`.
-  - Quarantine/isolate broken or incomplete modules: `Lib/UpdateFPS.ahk` and `Lib/UpdateAdobe.ahk`.
-  - Remove unused `#Include <OCR>` from the main application.
-- [ ] **Step 1.4**: Establish Canonical Main Entry Point
-  - Rename `CheckboxGUItest.ahk` to `Jacro.ahk` (or `NMGIUpdates.ahk`) reflecting its production status rather than a test harness name.
+  - Preserve `Lib/OCR.ahk` (actively required by `UpdateQB.ahk` for progress bar monitoring).
+- [x] **Step 1.4**: Establish Canonical Main Entry Point
+  - Renamed `CheckboxGUItest.ahk` to `NMGIUpdates.ahk` reflecting its production status rather than a test harness name.
   - Verify syntax and successful compilation/run using AHK v2.
 
 ---
