@@ -128,14 +128,11 @@ Practice(PostUpdate := false) {
         try csExe := WinGetProcessName("Practice CS -")
         hCS := WaitForCSConnect(csExe, 20000)
         if (!hCS) {
-            CSConnectLog("Practice: CS Connect window NOT found (exe=" . csExe . ")")
             UpdateStatus()
             return " - Error (CS Connect window not found)"
         }
-        CSConnectLog("Practice: CS Connect hwnd=" . hCS . " exe=" . csExe . " controls: " . DescribeControls(hCS))
-        UpdateStatus("CS Connect found (hwnd " . hCS . "). Pressing Call Now...", 100, 100)
-        callMethod := ClickCallNow(hCS)
-        CSConnectLog("Practice: Call Now result = " . (callMethod != "" ? callMethod : "NO TIER WORKED"))
+        UpdateStatus("CS Connect found. Pressing Call Now...", 100, 100)
+        ClickCallNow(hCS)
 
         ; --- 3. Wait for Call Summary ---
         UpdateStatus("Waiting for Call Summary to appear...", 100, 100)

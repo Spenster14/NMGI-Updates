@@ -38,7 +38,7 @@
     - `InvokeNoFreeze(btn)`: temporarily lowers `UIA.TransactionTimeout` to 1.5 s around the one blocking Invoke, then restores it.
     - `WaitForCSConnect(exe)` / `FindCSConnectHwnd(exe)`: yielding `Sleep(100)` poll; matches `CS Connect ahk_exe <process of the main window>` (TitleMatchMode 2; DetectHiddenWindows fallback, both restored).
     - `ClickCallNow(hwnd)`: A) exact-text control match ("Call Now", `&` stripped) -> `ControlClick`, then posted `BM_CLICK`; B) `WinActivate` + `{Enter}` then `!n`; C) client-relative coordinate click (~74.5% / 92%).
-    - `DescribeControls(hwnd)` + `CSConnectLog()`: HWND, exe, control list and winning tier written to `CSConnect-debug.log` next to the script/exe; HWND also shown in the status box.
+    - `DescribeControls(hwnd)` + `CSConnectLog()`: Diagnostic logging used during verification; removed once `Tier A: ControlClick` was confirmed working.
   - Both modules now return `" - Error (CS Connect window not found)"` if the dialog never appears, instead of waiting up to 300 s for Call Summary.
   - Note: the earlier substring match ("Call"/"Now") would also match the "Connect now" radio; matching is now exact.
 

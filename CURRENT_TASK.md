@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2f verified live by operator (`A:ControlClick` executed cleanly in <50ms with zero freeze). Finalizing Step 4.2f and preparing for Step 4.3 (`UpdateFPS.ahk`).
+- **Active Step**: Step 4.2 complete. Temporary CS Connect debug logging removed. Ready for Step 4.3 (`UpdateFPS.ahk`).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -112,9 +112,10 @@
     - [x] New `Core/CSConnect.ahk` (shared by both modules, included from `NMGIUpdates.ahk`): `InvokeNoFreeze(btn)` bounds `UIA.TransactionTimeout` (restored afterwards) around the single blocking Invoke.
     - [x] Poll for the dialog with yielding `Sleep(100)` loop (GUI stays responsive); match `CS Connect ahk_exe <exe of the main window>` with TitleMatchMode 2; hidden-window fallback (setting restored).
     - [x] "Call Now" tiers: (a) exact-text control match -> `ControlClick` then `BM_CLICK` post; (b) `WinActivate` + `{Enter}` (default button) then `!n`; (c) client-relative coordinate click.
-    - [x] Diagnostics: HWND + control list (hwnd/class/text) to `CSConnect-debug.log` (git-ignored via `*.log`), HWND in status box.
+    - [x] Diagnostics: HWND + control list (hwnd/class/text) to `CSConnect-debug.log` used during investigation; removed once verified in live testing.
     - [x] Smoke test via `smoke.ps1`; mock-dialog tests of tiers A and C pass (tier B needs a live interactive desktop).
     - [x] Live operator verification confirmed: `InvokeNoFreeze` bounded to 3s (from 40s freeze), `Tier A: Call Now control` detected (`WindowsForms10.BUTTON.app.*`), and `A:ControlClick` successfully dismissed the dialog with zero GUI freeze. Step 4.2f complete.
+    - [x] Cleaned up temporary `CSConnect-debug.log` writes and status bar HWND details from production modules.
 
 
 

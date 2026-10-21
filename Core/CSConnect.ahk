@@ -9,20 +9,13 @@
 ;   Fix: bound that one call with a short timeout, then drive the dialog with plain Win32 messages
 ;   (no UIA, no modal COM waits) using yielding polls so the GUI message loop keeps running.
 
-CSConnectLog(msg) {
-    ; Debug log next to the script/exe (*.log is git-ignored).
-    try FileAppend(FormatTime(, "HH:mm:ss") . "  " . msg . "`n", A_ScriptDir . "\CSConnect-debug.log")
-}
-
 ; Invokes the toolbar button but returns after boundMs instead of ~40s while the modal dialog is open.
 ; The Invoke is still delivered to the app; only Jacro's wait for the reply is cut short.
 InvokeNoFreeze(btn, boundMs := 1500) {
     prev := ""
     try prev := UIA.TransactionTimeout
     try UIA.TransactionTimeout := boundMs
-    t0 := A_TickCount
     try btn.Click()
-    CSConnectLog("Toolbar Invoke returned after " . (A_TickCount - t0) . " ms (bound " . boundMs . " ms)")
     if (prev != "")
         try UIA.TransactionTimeout := prev
 }
@@ -55,22 +48,6 @@ WaitForCSConnect(exeName := "", timeoutMs := 20000) {
     return 0
 }
 
-; "hwnd[ClassNN]='text'; ..." list of the dialog's child controls, for diagnostics.
-DescribeControls(hwnd) {
-    out := ""
-    try {
-        win := "ahk_id " . hwnd
-        nns := WinGetControls(win)
-        hws := WinGetControlsHwnd(win)
-        for i, nn in nns {
-            txt := ""
-            try txt := ControlGetText(hws[i])
-            out .= nn . "[" . hws[i] . "]='" . txt . "'; "
-        }
-    }
-    return out
-}
-
 ; Yielding wait until the dialog is gone. Returns true if it closed.
 CSConnectClosed(hwnd, timeoutMs := 1500) {
     t0 := A_TickCount
@@ -94,7 +71,6 @@ ClickCallNow(hwnd) {
             txt := ""
             try txt := ControlGetText(hws[i])
             if RegExMatch(StrReplace(txt, "&"), "i)^\s*call\s*now\s*$") {
-                CSConnectLog("Tier A: Call Now control = " . nn . " [" . hws[i] . "]")
                 try ControlClick(hws[i], win, , , , "NA")
                 if CSConnectClosed(hwnd, 1500)
                     return "A:ControlClick"
@@ -126,7 +102,6 @@ ClickCallNow(hwnd) {
     try {
         WinGetClientPos(, , &cw, &ch, win)
         cx := Round(cw * 0.745), cy := Round(ch * 0.92)
-        CSConnectLog("Tier C: relative click at x" . cx . " y" . cy . " (client " . cw . "x" . ch . ")")
         ControlClick("x" . cx . " y" . cy, win, , , , "NA")
         if CSConnectClosed(hwnd, 1500)
             return "C:RelativeClick"

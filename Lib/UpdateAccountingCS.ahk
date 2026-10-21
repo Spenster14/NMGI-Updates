@@ -84,14 +84,11 @@ AccountingCS(PostUpdate := false) {
         try csExe := WinGetProcessName("Accounting CS -")
         hCS := WaitForCSConnect(csExe, 20000)
         if (!hCS) {
-            CSConnectLog("AccountingCS: CS Connect window NOT found (exe=" . csExe . ")")
             UpdateStatus()
             return " - Error (CS Connect window not found)"
         }
-        CSConnectLog("AccountingCS: CS Connect hwnd=" . hCS . " exe=" . csExe . " controls: " . DescribeControls(hCS))
-        UpdateStatus("CS Connect found (hwnd " . hCS . "). Pressing Call Now...", 100, 100)
-        callMethod := ClickCallNow(hCS)
-        CSConnectLog("AccountingCS: Call Now result = " . (callMethod != "" ? callMethod : "NO TIER WORKED"))
+        UpdateStatus("CS Connect found. Pressing Call Now...", 100, 100)
+        ClickCallNow(hCS)
 
         WinWait("Call Summary")
         callSumEl := UIA.ElementFromHandle("Call Summary")
