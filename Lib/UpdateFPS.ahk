@@ -3,12 +3,7 @@
 ; Modernized for AHK v2 with SafeFileExist UNC reachability and standardized return strings.
 
 GetFPSPath() {
-    ; 1. Check cached path from GUIsettings.ini [Paths]
-    cached := ResolveAppPath("FPS")
-    if (cached != "" && SafeFileExist(cached))
-        return cached
-
-    ; 2. Candidate network and local paths
+    ; Candidate network and local paths
     potentialPaths := [
         "F:\FPS\FAS706\FAS\FAS.EXE",
         "F:\FPS\FAS\FAS.EXE",

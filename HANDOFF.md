@@ -62,9 +62,11 @@
     - Compares version labels in "Web Updates" (`lblWebVersion` vs `lblVersion`), returning standardized `" - No updates"`, `" - Updates installed"`, `" - Updates available (Manual)"`, or `" - Error (<Reason>)"`.
   - Registered `FPS` in `Core/AppRegistry.ahk` (Category 1: interactive upfront credentials) and wired `#Include <UpdateFPS>` into `NMGIUpdates.ahk`.
   - Updated `PROJECT_SPEC.md` active modules list.
+  - Fixed compiled binary crash (`This value of type "String" has no property named "Name"`): removed redundant nested `ResolveAppPath` call in `GetFPSPath()` and made `ResolveAppPath` polymorphic to safely handle string inputs.
 
 ### Tested
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly after integrating `Lib/UpdateFPS.ahk`.
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors.
 - Live verification confirmed by operator on live Practice CS workstation (`CSConnect-debug.log`):
   - `Toolbar Invoke returned after 3031 ms (bound 1500 ms)` - blocking call bounded, no thread freeze or spinning cursor.
   - `Tier A: Call Now control = WindowsForms10.BUTTON.app.* [hwnd]` detected `Call N&ow`.

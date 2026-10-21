@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.3 complete (`Lib/UpdateFPS.ahk` implemented, registered, and validated). Ready for Step 4.4: End-to-End Suite Smoke & Packaging.
+- **Active Step**: Bugfix complete: Resolved "String has no property named Name" in `Core/Config.ahk` & `Lib/UpdateFPS.ahk`. Verified with compiled binary execution test. Ready for Step 4.4.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -127,6 +127,7 @@
   - [x] Register `FPS` in `Core/AppRegistry.ahk` (Category 1: interactive upfront login).
   - [x] Uncomment `#Include <UpdateFPS>` in `NMGIUpdates.ahk`.
   - [x] Validate via `smoke.ps1`.
+  - [x] Bugfix: Remove redundant nested `ResolveAppPath` call from `GetFPSPath` and make `ResolveAppPath` polymorphic to safely accept both `String` and `App` object. Verified with compiled `NMGIupdates.exe` smoke test.
   - [x] Atomically commit Step 4.3.
 
 

@@ -3,28 +3,31 @@
 ; Extracted from NMGIUpdates.ahk (Milestone 2, Step 2.4).
 
 ResolveAppPath(app, forceRescan := false, iniFile := "GUIsettings.ini") {
+    appName := HasProp(app, "Name") ? app.Name : String(app)
+    pathFn := HasProp(app, "pathFn") ? app.pathFn : (*) => ""
+
     if (forceRescan) {
-        resolved := app.pathFn()
+        resolved := pathFn()
         if (resolved != "") {
-            IniWrite(resolved, iniFile, "Paths", app.Name)
+            IniWrite(resolved, iniFile, "Paths", appName)
         } else {
-            IniWrite("NotInstalled", iniFile, "Paths", app.Name)
+            IniWrite("NotInstalled", iniFile, "Paths", appName)
         }
         return resolved
     }
 
-    cachedPath := IniRead(iniFile, "Paths", app.Name, "")
+    cachedPath := IniRead(iniFile, "Paths", appName, "")
 
     if (cachedPath == "NotInstalled") {
         return ""
     } else if (cachedPath != "" && SafeFileExist(cachedPath)) {
         return cachedPath
     } else {
-        resolved := app.pathFn()
+        resolved := pathFn()
         if (resolved != "") {
-            IniWrite(resolved, iniFile, "Paths", app.Name)
+            IniWrite(resolved, iniFile, "Paths", appName)
         } else {
-            IniWrite("NotInstalled", iniFile, "Paths", app.Name)
+            IniWrite("NotInstalled", iniFile, "Paths", appName)
         }
         return resolved
     }
