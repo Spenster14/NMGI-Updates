@@ -15,6 +15,8 @@
 #Include Core\Logger.ahk
 #Include Auth\Bulletins.ahk
 #Include Auth\TRLogin.ahk
+#Include Auth\LacerteLogin.ahk
+#Include Auth\TRLogin.ahk
 /* #Include <UpdateAdobe>
 #Include <UpdateFPS> */
 SetTitleMatchMode 2
