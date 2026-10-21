@@ -124,48 +124,181 @@ Practice(PostUpdate := false) {
             ; ControlClick fallback if standard invoke throws
         }
 
+        ; --- Trigger CS Connect Call ---
         UpdateStatus("Waiting for CS Connect window to load...", 100, 100)
-        WinWaitActive("CS Connect")
-        try {
-            UpdateStatus("Pressing Call Now button...", 100, 100)
-            UIA.ElementFromHandle("CS Connect").WaitElement({ Name: "Call Now", Type: "Button" }).Click()
-        } catch {
-            UpdateStatus("Could not find Call Now button...", 100, 100)
+        if WinWait("CS Connect", , 20) {
             WinActivate("CS Connect")
             Sleep(500)
-            Send("{Enter}")
+            UpdateStatus("Pressing Call Now / Connect button...", 100, 100)
+
+            clickedCall := false
+            try {
+                csConnectEl := UIA.ElementFromHandle("CS Connect")
+                ; Try matching "Call Now" or "Connect" with a safe 3000ms timeout
+                callBtn := ""
+                try callBtn := csConnectEl.WaitElement({ Name: "Call Now", MatchMode: "Substring", Type: "Button" }, 3000)
+                if !callBtn {
+                    try callBtn := csConnectEl.WaitElement({ Name: "Connect", MatchMode: "Substring", Type: "Button" }, 3000)
+                }
+
+                if callBtn {
+                    try callBtn.Highlight()
+                    callBtn.Click()
+                    clickedCall := true
+                }
+            } catch {
+                clickedCall := false
+            }
+
+            if (!clickedCall) {
+                UpdateStatus("Using keyboard fallback for CS Connect...", 100, 100)
+                WinActivate("CS Connect")
+                Sleep(500)
+                Send("{Enter}")
+            }
         }
 
-        WinWait("Call Summary")
-        callSumEl := UIA.ElementFromHandle("Call Summary")
+        ; --- 3. Wait for Call Summary ---
+        UpdateStatus("Waiting for Call Summary to appear...", 100, 100)
+        if !WinWait("Call Summary", , 300) {
+            UpdateStatus()
+            return " - Error (Call Summary Timeout)"
+        }
 
-        ; Read Status
-        statusText := callSumEl.WaitElement({ Type: "Document" }).Value
+        ; Ensure the Call Summary window and its contents are fully initialized
+        Sleep(1500)
+        statusText := ""
+
+        try {
+            callSumEl := UIA.ElementFromHandle("Call Summary")
+
+            ; Attempt 1: Document element with 3s timeout
+            try {
+                docEl := callSumEl.WaitElement({ Type: "Document" }, 3000)
+                if docEl
+                    statusText := docEl.Value
+            }
+
+            ; Attempt 2: Edit control
+            if (statusText == "") {
+                try {
+                    editEl := callSumEl.FindElement({ Type: "Edit" })
+                    if editEl
+                        statusText := editEl.Value
+                }
+            }
+
+            ; Attempt 3: Text control
+            if (statusText == "") {
+                try {
+                    textEl := callSumEl.FindElement({ Type: "Text", MatchMode: "Substring", Name: "update" })
+                    if textEl
+                        statusText := textEl.Name
+                }
+            }
+        } catch {
+            ; Fallback below
+        }
+
+        ; Attempt 4: Native WinGetText from the Call Summary dialog
+        if (statusText == "") {
+            try statusText := WinGetText("Call Summary")
+        }
 
     } catch as err {
         UpdateStatus()
         return " - Error (UI: " . err.Message . ")"
     }
 
-    ; --- 3. Evaluate Update Status & Defer Installation -----------------------
+    ; --- 4. Evaluate Update Status & Multi-Tiered Dialog Dismissal ------------
+    isNoUpdates := InStr(statusText, "No new updates")
 
-    ; CASE A: No Updates
-    if InStr(statusText, "No new updates") {
-        try callSumEl.FindElement({ Name: "Close", Type: "Button" }).Highlight().Click()
-        Sleep(500)
-        WinClose("Practice CS")
+    ; Dismiss Call Summary (Multi-tier: UIA -> ControlClick -> Keyboard Enter/Space -> WinClose)
+    if WinExist("Call Summary") {
+        UpdateStatus("Acknowledging Call Summary Close...", 100, 100)
+        closed := false
+        try {
+            callSumEl := UIA.ElementFromHandle("Call Summary")
+            closeBtn := callSumEl.FindElement({ Name: "Close", MatchMode: "Substring", Type: "Button" })
+            if closeBtn {
+                try closeBtn.Highlight()
+                closeBtn.Click()
+                closed := true
+            }
+        } catch {
+            closed := false
+        }
+
+        if (!closed || WinExist("Call Summary")) {
+            try ControlClick("Button1", "Call Summary")
+            Sleep(300)
+        }
+        if WinExist("Call Summary") {
+            WinActivate("Call Summary")
+            Sleep(200)
+            Send("{Enter}")
+            Sleep(300)
+        }
+        if WinExist("Call Summary") {
+            Send("{Space}")
+            Sleep(300)
+        }
+        if WinExist("Call Summary") {
+            WinClose("Call Summary")
+        }
+        WinWaitClose("Call Summary", , 5)
+    }
+
+    ; Dismiss underlying "Online Status" window if present
+    if WinExist("Online Status") {
+        UpdateStatus("Closing Online Status dialog...", 100, 100)
+        closed := false
+        try {
+            osEl := UIA.ElementFromHandle("Online Status")
+            osBtn := osEl.FindElement({ Name: "Close", MatchMode: "Substring", Type: "Button" })
+            if osBtn {
+                osBtn.Click()
+                closed := true
+            }
+        } catch {
+            closed := false
+        }
+
+        if (!closed || WinExist("Online Status")) {
+            try ControlClick("Button1", "Online Status")
+            Sleep(300)
+        }
+        if WinExist("Online Status") {
+            WinActivate("Online Status")
+            Sleep(200)
+            Send("{Enter}")
+            Sleep(300)
+        }
+        if WinExist("Online Status") {
+            WinClose("Online Status")
+        }
+        WinWaitClose("Online Status", , 5)
+    }
+
+    ; Close lingering CS Connect window if left open
+    if WinExist("CS Connect") {
+        try WinClose("CS Connect")
+        WinWaitClose("CS Connect", , 3)
+    }
+
+    ; --- 5. Return Status & Clean Up Application ---
+    if (isNoUpdates) {
+        if WinExist("Practice CS -")
+            WinClose("Practice CS -")
+        else if WinExist("Practice CS")
+            WinClose("Practice CS")
         UpdateStatus()
         return " - No updates"
-    }
-    ; CASE B: Updates Found (Defer and mark manual, matching Accounting CS policy)
-    else {
-        try callSumEl.FindElement({ Name: "Close", Type: "Button" }).Highlight().Click()
-        Sleep(500)
-
-        ; Handle the 'Apply Updates' prompt that appears when closing Call Summary
+    } else {
+        ; Handle the 'Apply Updates' prompt that appears when updates are available
         if WinWait("Apply Updates", "Would you like to apply them now?", 5) {
             try {
-                UIA.ElementFromHandle("Apply Updates").WaitElement({ Name: "No", Type: "Button" }).Click()
+                UIA.ElementFromHandle("Apply Updates").WaitElement({ Name: "No", Type: "Button" }, 3000).Click()
             } catch {
                 WinActivate("Apply Updates")
                 Send("!n")
@@ -173,7 +306,10 @@ Practice(PostUpdate := false) {
             Sleep(500)
         }
 
-        WinClose("Practice CS")
+        if WinExist("Practice CS -")
+            WinClose("Practice CS -")
+        else if WinExist("Practice CS")
+            WinClose("Practice CS")
         UpdateStatus()
         return " - Updates available (Manual)"
     }

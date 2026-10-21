@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2c complete (Practice CS updated to `CreativeSolutions.Practice.exe` with `\\sql1` and `T:\` prioritized).
+- **Active Step**: Step 4.2d complete (Fixed CS Connect & Call Summary dialog dismissal and button acknowledgment in `Lib/UpdatePractice.ahk`).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -96,5 +96,10 @@
   - [x] Update `GetPracticePath` in `Lib/UpdatePractice.ahk` prioritizing `\\sql1\winCSI\Practice CS\CreativeSolutions.Practice.exe` and `T:\Practice CS\CreativeSolutions.Practice.exe`.
   - [x] Run smoke test verification via `smoke.ps1`.
   - [x] Atomically commit Step 4.2c.
+- [x] **Step 4.2d**: Fix CS Connect & Call Summary Button Acknowledgment in `Lib/UpdatePractice.ahk`
+  - [x] Add explicit timeouts to `WaitElement` in CS Connect ("Call Now" / "Connect") and Call Summary (`Document` / `Edit` / `Text`).
+  - [x] Implement multi-tiered button dismissal (UIA -> ControlClick -> Enter/Space -> WinClose) for both `Call Summary` and underlying `Online Status` windows.
+  - [x] Run smoke test verification via `smoke.ps1`.
+  - [x] Atomically commit Step 4.2d.
 
 
