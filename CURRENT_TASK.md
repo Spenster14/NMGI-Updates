@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Release & Branch Integration (Merging to `main`)
-- **Active Step**: Checkout `main`, merge `reboot/vibe-architecture`, push `main` to `origin`, and push `reboot/vibe-architecture` to `origin`.
+- **Current Phase**: Module Expansion (Modernizing `Lib/UpdateAdobe.ahk`)
+- **Active Step**: Step 4.1: Planning interface, dependencies, and integration for `Lib/UpdateAdobe.ahk`.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -68,3 +68,16 @@
   - Verified clean syntax, symbol resolution, and startup execution via automated smoke tests (`smoke.ps1`).
   - Successfully validated live end-to-end execution on operator test machine.
   - Updated `CHANGELOG.md` with complete architecture transition notes across Milestones 1, 2, and 3.
+
+---
+
+### Milestone 4: Modernizing Archived Modules & Expansion
+*Goal: Modernize archived/dormant modules, standardize their interfaces, and safely integrate them into the production dashboard.*
+
+- [x] **Step 4.1**: Modernize `Lib/UpdateAdobe.ahk`
+  - [x] Implement `Lib/UpdateAdobe.ahk` with `GetAdobePath() -> String` and `Adobe(args*) -> String`.
+  - [x] Register `{ Name: "Adobe Acrobat", Label: "Adobe Acrobat", fn: (*) => Adobe(), pathFn: (*) => GetAdobePath() }` in `Core/AppRegistry.ahk`.
+  - [x] Uncomment `#Include <UpdateAdobe>` in `NMGIUpdates.ahk`.
+  - [x] Run smoke test verification via `smoke.ps1` to ensure clean parsing and load.
+  - [x] Atomically commit Step 4.1.
+

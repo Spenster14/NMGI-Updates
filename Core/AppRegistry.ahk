@@ -18,6 +18,7 @@ global Apps := [
     { Name: "Lacerte 22",               Label: "Lacerte 2022",       fn: (*) => Lacerte("22"),       pathFn: (*) => GetLacertePath("22") },
     { Name: "Lacerte 23",               Label: "Lacerte 2023",       fn: (*) => Lacerte("23"),       pathFn: (*) => GetLacertePath("23") },
     { Name: "Lacerte 24",               Label: "Lacerte 2024",       fn: (*) => Lacerte("24"),       pathFn: (*) => GetLacertePath("24") },
+    { Name: "Adobe Acrobat",            Label: "Adobe Acrobat",      fn: (*) => Adobe(),             pathFn: (*) => GetAdobePath() },
     { Name: "Chrome",                   Label: "Chrome",             fn: (*) => Chrome(),            pathFn: (*) => GetChromePath() },
     { Name: "Edge",                     Label: "Edge",               fn: (*) => Edge(),              pathFn: (*) => GetEdgePath() },
     { Name: "Firefox",                  Label: "Firefox",            fn: (*) => Firefox(),           pathFn: (*) => GetFirefoxPath() }
