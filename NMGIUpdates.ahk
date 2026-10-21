@@ -26,6 +26,10 @@ SetTitleMatchMode 2
 CoordMode("ToolTip", "Screen")
 
 TodayDate := FormatTime(A_Now, "yyMMdd")
+global AppVersion := "V261021"
+if (A_IsCompiled) {
+    try AppVersion := "V" . FormatTime(FileGetTime(A_ScriptFullPath, "M"), "yyMMdd")
+}
 
 ; ==============================================================================
 ; Helper Functions & Globals
@@ -73,7 +77,7 @@ SetTimer(FlashActiveCheckbox, 500)
 BuildGUI()
 
 BuildGUI(forceRescan := false) {
-    global StatusBox, SortedApps, MyGui, Apps
+    global StatusBox, SortedApps, MyGui, Apps, AppVersion
 
     if (MyGui != "") {
         MyGui.Destroy()
@@ -103,7 +107,7 @@ BuildGUI(forceRescan := false) {
     ; ==============================================================================
     ; GUI Setup
     ; ==============================================================================
-    MyGui := Gui("+AlwaysOnTop", "Jacro V" . FormatTime(A_Now, "yyMMdd"))
+    MyGui := Gui("+AlwaysOnTop", "Jacro " . AppVersion)
     MyGui.SetFont("s10", "Segoe UI")
     MyGui.Add("Text", "xm", "Select the applications to start:")
 
