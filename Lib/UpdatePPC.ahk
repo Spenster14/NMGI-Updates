@@ -89,91 +89,12 @@ PPC(PostUpdate := false) {
 
     ; --- 5. Inspect Tree Checkboxes for Updates ---
     UpdateStatus("Inspecting PPC product checkboxes...", 100, 100)
-    hasChecked := false
-    totalCheckboxes := 0
-    checkedCount := 0
+    inspectResult := InspectPPCCheckboxes("Thomson Reuters Setup - Client")
+    totalCheckboxes := inspectResult.total
+    checkedCount := inspectResult.checked
+    hasChecked := (checkedCount > 0)
 
-    try {
-        clientEl := UIA.ElementFromHandle("Thomson Reuters Setup - Client")
-
-        ; Primary check: inspect all TreeItem and CheckBox elements in the tree
-        items := clientEl.FindElements({Type: "TreeItem"})
-        cbItems := clientEl.FindElements({Type: "CheckBox"})
-
-        ; If explicit CheckBox elements exist in the tree
-        if (cbItems.Length > 0) {
-            totalCheckboxes := cbItems.Length
-            for cb in cbItems {
-                cbChecked := false
-                try {
-                    ts := cb.ToggleState
-                    if (ts == 1 || ts == "1" || ts == "On")
-                        cbChecked := true
-                }
-                if (!cbChecked) {
-                    try {
-                        val := cb.Value
-                        if (val == 1 || val == "1" || val == "Checked")
-                            cbChecked := true
-                    }
-                }
-                if (cbChecked) {
-                    checkedCount++
-                    try cb.Highlight(500)
-                }
-            }
-        } else if (items.Length > 0) {
-            ; Check TreeItem elements directly for ToggleState or child CheckBoxes
-            totalCheckboxes := items.Length
-            for item in items {
-                itemChecked := false
-                try {
-                    ts := item.ToggleState
-                    if (ts == 1 || ts == "1" || ts == "On")
-                        itemChecked := true
-                }
-                if (!itemChecked) {
-                    try {
-                        val := item.Value
-                        if (val == 1 || val == "1" || val == "Checked")
-                            itemChecked := true
-                    }
-                }
-                if (!itemChecked) {
-                    ; Check if a child element has toggle or checked state
-                    try {
-                        childCb := item.FindElement({Type: "CheckBox"})
-                        if (childCb) {
-                            cts := childCb.ToggleState
-                            if (cts == 1 || cts == "1" || cts == "On")
-                                itemChecked := true
-                        }
-                    }
-                }
-                if (itemChecked) {
-                    checkedCount++
-                    try item.Highlight(500)
-                }
-            }
-        }
-
-        ; Secondary fallback check: inspect DumpAll string if element search didn't find items
-        if (totalCheckboxes == 0) {
-            dumpText := clientEl.DumpAll()
-            pos := 1
-            while (pos := RegExMatch(dumpText, "i)ToggleState:\s*([0-9a-z]+)", &m, pos)) {
-                totalCheckboxes++
-                if (m[1] = "1" || m[1] = "On")
-                    checkedCount++
-                pos += StrLen(m[0])
-            }
-        }
-    } catch {
-        hasChecked := false
-    }
-
-    if (checkedCount > 0)
-        hasChecked := true
+    UpdateLog("PPC: Checkbox inspection via " . inspectResult.method . " -> " . totalCheckboxes . " checkboxes seen (" . checkedCount . " checked)", "INFO")
 
     ; User test request: report number of checkboxes seen and pause for 1 second
     UpdateStatus("PPC: " . totalCheckboxes . " checkboxes seen (" . checkedCount . " checked)", 100, 100)
@@ -293,3 +214,162 @@ PPC(PostUpdate := false) {
         return " - No updates"
     }
 }
+
+InspectPPCCheckboxes(winTitle := "Thomson Reuters Setup - Client") {
+    total := 0
+    checked := 0
+
+    ; --- Tier 1: Win32 SysTreeView32 Direct Messages ---
+    try {
+        controls := WinGetControls(winTitle)
+        ctrlHwnds := WinGetControlsHwnd(winTitle)
+        tvHwnd := 0
+
+        for i, ctrlName in controls {
+            hCtrl := ctrlHwnds[i]
+            cls := ""
+            try cls := WinGetClass(hCtrl)
+            if (InStr(ctrlName, "Tree") || InStr(cls, "Tree")) {
+                tvHwnd := hCtrl
+                break
+            }
+        }
+
+        if (tvHwnd) {
+            TVM_GETCOUNT := 0x1105
+            TVM_GETNEXTITEM := 0x110A
+            TVM_GETITEMSTATE := 0x1127
+            TVGN_ROOT := 0
+            TVGN_NEXT := 1
+            TVGN_CHILD := 4
+
+            tvCount := SendMessage(TVM_GETCOUNT, 0, 0, tvHwnd)
+            if (tvCount > 0) {
+                WalkTree(hItem) {
+                    while (hItem) {
+                        state := SendMessage(TVM_GETITEMSTATE, hItem, 0xF000, tvHwnd)
+                        stateIndex := (state >> 12) & 0xF
+                        ; stateIndex: 1 = Unchecked checkbox, 2 = Checked checkbox, 0 = No checkbox
+                        if (stateIndex == 1 || stateIndex == 2) {
+                            total++
+                            if (stateIndex == 2)
+                                checked++
+                        }
+
+                        hChild := SendMessage(TVM_GETNEXTITEM, TVGN_CHILD, hItem, tvHwnd)
+                        if (hChild)
+                            WalkTree(hChild)
+
+                        hItem := SendMessage(TVM_GETNEXTITEM, TVGN_NEXT, hItem, tvHwnd)
+                    }
+                }
+
+                hRoot := SendMessage(TVM_GETNEXTITEM, TVGN_ROOT, 0, tvHwnd)
+                if (hRoot)
+                    WalkTree(hRoot)
+
+                ; If tree items didn't have state image 1 or 2, use tvCount as total
+                if (total == 0 && tvCount > 0)
+                    total := tvCount
+            }
+        }
+    } catch as err {
+        UpdateLog("PPC Win32 TreeView inspect failed: " . err.Message, "WARN")
+    }
+
+    if (total > 0)
+        return { total: total, checked: checked, method: "Win32-TreeView" }
+
+    ; --- Tier 2: UIAutomation Elements ---
+    try {
+        clientEl := UIA.ElementFromHandle(winTitle)
+
+        ; Check for explicit CheckBox elements
+        cbItems := clientEl.FindElements({Type: "CheckBox"})
+        if (cbItems.Length > 0) {
+            total := cbItems.Length
+            for cb in cbItems {
+                cbChecked := false
+                try {
+                    ts := cb.ToggleState
+                    if (ts == 1 || ts == "1" || ts == "On")
+                        cbChecked := true
+                }
+                if (!cbChecked) {
+                    try {
+                        val := cb.Value
+                        if (val == 1 || val == "1" || val == "Checked")
+                            cbChecked := true
+                    }
+                }
+                if (cbChecked) {
+                    checked++
+                    try cb.Highlight(500)
+                }
+            }
+            return { total: total, checked: checked, method: "UIA-CheckBox" }
+        }
+
+        ; Check for TreeItem elements
+        treeItems := clientEl.FindElements({Type: "TreeItem"})
+        if (treeItems.Length > 0) {
+            total := treeItems.Length
+            for item in treeItems {
+                itemChecked := false
+                try {
+                    ts := item.ToggleState
+                    if (ts == 1 || ts == "1" || ts == "On")
+                        itemChecked := true
+                }
+                if (!itemChecked) {
+                    try {
+                        val := item.Value
+                        if (val == 1 || val == "1" || val == "Checked")
+                            itemChecked := true
+                    }
+                }
+                if (!itemChecked) {
+                    try {
+                        childCb := item.FindElement({Type: "CheckBox"})
+                        if (childCb) {
+                            cts := childCb.ToggleState
+                            if (cts == 1 || cts == "1" || cts == "On")
+                                itemChecked := true
+                        }
+                    }
+                }
+                if (itemChecked) {
+                    checked++
+                    try item.Highlight(500)
+                }
+            }
+            return { total: total, checked: checked, method: "UIA-TreeItem" }
+        }
+    } catch as err {
+        UpdateLog("PPC UIA inspect failed: " . err.Message, "WARN")
+    }
+
+    ; --- Tier 3: Win32 Checkbox Button Controls ---
+    try {
+        controls := WinGetControls(winTitle)
+        ctrlHwnds := WinGetControlsHwnd(winTitle)
+        for i, name in controls {
+            if InStr(name, "CheckBox") || InStr(name, "Button") {
+                style := WinGetStyle(ctrlHwnds[i])
+                btnStyle := style & 0xF
+                if (btnStyle == 2 || btnStyle == 3 || btnStyle == 5 || btnStyle == 6) {
+                    total++
+                    checkState := SendMessage(0x00F0, 0, 0, ctrlHwnds[i]) ; BM_GETCHECK
+                    if (checkState == 1)
+                        checked++
+                }
+            }
+        }
+        if (total > 0)
+            return { total: total, checked: checked, method: "Win32-Buttons" }
+    } catch {
+    }
+
+    return { total: total, checked: checked, method: "None" }
+}
+

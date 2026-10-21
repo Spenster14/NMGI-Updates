@@ -152,6 +152,14 @@
   - [x] After clicking Cancel, wait for "Thomson Reuters Setup - Client" ("Are you sure you want to cancel the installation?") and click "Yes".
   - [x] Validate via smoke test (`smoke.ps1`) and compile verification.
   - [x] Atomically commit Step 4.4b.
+- [x] **Step 4.4c**: Fix PPC Checkbox Detection via Win32 TreeView Messages
+  - [x] Implement `InspectPPCCheckboxes(winTitle)` in `Lib/UpdatePPC.ahk`:
+    - Tier 1: Win32 `SysTreeView32` native `SendMessage` (`TVM_GETCOUNT`, `TVM_GETNEXTITEM`, `TVM_GETITEMSTATE` with `TVIS_STATEIMAGEMASK 0xF000`).
+    - Tier 2: UIA `CheckBox` and `TreeItem` fallback.
+    - Tier 3: Win32 `BS_CHECKBOX` button enumeration.
+  - [x] Update launcher status line with detected checkbox and checked count, pause for 1s.
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe`.
+  - [x] Atomically commit Step 4.4c.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

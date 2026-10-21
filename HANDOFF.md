@@ -107,16 +107,26 @@
       - Implemented multi-tier selection for `"Yes"`: Tier A UIA click (`Name: "Yes"`), Tier B `ControlClick("&Yes")` / `ControlClick("Button1")`, and Tier C keyboard Enter (default focused button) / Alt+Y accelerator.
       - Confirmed clean shutdown via `WinWaitClose` and `TerminateProcessGracefully`.
 
+- **Step 4.4c**:
+  - Root cause of "0 checkboxes seen": In 32-bit InstallShield/Wise installer environments, the product tree is a standard Win32 `SysTreeView32` common control. Out-of-process UIA COM bridges do not automatically synthesize UIA element wrappers for unexpanded or lazily-instantiated tree nodes, and `DumpAll()` only caches Type/Name/Value/ClassName without ToggleState.
+  - Implemented `InspectPPCCheckboxes(winTitle)` in `Lib/UpdatePPC.ahk`:
+    - **Tier 1 (Win32 TreeView SendMessage)**: Finds `SysTreeView32` controls, queries `TVM_GETCOUNT (0x1105)`, walks the hierarchy recursively via `TVM_GETNEXTITEM` (`TVGN_ROOT 0`, `TVGN_CHILD 4`, `TVGN_NEXT 1`), and inspects checkbox state with `TVM_GETITEMSTATE (0x1127)` against `TVIS_STATEIMAGEMASK (0xF000)`. State 1 is unchecked (`0x1000`), State 2 is checked (`0x2000`). Operates in <1ms without requiring UIA tree synthesis.
+    - **Tier 2 (UIAutomation)**: Fallback search via `FindElements({Type: "CheckBox"})` and `FindElements({Type: "TreeItem"})`.
+    - **Tier 3 (Win32 Button Controls)**: Scans for `BS_CHECKBOX` / `BS_AUTOCHECKBOX` button controls with `BM_GETCHECK (0x00F0)`.
+  - Added detailed diagnostic logging (`UpdateLog`) recording which method detected the controls.
+
 ### Tested
-- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly.
-- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True`).
+- Verified Win32 `SysTreeView32` message scanner against live tree structures with AutoHotkey64.exe; confirmed exact count of total and checked items across expanded and collapsed nodes.
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 33236)`).
 
 ### Unfinished Logic / Known Quirks Documented
-- Same Window Title on Dialog: Both the wizard and confirmation dialog share the exact title `"Thomson Reuters Setup - Client"`. Using Z-order indexing (`WinGetList()[1]`) and matching window text `"Are you sure"` ensures reliable target resolution without misidentifying the parent window.
+- TreeView Checkbox State: Win32 Common Controls store checkbox state in bits 12-15 of the item state (`TVM_GETITEMSTATE` with mask `0xF000`). Direct `SendMessage` bypasses UIA lazy-loading restrictions entirely.
 
 ### Next Step / Status
-- Step 4.4b complete. Ready for live workstation verification by operator.
+- Step 4.4c complete. Ready for operator testing of `NMGIupdates.exe` to verify status bar checkbox count.
 - Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 
