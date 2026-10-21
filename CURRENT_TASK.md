@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Milestone 2: Modular Architecture & Core Service Extraction
-- **Active Step**: Step 2.1 - Extract Apps array, GetAppCategory, and SortApps into Core/AppRegistry.ahk.
+- **Current Phase**: Milestone 2 Complete; Ready for Milestone 3 (Interface Standardization & Error Resilience)
+- **Active Step**: Awaiting user approval to begin Milestone 3 (Step 3.1: Standardize Module Return Types & Signatures).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -39,10 +39,10 @@
   - [x] Extracted Thomson Reuters login orchestration (`TRLogin`, `CloseSignInTR`) into `Auth/TRLogin.ahk` (`cf68a84`).
   - [x] Extracted Lacerte upfront authentication modal into `Auth/LacerteLogin.ahk` and wired into `NMGIUpdates.ahk` (`06e6815`).
 - [x] **Step 2.1**: Declarative Application Registry
-  - Extracted the application definition list (`Apps` array), `GetAppCategory`, and `SortApps` into `Core/AppRegistry.ahk`.
+  - Extracted the application definition list (`Apps` array), `GetAppCategory`, and `SortApps` into `Core/AppRegistry.ahk` (`a538a48`).
   - Maintained correct load order (included above `BuildGUI()`).
-- [ ] **Step 2.4**: INI Cache Decoupling
-  - Encapsulate `[Paths]` cache operations into `Core/Config.ahk`.
+- [x] **Step 2.4**: INI Cache Decoupling
+  - Encapsulated `[Paths]` cache operations into `Core/Config.ahk` (`ResolveAppPath`).
   - Refactor `GUIsettings.ini` usage to drop legacy domain pipe mappings and standardize strictly on the `[Paths]` cache.
 
 ---

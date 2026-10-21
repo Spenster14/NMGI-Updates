@@ -14,6 +14,7 @@
 #Include <UpdateLacerte>
 #Include Core\Logger.ahk
 #Include Core\AppRegistry.ahk
+#Include Core\Config.ahk
 #Include Auth\Bulletins.ahk
 #Include Auth\TRLogin.ahk
 #Include Auth\LacerteLogin.ahk
@@ -82,33 +83,10 @@ BuildGUI(forceRescan := false) {
         ToolTip("Scanning applications, please wait...", 100, 100)
     }
 
-    iniFile := "GUIsettings.ini"
     FoundApps := []
 
     for app in Apps {
-        if (forceRescan) {
-            app.Path := app.pathFn()
-            if (app.Path != "") {
-                IniWrite(app.Path, iniFile, "Paths", app.Name)
-            } else {
-                IniWrite("NotInstalled", iniFile, "Paths", app.Name)
-            }
-        } else {
-            cachedPath := IniRead(iniFile, "Paths", app.Name, "")
-
-            if (cachedPath == "NotInstalled") {
-                app.Path := ""
-            } else if (cachedPath != "" && FileExist(cachedPath)) {
-                app.Path := cachedPath
-            } else {
-                app.Path := app.pathFn()
-                if (app.Path != "") {
-                    IniWrite(app.Path, iniFile, "Paths", app.Name)
-                } else {
-                    IniWrite("NotInstalled", iniFile, "Paths", app.Name)
-                }
-            }
-        }
+        app.Path := ResolveAppPath(app, forceRescan)
 
         if (app.Path != "") {
             app.Status := GetAppStatus(app.Name)
