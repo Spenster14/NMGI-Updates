@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Release & Branch Integration (Merging to `master`)
-- **Active Step**: Merge `reboot/vibe-architecture` into `master` and push to remote `origin`.
+- **Current Phase**: Release & Branch Integration (Merging to `main`)
+- **Active Step**: Checkout `main`, merge `reboot/vibe-architecture`, push `main` to `origin`, and push `reboot/vibe-architecture` to `origin`.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
