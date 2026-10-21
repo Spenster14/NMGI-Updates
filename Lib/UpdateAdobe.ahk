@@ -51,53 +51,57 @@ Adobe(*)
     }
 
     WinActivate("ahk_exe Acrobat.exe")
-    WinMaximize("ahk_exe Acrobat.exe")
-    WinWaitActive("ahk_exe Acrobat.exe",, 5)
+    WinWaitActive("ahk_exe Acrobat.exe",, 3)
 
-    ; Allow UI to stabilize and dismiss modal overlays/tips
-    Sleep(2000)
-    Send("{Esc}")
-    Sleep(500)
-    WinActivate("ahk_exe Acrobat.exe")
-
-    ; --- 3. Trigger Update Check via Help Menu ---
+    ; --- 3. Instantly Trigger Update Check (Fast Path for Unlicensed/Trial Environments) ---
     UpdateStatus("Checking for Adobe updates...", 100, 100)
-    triggered := false
 
-    try {
-        acrobatEl := UIA.ElementFromHandle("ahk_exe Acrobat.exe")
-        helpItem := acrobatEl.FindElement({Name: "Help", Type: "MenuItem", Order: "LastToFirstOrder"})
-        if (helpItem) {
-            helpItem.Click()
-            updateItem := acrobatEl.WaitElement({Name: "Check for Updates...", Type: "MenuItem", Order: "LastToFirstOrder"}, 3000)
-            if (updateItem) {
-                updateItem.Click()
-                triggered := true
+    ; Method 1: Instant Alt+F -> L -> C keystroke dispatch (<400ms)
+    WinActivate("ahk_exe Acrobat.exe")
+    Send("!f")
+    Sleep(150)
+    Send("l")
+    Sleep(150)
+    Send("c")
+
+    ; --- 4. Wait for Visible AdobeARM / Updater Window ---
+    UpdateStatus("Waiting for Adobe Updater...", 100, 100)
+    updaterWinHwnd := 0
+
+    loop 15 {
+        ; Check for visible updater window
+        for title in ["Adobe Acrobat Updater", "Adobe Acrobat 2020 Updater", "ahk_exe AdobeARM.exe"] {
+            hwnd := WinExist(title)
+            if (hwnd && DllCall("IsWindowVisible", "Ptr", hwnd)) {
+                updaterWinHwnd := hwnd
+                break 2
             }
         }
-    }
 
-    if (!triggered) {
-        ; Keyboard accelerator fallback: Alt+H -> U
-        WinActivate("ahk_exe Acrobat.exe")
-        Send("!h")
-        Sleep(600)
-        Send("u")
-    }
-
-    ; --- 4. Wait for AdobeARM / Updater Window ---
-    UpdateStatus("Waiting for Adobe Updater...", 100, 100)
-    updaterFound := false
-
-    loop 20 {
-        if ProcessExist("AdobeARM.exe") || WinExist("ahk_exe AdobeARM.exe") || WinExist("Adobe Acrobat Updater") || WinExist("Adobe Acrobat 2020 Updater") {
-            updaterFound := true
-            break
+        ; Fallback: If not open after 2 seconds, try UIA Menu -> Help -> Check for updates
+        if (A_Index == 3 && !updaterWinHwnd) {
+            try {
+                acrobatEl := UIA.ElementFromHandle("ahk_exe Acrobat.exe")
+                menuBtn := acrobatEl.FindElement({Name: "Menu", mm: 2})
+                if (menuBtn) {
+                    menuBtn.Click()
+                    Sleep(200)
+                    helpItem := UIA.WaitElement({Name: "Help", mm: 2}, 1500)
+                    if (helpItem) {
+                        helpItem.Click()
+                        Sleep(200)
+                        updateItem := UIA.WaitElement({Name: "Check for updates", mm: 2}, 1500)
+                        if (updateItem)
+                            updateItem.Click()
+                    }
+                }
+            }
         }
+
         Sleep(1000)
     }
 
-    if (!updaterFound) {
+    if (!updaterWinHwnd) {
         TerminateProcessGracefully("Acrobat.exe", 2, true)
         return " - Error (Updater window not found)"
     }
@@ -114,52 +118,46 @@ Adobe(*)
             break
         }
 
-        ; Check if updater closed on its own
-        if !ProcessExist("AdobeARM.exe") && !WinExist("ahk_exe AdobeARM.exe") && !WinExist("Adobe Acrobat Updater") {
+        ; Check if updater window is still visible
+        if !DllCall("IsWindowVisible", "Ptr", updaterWinHwnd) {
             if (updateResult == "")
-                updateResult := " - No updates"
+                updateResult := " - Error (Updater window closed unexpectedly)"
             break
         }
 
-        armHwnd := WinExist("ahk_exe AdobeARM.exe") ? WinExist("ahk_exe AdobeARM.exe") : WinExist("Adobe Acrobat Updater")
-        if (!armHwnd)
-            armHwnd := WinExist("Adobe Acrobat 2020 Updater")
+        try {
+            armEl := UIA.ElementFromHandle(updaterWinHwnd)
 
-        if (armHwnd) {
-            try {
-                armEl := UIA.ElementFromHandle(armHwnd)
+            ; Check for "No updates available"
+            if armEl.FindElement({Name: "No updates available", mm: 2}) {
+                updateResult := " - No updates"
+                try armEl.FindElement({Name: "Close", Type: "Button", mm: 2}).Highlight().Click()
+                break
+            }
 
-                ; Check for "No updates available"
-                if armEl.FindElement({Name: "No updates available", mm: 2}) {
-                    updateResult := " - No updates"
-                    try armEl.FindElement({Name: "Close", Type: "Button", mm: 2}).Click()
-                    break
-                }
+            ; Check for success states
+            if armEl.FindElement({Name: "Update successful", mm: 2}) || armEl.FindElement({Name: "successful", mm: 2}) {
+                updateResult := " - Updates installed"
+                try armEl.FindElement({Name: "Close", Type: "Button", mm: 2}).Highlight().Click()
+                break
+            }
 
-                ; Check for success states
-                if armEl.FindElement({Name: "Update successful", mm: 2}) || armEl.FindElement({Name: "successful", mm: 2}) {
-                    updateResult := " - Updates installed"
-                    try armEl.FindElement({Name: "Close", Type: "Button", mm: 2}).Click()
-                    break
-                }
+            ; Check for downloadable / installable updates
+            installBtn := armEl.FindElement({Name: "Download and Install", Type: "Button", mm: 2})
+            if (!installBtn)
+                installBtn := armEl.FindElement({Name: "Install Now", Type: "Button", mm: 2})
+            if (installBtn) {
+                installBtn.Click()
+                UpdateStatus("Installing Adobe updates...", 100, 100)
+                Sleep(3000)
+                continue
+            }
 
-                ; Check for downloadable / installable updates
-                installBtn := armEl.FindElement({Name: "Download and Install", Type: "Button", mm: 2})
-                if (!installBtn)
-                    installBtn := armEl.FindElement({Name: "Install Now", Type: "Button", mm: 2})
-                if (installBtn) {
-                    installBtn.Click()
-                    UpdateStatus("Installing Adobe updates...", 100, 100)
-                    Sleep(3000)
-                    continue
-                }
-
-                ; Check for manual or failure states
-                if armEl.FindElement({Name: "Update failed", mm: 2}) || armEl.FindElement({Name: "An error occurred", mm: 2}) {
-                    updateResult := " - Error (Update failed)"
-                    try armEl.FindElement({Name: "Close", Type: "Button", mm: 2}).Click()
-                    break
-                }
+            ; Check for manual or failure states
+            if armEl.FindElement({Name: "Update failed", mm: 2}) || armEl.FindElement({Name: "An error occurred", mm: 2}) {
+                updateResult := " - Error (Update failed)"
+                try armEl.FindElement({Name: "Close", Type: "Button", mm: 2}).Click()
+                break
             }
         }
 
@@ -171,5 +169,5 @@ Adobe(*)
     TerminateProcessGracefully("Acrobat.exe", 2, true)
     UpdateStatus()
 
-    return (updateResult != "") ? updateResult : " - No updates"
+    return (updateResult != "") ? updateResult : " - Error (Unknown update state)"
 }

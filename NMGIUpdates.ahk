@@ -103,7 +103,7 @@ BuildGUI(forceRescan := false) {
     ; ==============================================================================
     ; GUI Setup
     ; ==============================================================================
-    MyGui := Gui("+AlwaysOnTop", "Jacro v261008")
+    MyGui := Gui("+AlwaysOnTop", "Jacro V" . FormatTime(A_Now, "yyMMdd"))
     MyGui.SetFont("s10", "Segoe UI")
     MyGui.Add("Text", "xm", "Select the applications to start:")
 
