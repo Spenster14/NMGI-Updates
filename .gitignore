@@ -1,0 +1,14 @@
+# Compiled binaries (compiled locally, not distributed via git)
+*.exe
+*.exe.*
+
+# Per-machine path cache (rewritten at runtime)
+GUIsettings.ini
+
+# Runtime logs and backups
+*-Update.log
+*.bak
+
+# Diagnostic / scratch output
+*_Dump.txt
+test_cb_out.txt
