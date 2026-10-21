@@ -23,7 +23,7 @@ FileCabinet(PostUpdate := false) {
         fcabPath := GetFileCabinetPath()
         if (fcabPath = "") {
             MsgBox("Error: FileCabinet executable not found in any specified location.")
-            return " - Error"
+            return " - Error (Path not found)"
         }
         Run(fcabPath)
 
@@ -31,14 +31,6 @@ FileCabinet(PostUpdate := false) {
     }
 
     Sleep(2000)
-    /*     WinWait("FileCabinet CS")
-    	WinMinimize("FileCabinet CS")
-    	Sleep(250)
-    	WinMaximize("FileCabinet CS")
-    	while !(WinGetMinMax("FileCabinet CS")=="1")
-    	{
-    		Sleep 250
-    } */
     ; --- 2. Navigate to CS Connect --------------------------------------------
     try {
         ; Wait for the main FileCabinet window to fully load and expose the update button.
@@ -225,48 +217,3 @@ FileCabinet(PostUpdate := false) {
     }
 }
 
-/* FileCabinet(PostUpdate:=0)
-{
-	found:=""
-	Run "C:\WinCSI\CABINET\fcab.exe"
-	TRLogin()
-	WinClose "Onvio"
-	WinActivate "FileCabinet CS"
-	WinWaitActive "FileCabinet CS"
-	if PostUpdate
-	{
-		WinWaitActive "User Bulletin"
-		UIA.ElementFromHandle("User Bulletin").FindElement({Name:"Close", Type:"Button"}).Click()
-	}
-	;~ Sleep 30000														;  Don't love this.  Need to find quicker solution. Program slow to load
-	WinMinimize "FileCabinet CS"
-	WinMaximize "FileCabinet CS"
-	while !(WinGetMinMax("FileCabinet CS")=="1")
-	{
-		Sleep 250
-	}
-	WinActivate "FileCabinet CS"
-	Sleep 5000
-	UIA.ElementFromHandle("FileCabinet CS").FindElement({Name:"CS Connect (Ctrl+K)", Type:"Button"}).Click()
-	WinWait "CS Connect"
-	UIA.ElementFromHandle("CS Connect").WaitElement({Name:"Call Now", Type:"Button"}).Click()
-	WinWait "Call Summary"
-	if (InStr(UIA.ElementFromHandle("Call Summary").FindElement({Type:"ListItem"}).Name, "No new updates", false) && PostUpdate)
-	{
-		return
-	}
-	if InStr(UIA.ElementFromHandle("Call Summary").FindElement({Type:"ListItem"}).Name, "No new updates", false)
-	{
-		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
-		WinClose "FileCabinet"
-		FileAppend("- FileCabinet - No updates`r`n",TodayDate . "-Update.log")
-		return
-	}
-	else
-	{
-		MsgBox "Not no new updates, something else"							;  Need logic here for when there are updates
-		;~ FileCabinet("22", "Again")												; Run a second time to clear popup
-		FileAppend("- FileCabinet - Updates installed`r`n",TodayDate . "-Update.log")
-		return
-	}
-} */

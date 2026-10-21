@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Milestone 2 Complete; Ready for Milestone 3 (Interface Standardization & Error Resilience)
-- **Active Step**: Awaiting user approval to begin Milestone 3 (Step 3.1: Standardize Module Return Types & Signatures).
+- **Current Phase**: Milestone 3 (Interface Standardization & Error Resilience)
+- **Active Step**: Step 3.1 Complete. Ready for Step 3.2 (Network UNC Reachability Guards).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -50,9 +50,11 @@
 ### Milestone 3: Interface Standardization & Error Resilience
 *Goal: Standardize the updater module contract across all applications and harden network/UI edge cases.*
 
-- [ ] **Step 3.1**: Standardize Module Return Types & Signatures
-  - Standardize all `Update*.ahk` functions to adhere to a uniform signature and typed return structure (e.g. `{ Status: "Updated"|"NoUpdates"|"Error", Message: "..." }`).
-  - Strip redundant commented-out legacy blocks across all updater modules.
+- [x] **Step 3.1**: Standardize Module Return Types & Signatures
+  - Standardized all `Update*.ahk` return strings with consistent `" - "` prefix, `" - Updates installed"`, `" - No updates"`, `" - Updates available (Manual)"`, and `" - Error (<Reason>)"`.
+  - Replaced abrupt `ExitApp` in `UpdateQB.ahk` with graceful error returns to preserve batch execution.
+  - Eliminated duplicate `FileAppend` calls and redundant variables in `UpdateLacerte.ahk`.
+  - Stripped redundant commented-out legacy blocks across all updater modules in `Lib/` and `Core/Logger.ahk`.
 - [ ] **Step 3.2**: Network UNC Reachability Guards
   - Implement fast network reachability pre-checks for UNC shares (`\\wbsql1`, `\\chfsapp1`, `\\tho1`, `\\agcfsapp1`, `\\przfsapp1`) to prevent lengthy OS-level timeouts when running offline or on disconnected client networks.
 - [ ] **Step 3.3**: Hardening Status & Recovery Logic

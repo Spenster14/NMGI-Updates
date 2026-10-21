@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 GetEdgePath() {
     if FileExist("C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
@@ -32,7 +32,7 @@ Edge(*)
     edgePath := GetEdgePath()
     if (edgePath = "") {
         MsgBox("Edge not found.")
-        return " - Error"
+        return " - Error (Path not found)"
     }
 
     UpdateStatus("Launching Edge...", 100, 100)
@@ -148,57 +148,4 @@ Edge(*)
             return " - Error (Timeout)"
         }
     }
-}
-
-/* Edge(*)
-{
-	Run "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-	WinWaitActive "Edge"
-	WinMaximize "Edge"
-	while !(WinGetMinMax("Edge")=="1")
-	{
-		Sleep 250
-		WinMaximize "Edge"
-	}
-	edgeEl := UIA.ElementFromHandle("ahk_exe msedge.exe")
-	Sleep 1000		
-	try {
-		edgeEl.FindElement({Name:"Settings and more (Alt+F)", Type:"Button"}).ControlClick()
-		Sleep(250)
-		edgeEl.FindElement({Name:"Help and feedback", Type:"MenuItem"}).Click()
-		Sleep(250)
-		edgeEl.FindElement({Name:"About Microsoft Edge", Type:"MenuItem"}).Click()
-	} catch Error as e {
-		Send("!f")
-		Sleep 250
-		Send("bm")
-	}
-	Sleep 1000
-
-	Loop {
-		edgeEl := UIA.ElementFromHandle("ahk_exe msedge.exe")
-		UpdateStatus("Waiting to Uptodate or reboot message", 100, 100)
-		try {
-			edgeEl.FindElement({Name:"Microsoft Edge is up to date.", Type:"Text"}).Highlight()
-		} catch Error as e {
-			; did not find the Button
-		} else {
-			MsgBox("Found up to date.", "Status", "T0.5")
-			UpdateStatus()
-			WinClose "Edge"
-			return " - No updates"
-		}
-		try {
-			edgeEl.FindElement({Name:"REPLACE ME WITH PROPER INFOChrome to finish updating.", Type:"Text"}).Highlight()
-		} catch Error as e {
-			; did not find the menuItem
-		} else {
-			WinClose "Edge"
-			Sleep(3000)
-			Edge()
-			Sleep(1000)
-			return " - Updates installed"
-		}
-		Sleep 100
-	}
-} */
+}

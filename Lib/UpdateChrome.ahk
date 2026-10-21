@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 GetChromePath() {
     if FileExist("C:\Program Files\Google\Chrome\Application\chrome.exe")
@@ -32,7 +32,7 @@ Chrome(*)
     chromePath := GetChromePath()
     if (chromePath = "") {
         MsgBox("Chrome not found.")
-        return " - Error"
+        return " - Error (Path not found)"
     }
 
     UpdateStatus("Launching Chrome...", 100, 100)
@@ -132,72 +132,4 @@ Chrome(*)
             return " - Error (Timeout)"
         }
     }
-}
-
-/* Chrome(*)
-{
-	if FileExist("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-		Run "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-	else if FileExist("C:\Program Files\Google\Chrome\Application\chrome.exe")
-		Run "C:\Program Files\Google\Chrome\Application\chrome.exe"
-	else {
-		MsgBox("Could not find the install location.  Please let Jon Y know and do this one manually for now.")
-		ExitApp
-	}
-	WinWaitActive "Chrome"
-	WinMaximize "Chrome"
-	while !(WinGetMinMax("Chrome")=="1")
-	{
-		Sleep 250
-		WinMaximize "Chrome"
-	}
-	Sleep 1000
-	Loop {
-		chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
-		UpdateStatus("Waiting to find ChromeMenu button 1", 100, 100)
-		try {
-			chromeEl.FindElement({Name:"Chrome", Type:"Button", Order:"LastToFirstOrder"}).Click()
-		} catch Error as e {
-			; did not find the Button
-		} else {
-			break
-		}
-		try {
-			chromeEl.FindElement({Name:"Chrome", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
-		} catch Error as e {
-			; did not find the menuItem
-		} else {
-			break
-		}
-		Sleep 250
-	}
-	UpdateStatus("Waiting to find Help Button 2", 100, 100)
-	chromeEl.WaitElement({Name:"Help", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
-	UpdateStatus("Waiting to find About Google button 3", 100, 100)
-	chromeEl.WaitElement({Name:"About Google Chrome", Type:"MenuItem", Order:"LastToFirstOrder"}).Click()
-	Sleep 1000
-	Loop {
-		chromeEl := UIA.ElementFromHandle("ahk_exe chrome.exe")
-		UpdateStatus("Waiting to Uptodate or reboot message 4", 100, 100)
-		try {
-			chromeEl.FindElement({Name:"Chrome is up to date", Type:"Text"}).Highlight()
-		} catch Error as e {
-			; did not find the Button
-		} else {
-			UpdateStatus()
-			WinClose "Chrome"
-			return " - No updates"
-		}
-		try {
-			chromeEl.FindElement({Name:"Nearly up to date! Relaunch Chrome to finish updating.", Type:"Text"}).Highlight()
-		} catch Error as e {
-			; did not find the menuItem
-		} else {
-			WinClose "Chrome"
-			Sleep(3000)
-			Chrome()
-			Sleep(1000)
-			return " - Updates installed"
-		}
-	}
-} */
+}

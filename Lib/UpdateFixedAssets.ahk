@@ -28,7 +28,7 @@ FixedAssets(PostUpdate := false) {
         faPath := GetFixedAssetsPath()
         if (faPath = "") {
             MsgBox("Error: Fixed Assets executable not found in any specified location.")
-            return " - Error"
+            return " - Error (Path not found)"
         }
         Run(faPath)
 
@@ -112,68 +112,3 @@ FixedAssets(PostUpdate := false) {
     }
 }
 
-/* FixedAssets(PostUpdate:=0)
-{
-	found:=""
-	Run "C:\WinCSI\DSW\dsw.exe"
-	TRLogin()
-	WinActivate "Fixed Assets CS"
-	if PostUpdate
-	{
-		WinWaitActive "User Bulletin"
-		UIA.ElementFromHandle("User Bulletin").FindElement({Name:"Close", Type:"Button"}).Click()
-	}
-	WinWaitActive "Fixed Assets CS"
-	WinClose "Onvio"
-	;~ Sleep 30000														;  Don't love this.  Need to find quicker solution. Program slow to load
-	; WinMinimize "Fixed Assets CS"
-	; WinMaximize "Fixed Assets CS"
-	while !(WinGetMinMax("Fixed Assets CS")=="1")
-	{
-		Sleep 250
-	}
-	WinActivate "Fixed Assets CS"
-	Sleep 5000
-	UIA.ElementFromHandle("Fixed Assets CS").WaitElement({Name:"CS Connect", Type:"Button"}).Click()
-	WinWait "CS Connect"
-	UIA.ElementFromHandle("CS Connect").WaitElement({Name:"Connect", Type:"Button"}).Click()
-	WinWait "Call Summary"
-	if (InStr(UIA.ElementFromHandle("Call Summary").WaitElement({Type:"Document"}).Value, "No new updates", false) && PostUpdate)
-	{
-		return
-	}
-	if InStr(UIA.ElementFromHandle("Call Summary").WaitElement({Type:"Document"}).Value, "No new updates", false)
-	{
-		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
-		WinClose "Fixed Assets CS"
-		FileAppend("- Fixed Assets - No updates`r`n",TodayDate . "-Update.log")
-		return
-	}
-	else
-	{
-		;  MsgBox "Not no new updates, something else!  Exiting. Handle manually"							;  Need logic here for when there are updates
-		;  Test Stuff
-		UpdateStatus("Testing update...", 100, 100)
-		UIA.ElementFromHandle("Call Summary").FindElement({Name:"Close", Type:"Button"}).Highlight().Click()
-		UpdateStatus("Waiting for Restart popup", 100, 100)
-		WinWait("UltraTax CS","Updates have been applied.  Restart Fixed Assets CS to complete the update process.")
-		UpdateStatus("Waiting for OK button click", 100, 100)
-		UIA.ElementFromHandle("UltraTax CS").WaitElement({Name:"OK", Type:"Button"}).Highlight().Click()
-		ToolTip
-		WinWaitClose "Fixed Assets CS"
-		WinWaitActive "Fixed Assets CS"
-		WinMaximize
-		TRLogin()
-		Loop 10{
-			Sleep(1000)
-			if WinExist("User Bulletin")
-			{
-				WinActive "User Bulletin"
-				UIA.ElementFromHandle("User Bulletin").FindElement({Name:"Close", Type:"Button"}).Click()
-			}
-		}
-		WinClose "Fixed Assets CS"
-		FileAppend("- Fixed Assets - Updates installed`r`n",TodayDate . "-Update.log")
-		return
-	}
-} */

@@ -1,29 +1,22 @@
 # Handoff
 
-# Handoff Note (Session Interrupted by Quota)
-- **Status at cutoff:** Hit quota limit at 8:50 AM. Refresh at 1:36 PM.
-- **Git State:** Committed to `reboot/vibe-architecture` (`wip: state snapshot before quota cutoff`).
-- **Changes inspected via Git:** Auth\lacerteLogin.ahk and NMGIUpdates.ahk
-- **Current Blocker:** Model interrupted during response to item 3/4.
-- **Next Step on Refresh:** Complete documentation pass for step 4, then verify run.
-
-## Session: 2026-10-21 - Milestone 1 (Repository Hygiene)
+## Session: 2026-10-21 - Milestone 3 (Interface Standardization & Error Resilience)
 
 ### Modified (commits on `reboot/vibe-architecture`)
-- Untracked 8 compiled `.exe` files and `GUIsettings.ini`; added `.gitignore`. Local files remain on disk.
-- Removed `GUITest.ahk`, `GetDomain.ahk`, `TestChrome.ahk`, `connectwise.ahk`, `test_cb*.ahk`.
-- Removed `Lib/FindText.ahk`, `Lib/PreChange250904UpdateEdge.ahk`, `Lib/Preupdate250904UpdateChrome.ahk`, `Lib/DumpACS.ahk`, `Lib/DumpFirefoxUIA.ahk`.
-- Moved `Lib/UpdateAdobe.ahk` and `Lib/UpdateFPS.ahk` to `archive/`.
-- Renamed `CheckboxGUItest.ahk` to `NMGIUpdates.ahk`.
-- Updated `PROJECT_SPEC.md`, `CURRENT_TASK.md`, `CHANGELOG.md`.
+- **Step 3.1**:
+  - Standardized module return values across all 9 active updater modules in `Lib/` (`UpdateChrome.ahk`, `UpdateEdge.ahk`, `UpdateFirefox.ahk`, `UpdateFixedAssets.ahk`, `UpdateAccountingCS.ahk`, `UpdateFileCabinet.ahk`, `UpdateUT.ahk`, `UpdateQB.ahk`, `UpdateLacerte.ahk`).
+  - Standardized return strings with `" - "` prefix: `" - Updates installed"`, `" - No updates"`, `" - Updates available (Manual)"`, and `" - Error (<Reason>)"`.
+  - Replaced abrupt `ExitApp` calls in `UpdateQB.ahk` on missing configuration or unlocated paths with graceful error strings (`" - Error (Invalid version)"`, `" - Error (Path not found)"`) so subsequent selected applications continue running.
+  - Resolved the `UpdateLacerte.ahk` double-logging bug by removing duplicate internal `FileAppend` calls and unused log variables.
+  - Stripped dead commented-out legacy code blocks across all `Lib/Update*.ahk` modules and `Core/Logger.ahk`.
 
 ### Tested
-- Static check only: every active `#Include <...>` in `NMGIUpdates.ahk` resolves to a file in `Lib/`.
+- Ran automated AHK v2 smoke test (`smoke.ps1`) via `AutoHotkey64.exe /ErrorStdOut`.
+- All modules parse cleanly without load errors or symbol conflicts; main GUI initializes and stays responsive.
 
-### Not tested / Open items
-- The script was **not launched** after the rename. Run `NMGIUpdates.ahk` once and recompile the exe from it.
-- The commented-out `/* #Include <UpdateAdobe> ... <UpdateFPS> */` block in `NMGIUpdates.ahk` now points at stale paths (files are in `archive/`). Fix when those modules return.
-- `GUIsettings.ini` is now untracked; the app recreates its `[Paths]` cache on first run.
+### Unfinished Logic / Known Quirks Documented
+- Commented-out `#Include <UpdateAdobe>` and `#Include <UpdateFPS>` in `NMGIUpdates.ahk` point to files currently in `archive/` awaiting future modernization.
 
-### Next step
-Milestone 2, Step 2.1 in `CURRENT_TASK.md`: extract the application registry. Awaiting user approval.
+### Exact Next Step in CURRENT_TASK.md
+- **Milestone 3, Step 3.2**: Network UNC Reachability Guards (implement pre-flight checks for `\\wbsql1`, `\\chfsapp1`, `\\tho1`, `\\agcfsapp1`, `\\przfsapp1`).
+

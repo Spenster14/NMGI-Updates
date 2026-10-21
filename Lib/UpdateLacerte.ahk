@@ -15,16 +15,15 @@ GetLacertePath(year) {
 }
 
 Lacerte(year) {
-    global TodayDate, LacerteEmail, LacertePassword
+    global LacerteEmail, LacertePassword
 
     UpdateStatus("Checking for Lacerte 20" year " updates...", 100, 100)
-    logFile := TodayDate . "-Update.log"
 
     ; Dynamically build executable path
     lacerteExe := GetLacertePath(year)
 
     if (lacerteExe == "") {
-        return " - Not installed"
+        return " - Error (Not installed)"
     }
 
     Run(lacerteExe)
@@ -33,7 +32,7 @@ Lacerte(year) {
     loginTitle := "Sign In"
     if !WinWait(loginTitle, , 30) {
         MsgBox("Lacerte login screen did not appear.")
-        return " - Login timeout"
+        return " - Error (Login timeout)"
     }
     WinActivate(loginTitle)
     Sleep(4000) ; Increased delay to let slow WPF rendering completely settle
@@ -63,13 +62,13 @@ Lacerte(year) {
         
     } catch as err {
         MsgBox("UIA Error during Lacerte login: " err.Message)
-        return " - Login error"
+        return " - Error (Login error)"
     }
     
     ; Wait for application to fully load (Main window)
     mainTitle := "20" year " Lacerte"
     if !WinWait(mainTitle, , 120) { ; Allow up to 2 minutes for network authentication and loading
-        return " - Main window timeout"
+        return " - Error (Main window timeout)"
     }
     WinActivate(mainTitle)
     
@@ -108,7 +107,7 @@ Lacerte(year) {
         Send("c")  ; AccessKey 'c' for Check for Updates
         Sleep(2000)
     } else {
-        return " - Year not supported"
+        return " - Error (Year not supported)"
     }
     
     ; ----------------------------------------------------------------
@@ -118,7 +117,7 @@ Lacerte(year) {
         ; Legacy Delphi Popup (2022 & 2023)
         updateTitle := "Lacerte Updates"
         if !WinWait(updateTitle, , 30) {
-            return " - Update window timeout"
+            return " - Error (Update window timeout)"
         }
         WinActivate(updateTitle)
         Sleep(3000) ; Give the popup extra time to completely render
@@ -131,7 +130,6 @@ Lacerte(year) {
             WinClose(updateTitle)
             Sleep(1000)
             WinClose(mainTitle)
-            FileAppend(A_Now " - Lacerte 20" year " - No updates`r`n", logFile)
             return " - No updates"
         } else {
             MsgBox("An update is available! Script is paused. Please take a screenshot of the update window and then manually apply the update.")
@@ -187,7 +185,6 @@ Lacerte(year) {
                 if !WinWaitClose(mainTitle, , 5) {
                     WinKill(mainTitle)
                 }
-                FileAppend(A_Now " - Lacerte 20" year " - No updates`r`n", logFile)
                 return " - No updates"
             }
             

@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 GetAccountingCSPath() {
     potentialPaths := [
@@ -24,7 +24,7 @@ AccountingCS(PostUpdate := false) {
         acsPath := GetAccountingCSPath()
         if (acsPath = "") {
             MsgBox("Error: Accounting CS executable not found in any specified location.")
-            return " - Error"
+            return " - Error (Path not found)"
         }
         Run(acsPath)
 
@@ -135,32 +135,6 @@ AccountingCS(PostUpdate := false) {
 
         WinClose("Accounting CS")
         UpdateStatus()
-        return " - Update found, install manually"
-
-        /*
-        UpdateStatus("Updates detected... applying.", 100, 100)
-
-        ; Close Call Summary to trigger the Apply/Restart flow
-        try callSumEl.FindElement({ Name: "Close", Type: "Button" }).Click()
-
-        ; Handle Restart Prompt
-        if WinWait("Accounting CS", "Updates have been applied", 5) {
-            try UIA.ElementFromHandle("Accounting CS").WaitElement({ Name: "OK", Type: "Button" }).Click()
-        }
-
-        UpdateStatus("Waiting for Accounting CS to restart...", 100, 100)
-        WinWaitClose("Accounting CS")
-
-        ; Wait for App to Reload
-        WinWait("Accounting CS")
-        WinActivate("Accounting CS")
-
-        TRLogin()
-
-        ; Recursive Call: Verify the update is finished
-        AccountingCS()
-        UpdateStatus()
-        return " - Updates installed"
-        */
+        return " - Updates available (Manual)"
     }
 }

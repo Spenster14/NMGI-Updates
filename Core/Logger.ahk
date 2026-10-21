@@ -31,27 +31,6 @@ GetColorByStatus(status) {
     return "c000000" ; Default Black
 }
 
-/* UpdateLog(appName,updateresult)
-{
-    logFile := TodayDate . "-Update.log"
-
-    ; Read the whole file
-    fileContent := FileRead(logFile)
-
-    ; Loop through the file line by line (bottom up is usually faster for logs, but this is simple)
-    Loop Parse, fileContent, "`n", "`r"
-    {
-        ; Logic:
-        ; 1. Does the line start with today's date?
-        ; 2. Does the line contain "AppName:1" (meaning it was updated)?
-        if (InStr(A_LoopField, appName . ":1"))
-            return
-
-    }
-
-    return false
-} */
-
 UpdateLog(appName, updateresult) {
     logFile := TodayDate . "-Update.log"
 
