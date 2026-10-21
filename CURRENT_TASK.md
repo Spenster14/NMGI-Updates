@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2b complete (Added `\\sql1` locations to `Lib/UpdatePractice.ahk`).
+- **Active Step**: Step 4.2c complete (Practice CS updated to `CreativeSolutions.Practice.exe` with `\\sql1` and `T:\` prioritized).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -92,5 +92,9 @@
   - [x] Add `\\sql1\WinCSI\Practice CS\PracticeCS.exe`, `\\sql1\WINCSI$\Practice CS\PracticeCS.exe`, and `practice.exe` variants.
   - [x] Run smoke test verification via `smoke.ps1`.
   - [x] Atomically commit Step 4.2b.
+- [x] **Step 4.2c**: Update Practice CS binary name to `CreativeSolutions.Practice.exe` and add `T:\Practice CS\`
+  - [x] Update `GetPracticePath` in `Lib/UpdatePractice.ahk` prioritizing `\\sql1\winCSI\Practice CS\CreativeSolutions.Practice.exe` and `T:\Practice CS\CreativeSolutions.Practice.exe`.
+  - [x] Run smoke test verification via `smoke.ps1`.
+  - [x] Atomically commit Step 4.2c.
 
 

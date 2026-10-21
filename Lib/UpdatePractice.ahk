@@ -5,14 +5,42 @@
 
 GetPracticePath() {
     potentialPaths := [
+        ; Known confirmed production paths
+        "\\sql1\winCSI\Practice CS\CreativeSolutions.Practice.exe",
+        "T:\Practice CS\CreativeSolutions.Practice.exe",
+        "T:\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+        "\\sql1\WINCSI$\Practice CS\CreativeSolutions.Practice.exe",
+        "\\sql1\Practice CS\CreativeSolutions.Practice.exe",
+        "\\sql1\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+
+        ; Standard network drive mappings (CreativeSolutions.Practice.exe)
+        "W:\Practice CS\CreativeSolutions.Practice.exe",
+        "W:\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+        "X:\Practice CS\CreativeSolutions.Practice.exe",
+        "X:\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+        "P:\Practice CS\CreativeSolutions.Practice.exe",
+        "P:\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+        "S:\Practice CS\CreativeSolutions.Practice.exe",
+        "S:\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+
+        ; UNC network shares (CreativeSolutions.Practice.exe)
+        "\\wbsql1\WINCSI$\Practice CS\CreativeSolutions.Practice.exe",
+        "\\tho1\thomson\WINCSI\Practice CS\CreativeSolutions.Practice.exe",
+        "\\agcfsapp1\WinCSI\Practice CS\CreativeSolutions.Practice.exe",
+
+        ; Local installations (CreativeSolutions.Practice.exe)
+        "C:\WinCSI\Practice CS\CreativeSolutions.Practice.exe",
+        "C:\Practice CS\CreativeSolutions.Practice.exe",
+        "C:\Program Files (x86)\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+        "C:\Program Files\Creative Solutions\Practice CS\CreativeSolutions.Practice.exe",
+
+        ; Legacy binary fallbacks (PracticeCS.exe / practice.exe)
+        "\\sql1\winCSI\Practice CS\PracticeCS.exe",
+        "T:\Practice CS\PracticeCS.exe",
         "W:\Creative Solutions\Practice CS\PracticeCS.exe",
         "X:\Creative Solutions\Practice CS\PracticeCS.exe",
         "P:\Creative Solutions\Practice CS\PracticeCS.exe",
         "S:\Creative Solutions\Practice CS\PracticeCS.exe",
-        "\\sql1\WinCSI\Practice CS\PracticeCS.exe",
-        "\\sql1\WINCSI$\Practice CS\PracticeCS.exe",
-        "\\sql1\Creative Solutions\Practice CS\PracticeCS.exe",
-        "\\sql1\Practice CS\PracticeCS.exe",
         "\\wbsql1\WINCSI$\Practice CS\PracticeCS.exe",
         "\\tho1\thomson\WINCSI\Practice CS\PracticeCS.exe",
         "\\agcfsapp1\WinCSI\Practice CS\PracticeCS.exe",
