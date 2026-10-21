@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Milestone 2: Modular Architecture & Core Service Extraction
-- **Active Step**: Step 2.1 (Extract Declarative Application Registry to Core/AppRegistry.ahk).
+- **Active Step**: Step 2.1 - Extract Apps array, GetAppCategory, and SortApps into Core/AppRegistry.ahk.
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -37,10 +37,10 @@
 - [x] **Step 2.2**: Centralize Shared Authentication & Dialog Services
   - [x] Extracted bulletin and startup popup handlers (`HandleBulletins`) into `Auth/Bulletins.ahk` (`2563e5b`).
   - [x] Extracted Thomson Reuters login orchestration (`TRLogin`, `CloseSignInTR`) into `Auth/TRLogin.ahk` (`cf68a84`).
-  - [x] Extracted Lacerte upfront authentication modal into `Auth/LacerteLogin.ahk` and wired into `NMGIUpdates.ahk`.
-- [ ] **Step 2.1**: Declarative Application Registry
-  - Extract the application definition list (`Apps` array and category sorter) into `Core/AppRegistry.ahk`.
-  - Maintain correct load order (included above `BuildGUI()`).
+  - [x] Extracted Lacerte upfront authentication modal into `Auth/LacerteLogin.ahk` and wired into `NMGIUpdates.ahk` (`06e6815`).
+- [x] **Step 2.1**: Declarative Application Registry
+  - Extracted the application definition list (`Apps` array), `GetAppCategory`, and `SortApps` into `Core/AppRegistry.ahk`.
+  - Maintained correct load order (included above `BuildGUI()`).
 - [ ] **Step 2.4**: INI Cache Decoupling
   - Encapsulate `[Paths]` cache operations into `Core/Config.ahk`.
   - Refactor `GUIsettings.ini` usage to drop legacy domain pipe mappings and standardize strictly on the `[Paths]` cache.
