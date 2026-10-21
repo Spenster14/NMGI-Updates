@@ -167,43 +167,21 @@ Practice(PostUpdate := false) {
 
         ; Ensure the Call Summary window and its contents are fully initialized
         Sleep(1500)
-        statusText := ""
+        summaryDump := ""
 
         try {
             callSumEl := UIA.ElementFromHandle("Call Summary")
-
-            ; Attempt 1: Document element with 3s timeout
-            try {
-                docEl := callSumEl.WaitElement({ Type: "Document" }, 3000)
-                if docEl
-                    statusText := docEl.Value
-            }
-
-            ; Attempt 2: Edit control
-            if (statusText == "") {
-                try {
-                    editEl := callSumEl.FindElement({ Type: "Edit" })
-                    if editEl
-                        statusText := editEl.Value
-                }
-            }
-
-            ; Attempt 3: Text control
-            if (statusText == "") {
-                try {
-                    textEl := callSumEl.FindElement({ Type: "Text", MatchMode: "Substring", Name: "update" })
-                    if textEl
-                        statusText := textEl.Name
-                }
-            }
+            ; DumpAll traverses the entire Call Summary tree and dumps all names, values, and types
+            try summaryDump := callSumEl.DumpAll()
         } catch {
-            ; Fallback below
+            summaryDump := ""
         }
 
-        ; Attempt 4: Native WinGetText from the Call Summary dialog
-        if (statusText == "") {
-            try statusText := WinGetText("Call Summary")
-        }
+        ; Fallback to native WinGetText
+        winText := ""
+        try winText := WinGetText("Call Summary")
+
+        combinedText := summaryDump . "`n" . winText
 
     } catch as err {
         UpdateStatus()
@@ -211,7 +189,7 @@ Practice(PostUpdate := false) {
     }
 
     ; --- 4. Evaluate Update Status & Multi-Tiered Dialog Dismissal ------------
-    isNoUpdates := InStr(statusText, "No new updates")
+    isNoUpdates := InStr(combinedText, "No new updates") || InStr(combinedText, "No updates")
 
     ; Dismiss Call Summary (Multi-tier: UIA -> ControlClick -> Keyboard Enter/Space -> WinClose)
     if WinExist("Call Summary") {
@@ -286,17 +264,13 @@ Practice(PostUpdate := false) {
         WinWaitClose("CS Connect", , 3)
     }
 
-    ; --- 5. Return Status & Clean Up Application ---
-    if (isNoUpdates) {
-        if WinExist("Practice CS -")
-            WinClose("Practice CS -")
-        else if WinExist("Practice CS")
-            WinClose("Practice CS")
-        UpdateStatus()
-        return " - No updates"
-    } else {
-        ; Handle the 'Apply Updates' prompt that appears when updates are available
-        if WinWait("Apply Updates", "Would you like to apply them now?", 5) {
+    ; --- 5. Inspect Apply Updates Dialog & Finalize Status ---------------------
+    applyUpdatesFound := false
+    if (!isNoUpdates) {
+        ; Thomson Reuters displays 'Apply Updates' modal only when updates are actually downloaded
+        if WinWait("Apply Updates", , 4) {
+            applyUpdatesFound := true
+            UpdateStatus("Declining Apply Updates prompt...", 100, 100)
             try {
                 UIA.ElementFromHandle("Apply Updates").WaitElement({ Name: "No", Type: "Button" }, 3000).Click()
             } catch {
@@ -305,12 +279,28 @@ Practice(PostUpdate := false) {
             }
             Sleep(500)
         }
+    } else {
+        if WinExist("Apply Updates") {
+            applyUpdatesFound := true
+            try UIA.ElementFromHandle("Apply Updates").WaitElement({ Name: "No", Type: "Button" }, 1500).Click()
+            catch {
+                WinActivate("Apply Updates")
+                Send("!n")
+            }
+            Sleep(500)
+        }
+    }
 
-        if WinExist("Practice CS -")
-            WinClose("Practice CS -")
-        else if WinExist("Practice CS")
-            WinClose("Practice CS")
-        UpdateStatus()
+    ; Clean up main Practice CS window
+    if WinExist("Practice CS -")
+        WinClose("Practice CS -")
+    else if WinExist("Practice CS")
+        WinClose("Practice CS")
+    UpdateStatus()
+
+    if (applyUpdatesFound) {
         return " - Updates available (Manual)"
+    } else {
+        return " - No updates"
     }
 }

@@ -28,8 +28,12 @@
   - Fixed infinite wait reading Call Summary: added 3000ms timeout for Document, followed by Edit, Text, and native `WinGetText` fallbacks.
   - Implemented multi-tiered button dismissal (UIA -> ControlClick -> Keyboard Enter/Space -> WinClose) for both `Call Summary` and the underlying `Online Status` window, ensuring Practice CS is never blocked by modal dialogs.
 
+- **Step 4.2e**:
+  - Fixed false-positive update reporting: replaced individual element property reads with `callSumEl.DumpAll()` and `WinGetText("Call Summary")` combined text search, reliably catching `"No new updates are available"`.
+  - Gated `" - Updates available (Manual)"` strictly on the vendor's `"Apply Updates"` confirmation dialog (which only pops up when updates were actually downloaded and pending application), defaulting to `" - No updates"` if absent.
+
 ### Tested
-- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 26952)`).
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 32292)`).
 - Validated category ordering logic: Category 1 items (`Accounting CS`, `Practice CS`) run first upfront, followed by automated TR apps (Category 2), QuickBooks (Category 3), Lacerte/Adobe (Category 4), and Browsers (Category 5).
 
 ### Unfinished Logic / Known Quirks Documented

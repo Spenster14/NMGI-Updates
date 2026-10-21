@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.2d complete (Fixed CS Connect & Call Summary dialog dismissal and button acknowledgment in `Lib/UpdatePractice.ahk`).
+- **Active Step**: Step 4.2e complete (Fixed false-positive update detection using DumpAll and Apply Updates modal gating in `Lib/UpdatePractice.ahk`).
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -101,5 +101,10 @@
   - [x] Implement multi-tiered button dismissal (UIA -> ControlClick -> Enter/Space -> WinClose) for both `Call Summary` and underlying `Online Status` windows.
   - [x] Run smoke test verification via `smoke.ps1`.
   - [x] Atomically commit Step 4.2d.
+- [x] **Step 4.2e**: Fix False-Positive Update Detection in `Lib/UpdatePractice.ahk`
+  - [x] Use `callSumEl.DumpAll()` and `WinGetText("Call Summary")` to reliably parse "No new updates are available".
+  - [x] Gate `" - Updates available (Manual)"` on confirmed detection of the `"Apply Updates"` dialog rather than defaulting on read failures.
+  - [x] Run smoke test verification via `smoke.ps1`.
+  - [x] Atomically commit Step 4.2e.
 
 
