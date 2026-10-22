@@ -2,6 +2,12 @@
 
 GetFixedAssetsPath() {
     potentialPaths := [
+        "\\goserver\Y\WinCSI\DSW\dsw.exe",
+        "\\goserver\Y$\WinCSI\DSW\dsw.exe",
+        "\\goserver\WinCSI\DSW\dsw.exe",
+        "\\goserver\WINCSI$\DSW\dsw.exe",
+        "Y:\WinCSI\DSW\dsw.exe",
+        "Y:\DSW\dsw.exe",
         "\\agcfsapp1\WinCSI\DSW\dsw.exe",
         "\\wbsql1\WINCSI$\DSW\dsw.exe",
         "\\chfsapp1\WINCSI\DSW\dsw.exe",
@@ -10,7 +16,6 @@ GetFixedAssetsPath() {
         "\\hfaapp1\WINCSI\FA25\DSW\dsw.exe",
         "\\app1\WinCSI\DSW\dsw.exe",
         "W:\WinCSI\DSW\dsw.exe",
-        "\\goserver\Y\WinCSI\DSW\dsw.exe",
         "C:\WinCSI\DSW\dsw.exe"
     ]
 

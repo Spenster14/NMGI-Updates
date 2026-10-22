@@ -228,6 +228,12 @@
   - [x] Add "Close" button and escape / close handlers.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4m.
+- [x] **Step 4.4n**: Prioritize Fixed Assets \\goserver\Y\ & Y:\ Mapped Locations
+  - [x] Prioritize `\\goserver\Y\WinCSI\DSW\dsw.exe` at the top of `potentialPaths` in `Lib/UpdateFixedAssets.ahk`.
+  - [x] Add `\\goserver\Y$\WinCSI\DSW\dsw.exe`, `\\goserver\WinCSI\DSW\dsw.exe`, and mapped drive `Y:\WinCSI\DSW\dsw.exe` & `Y:\DSW\dsw.exe`.
+  - [x] Adjust `IsHostReachable` default timeout from 300ms to 1000ms in `Core/Network.ahk` to reliably accommodate VPN / WAN latencies.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4n.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

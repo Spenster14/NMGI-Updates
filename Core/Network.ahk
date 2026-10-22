@@ -15,7 +15,7 @@ GetHostFromUNC(path) {
     return ""
 }
 
-IsHostReachable(host, port := 445, timeoutMs := 300) {
+IsHostReachable(host, port := 445, timeoutMs := 1000) {
     global HostCache
     if (host == "")
         return false

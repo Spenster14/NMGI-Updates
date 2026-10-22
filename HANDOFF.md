@@ -285,9 +285,20 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 37660)`).
 
+- **Step 4.4n**:
+  - Prioritize Fixed Assets \\goserver\Y\ & Y:\ Mapped Locations:
+    - Updated `potentialPaths` in `Lib/UpdateFixedAssets.ahk`: prioritized `\\goserver\Y\WinCSI\DSW\dsw.exe` at the top of the path list, and added `\\goserver\Y$\WinCSI\DSW\dsw.exe`, `\\goserver\WinCSI\DSW\dsw.exe`, `\\goserver\WINCSI$\DSW\dsw.exe`, and mapped drive `Y:\WinCSI\DSW\dsw.exe` & `Y:\DSW\dsw.exe`.
+    - Adjusted `IsHostReachable` default timeout from 300ms to 1000ms in `Core/Network.ahk` to reliably accommodate WAN/VPN network conditions when probing offline/online file servers.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 9000)`).
+
 ### Next Step / Status
-- Step 4.4m complete.
+- Step 4.4n complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

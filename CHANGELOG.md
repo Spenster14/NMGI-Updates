@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - Changed application scanning feedback to display the "Scanning applications, please wait..." ToolTip immediately upon initial launch, clearing it automatically once the main GUI is displayed.
 - Moved dormant `UpdateAdobe.ahk` and `UpdateFPS.ahk` from `Lib/` to `archive/` pending modernization.
 - Added `UpdateUT.ahk` / `UpdateFixedAssets.ahk` network locations (`\\wbsql1`, `\\agcfsapp1`).
+- Prioritized `\\goserver\Y\WinCSI\DSW\dsw.exe` and added associated `Y:\` mapped and UNC share variants in `Lib/UpdateFixedAssets.ahk`. Adjusted `IsHostReachable` default timeout from 300ms to 1000ms in `Core/Network.ahk` to accommodate WAN/VPN network conditions.
 - Standardized return signatures across all active `Lib/Update*.ahk` modules to use uniform status prefixes (`" - Updates installed"`, `" - No updates"`, `" - Updates available (Manual)"`, `" - Error (<Reason>)"`).
 - Replaced repetitive process kill logic across `UpdateChrome.ahk`, `UpdateEdge.ahk`, `UpdateFirefox.ahk`, and `UpdateQB.ahk` with `Core/Process.ahk` helpers.
 - Wrapped UNC lookups in `UpdateUT.ahk`, `UpdateFixedAssets.ahk`, `UpdateFileCabinet.ahk`, and `Core/Config.ahk` with `SafeFileExist()` to eliminate 25–30s Windows SMB redirector freezes when disconnected from client networks or VPNs.
