@@ -123,9 +123,24 @@
 ### Unfinished Logic / Known Quirks Documented
 - TreeView Checkbox State: Win32 Common Controls store checkbox state in bits 12-15 of the item state (`TVM_GETITEMSTATE` with mask `0xF000`). Direct `SendMessage` bypasses UIA lazy-loading restrictions entirely.
 
+- **Step 4.4d**:
+  - Main GUI label adjustments requested by operator:
+    - Renamed "PPC Tools & Practice Aids" to "PPC Tools" in `Core/AppRegistry.ahk`.
+    - Renamed "Financial Planning Suite" to "FPS" in `Core/AppRegistry.ahk`.
+    - Updated `PROJECT_SPEC.md` registry entries to match.
+    - Verified `GetAppCategory()` preserved sorting categories (Category 0 for FPS, Category 2 for PPC Tools).
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 5448)`).
+
+### Unfinished Logic / Known Quirks Documented
+- Label Decoupling: In `Core/AppRegistry.ahk`, `Name` is the invariant key used for `[Paths]` and `[Status]` INI mappings, while `Label` controls UI rendering. Updating `Label` preserves persistent operator INI cache without requiring config migration.
+
 ### Next Step / Status
-- Step 4.4c complete. Ready for operator testing of `NMGIupdates.exe` to verify status bar checkbox count.
-- Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+- Step 4.4d complete.
+- Ready for Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

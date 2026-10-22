@@ -3,7 +3,7 @@
 ; Extracted from NMGIUpdates.ahk (Milestone 2, Step 2.1).
 
 global Apps := [
-    { Name: "FPS",                      Label: "Financial Planning Suite", fn: (*) => FPS(),         pathFn: (*) => GetFPSPath() },
+    { Name: "FPS",                      Label: "FPS",                        fn: (*) => FPS(),         pathFn: (*) => GetFPSPath() },
     { Name: "Quickbooks Enterprise 22", Label: "QB Enterprise 2022", fn: (*) => QB("22 Enterprise"), pathFn: (*) => GetQBPath("22 Enterprise") },
     { Name: "Quickbooks Enterprise 23", Label: "QB Enterprise 2023", fn: (*) => QB("23 Enterprise"), pathFn: (*) => GetQBPath("23 Enterprise") },
     { Name: "Quickbooks Enterprise 24", Label: "QB Enterprise 2024", fn: (*) => QB("24 Enterprise"), pathFn: (*) => GetQBPath("24 Enterprise") },
@@ -15,7 +15,7 @@ global Apps := [
     { Name: "Ultratax 25",              Label: "UltraTax 2025",      fn: (*) => UT("25"),            pathFn: (*) => GetUTPath("25") },
     { Name: "FileCabinet",              Label: "FileCabinet",        fn: (*) => FileCabinet(),       pathFn: (*) => GetFileCabinetPath() },
     { Name: "FixedAssetsCS",            Label: "Fixed Assets CS",    fn: (*) => FixedAssets(),       pathFn: (*) => GetFixedAssetsPath() },
-    { Name: "PPC",                      Label: "PPC Tools & Practice Aids", fn: (*) => PPC(),        pathFn: (*) => GetPPCPath() },
+    { Name: "PPC",                      Label: "PPC Tools",                  fn: (*) => PPC(),         pathFn: (*) => GetPPCPath() },
     { Name: "AccountingCS",             Label: "Accounting CS",      fn: (*) => AccountingCS(),      pathFn: (*) => GetAccountingCSPath() },
     { Name: "PracticeCS",               Label: "Practice CS",        fn: (*) => Practice(),          pathFn: (*) => GetPracticePath() },
     { Name: "Lacerte 22",               Label: "Lacerte 2022",       fn: (*) => Lacerte("22"),       pathFn: (*) => GetLacertePath("22") },

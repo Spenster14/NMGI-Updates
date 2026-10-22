@@ -160,6 +160,12 @@
   - [x] Update launcher status line with detected checkbox and checked count, pause for 1s.
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe`.
   - [x] Atomically commit Step 4.4c.
+- [x] **Step 4.4d**: GUI Label Tweaks
+  - [x] Rename "PPC Tools & Practice Aids" to "PPC Tools" in `Core/AppRegistry.ahk`.
+  - [x] Rename "Financial Planning Suite" to "FPS" in `Core/AppRegistry.ahk`.
+  - [x] Verify sorting category in `GetAppCategory()` preserves order (Category 0 for FPS, Category 2 for PPC Tools).
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe`.
+  - [x] Atomically commit Step 4.4d.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 
