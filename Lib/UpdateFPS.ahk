@@ -70,22 +70,20 @@ FPS(PostUpdate := false) {
     }
 
     ; --- 3. Handle Login ("Log User Into System") ---
-    UpdateStatus("Waiting for FPS login...", 100, 100)
+    UpdateStatus("Submitting FPS database password...", 100, 100)
     if WinWait("Log User Into System", , 15) {
         WinActivate("Log User Into System")
-        pwdBox := InputBox("Please enter the user password for Financial Planning Suite:", "FPS Password", "password")
-        if (pwdBox.Result != "OK" || pwdBox.Value == "") {
-            try WinClose("Log User Into System")
-            TerminateProcessGracefully("FAS.EXE", 2, true)
-            UpdateStatus()
-            return " - Error (Login cancelled)"
-        }
+        global FpsPassword
 
         try {
             loginEl := UIA.ElementFromHandle("Log User Into System")
             pwdEl := loginEl.WaitElement({AutomationId: "txtPassword", Type: "Edit"}, 3000)
-            if (pwdEl)
-                pwdEl.Value := pwdBox.Value
+            if (pwdEl) {
+                try pwdEl.Highlight(500)
+                pwdEl.Value := FpsPassword
+            } else {
+                SendText(FpsPassword)
+            }
 
             okEl := loginEl.WaitElement({AutomationId: "btnOK"}, 3000)
             if (okEl)
@@ -93,7 +91,14 @@ FPS(PostUpdate := false) {
             else
                 Send("{Enter}")
         } catch as err {
-            Send("{Enter}")
+            try {
+                ControlSetText(FpsPassword, "Edit1", "Log User Into System")
+                ControlClick("Button1", "Log User Into System")
+            } catch {
+                SendText(FpsPassword)
+                Sleep(200)
+                Send("{Enter}")
+            }
         }
     }
 

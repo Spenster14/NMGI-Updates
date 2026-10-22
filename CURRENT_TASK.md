@@ -166,6 +166,15 @@
   - [x] Verify sorting category in `GetAppCategory()` preserves order (Category 0 for FPS, Category 2 for PPC Tools).
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe`.
   - [x] Atomically commit Step 4.4d.
+- [x] **Step 4.4e**: Centralized Upfront Database Password Collection & Automation
+  - [x] Create `Auth/DatabaseLogin.ahk` (`PromptDatabasePasswords`) presenting a single modal for checked database apps (`Accounting CS`, `Practice CS`, `FPS`) with separate masked password fields.
+  - [x] Wire `PromptDatabasePasswords` and `#Include <Auth/DatabaseLogin>` into `NMGIUpdates.ahk` at `RunSelectedApps(*)`.
+  - [x] Update `Core/AppRegistry.ahk`: move `FPS` to Category 2, keep `Accounting CS` & `Practice CS` in Category 1.
+  - [x] Update `Lib/UpdateFPS.ahk` to consume in-memory `FpsPassword` without prompting mid-run.
+  - [x] Update `Lib/UpdateAccountingCS.ahk` to detect login modal and automate password submission using `AcsPassword`.
+  - [x] Update `Lib/UpdatePractice.ahk` to detect login modal and automate password submission using `PracticePassword`.
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe`.
+  - [x] Atomically commit Step 4.4e.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

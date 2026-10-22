@@ -137,9 +137,31 @@
 ### Unfinished Logic / Known Quirks Documented
 - Label Decoupling: In `Core/AppRegistry.ahk`, `Name` is the invariant key used for `[Paths]` and `[Status]` INI mappings, while `Label` controls UI rendering. Updating `Label` preserves persistent operator INI cache without requiring config migration.
 
+- **Step 4.4e**:
+  - Centralized Upfront Database Password Collection & Automation:
+    - Created `Auth/DatabaseLogin.ahk` implementing `PromptDatabasePasswords(appList)`.
+    - Inspects which of `Accounting CS`, `Practice CS`, or `FPS` are checked in `SortedApps`. If any are checked, prompts the operator once upfront in a single modal window with separate masked password fields (`+Password`) for only the checked applications.
+    - Stores credentials strictly in-memory (`AcsPassword`, `PracticePassword`, `FpsPassword`).
+    - Wired `PromptDatabasePasswords` into `NMGIUpdates.ahk` at `RunSelectedApps(*)`.
+    - Category & Load Order Updates:
+      - Kept `Accounting CS` and `Practice CS` in Category 1 so they launch first upfront to trigger Thomson Reuters staff sign-in (`TRLogin()`) early.
+      - Moved `FPS` to Category 2 (alongside UltraTax, FileCabinet, Fixed Assets, PPC) as it no longer blocks for interactive credential entry.
+    - Automated Application Password Injection:
+      - `Lib/UpdateFPS.ahk`: Replaced interactive mid-run `InputBox` with automated injection of `FpsPassword` into `txtPassword` and `btnOK`.
+      - `Lib/UpdateAccountingCS.ahk`: Implemented multi-tier automated password injection into the database login dialog (Tier A UIA `IsPassword: true` / Name `"Password"`, Tier B Win32 `ES_PASSWORD 0x0020`, Tier C keyboard Tab navigation) followed by `{Enter}`/`OK` and waiting for `"Accounting CS -"`.
+      - `Lib/UpdatePractice.ahk`: Implemented multi-tier automated password injection into the database login dialog (Tier A UIA `IsPassword: true` / Name `"Password"`, Tier B Win32 `ES_PASSWORD 0x0020`, Tier C keyboard Tab navigation) followed by `{Enter}`/`OK` and waiting for `"Practice CS -"`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running: True (PID: 18016)`).
+
+### Unfinished Logic / Known Quirks Documented
+- Memory-Only Credential Policy: In accordance with `PROJECT_SPEC.md` security constraints, database passwords are never persisted to disk or `GUIsettings.ini` and remain strictly scoped to the active execution run.
+
 ### Next Step / Status
-- Step 4.4d complete.
-- Ready for Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+- Step 4.4e complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
+- Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

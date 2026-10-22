@@ -81,10 +81,90 @@ Practice(PostUpdate := false) {
     WinMaximize("Practice CS")
     UpdateStatus("Waiting for Practice CS to load...", 100, 100)
 
-    UpdateStatus("Waiting for user to enter password and Practice CS dashboard to load...", 100, 100)
+    ; --- Database Login Automation ---
+    global PracticePassword
+    if (PracticePassword != "") {
+        UpdateStatus("Submitting Practice CS database password...", 100, 100)
+        handledLogin := false
+        loop 40 {
+            if WinExist("Practice CS -") {
+                handledLogin := true
+                break
+            }
+
+            if WinExist("Practice CS") {
+                WinActivate("Practice CS")
+
+                ; Tier A: UIA inspection for Password Edit element
+                try {
+                    pEl := UIA.ElementFromHandle("Practice CS")
+                    pwdEl := ""
+                    try pwdEl := pEl.FindElement({Type: "Edit", IsPassword: true})
+                    if (!pwdEl) {
+                        try pwdEl := pEl.FindElement({Name: "Password", Type: "Edit", mm: 2})
+                    }
+                    if (!pwdEl) {
+                        try pwdEl := pEl.FindElement({AutomationId: "txtPassword", mm: 2})
+                    }
+
+                    if (pwdEl) {
+                        try pwdEl.Highlight(500)
+                        pwdEl.Click("left")
+                        Sleep(100)
+                        SendText(PracticePassword)
+                        Sleep(200)
+
+                        okBtn := ""
+                        try okBtn := pEl.FindElement({Name: "OK", Type: "Button", mm: 2})
+                        if (okBtn)
+                            okBtn.Click()
+                        else
+                            Send("{Enter}")
+
+                        handledLogin := true
+                        break
+                    }
+                }
+
+                ; Tier B: Win32 Edit control with ES_PASSWORD (0x0020)
+                try {
+                    controls := WinGetControls("Practice CS")
+                    ctrlHwnds := WinGetControlsHwnd("Practice CS")
+                    for i, ctrlName in controls {
+                        if InStr(ctrlName, "Edit") {
+                            style := WinGetStyle(ctrlHwnds[i])
+                            if (style & 0x0020) {
+                                ControlFocus(ctrlHwnds[i], "Practice CS")
+                                ControlSetText(PracticePassword, ctrlHwnds[i], "Practice CS")
+                                Sleep(200)
+                                ControlClick("&OK", "Practice CS")
+                                handledLogin := true
+                                break
+                            }
+                        }
+                    }
+                    if (handledLogin)
+                        break
+                }
+            }
+            Sleep(500)
+        }
+
+        ; Fallback: Tab navigation if still on login screen
+        if (!handledLogin && WinExist("Practice CS") && !WinExist("Practice CS -")) {
+            WinActivate("Practice CS")
+            Send("{Tab 2}")
+            Sleep(200)
+            SendText(PracticePassword)
+            Sleep(200)
+            Send("{Enter}")
+        }
+    }
+
+    UpdateStatus("Waiting for Practice CS dashboard to load...", 100, 100)
 
     ; Wait for the main dashboard to appear (which indicates database login is complete)
-    WinWait("Practice CS -")
+    WinWait("Practice CS -", , 120)
     WinActivate("Practice CS -")
     WinMaximize("Practice CS -")
 

@@ -48,6 +48,7 @@ if (!A_IsAdmin) {
 #Include Auth\Bulletins.ahk
 #Include Auth\TRLogin.ahk
 #Include Auth\LacerteLogin.ahk
+#Include Auth\DatabaseLogin.ahk
 #Include <UpdateAdobe>
 #Include <UpdateFPS>
 #Include <UpdatePPC>
@@ -246,8 +247,12 @@ BuildGUI(forceRescan := false) {
 }
 
 RunSelectedApps(*) {
-    global ActiveCheckbox, LacerteEmail, LacertePassword
+    global ActiveCheckbox, LacerteEmail, LacertePassword, AcsPassword, PracticePassword, FpsPassword
     saved := MyGui.Submit(0)
+
+    ; --- Database Upfront Passwords (Accounting CS, Practice CS, FPS) ---
+    if (!PromptDatabasePasswords(SortedApps))
+        return
 
     ; --- Lacerte Upfront Login ---
     needsLacerteLogin := false

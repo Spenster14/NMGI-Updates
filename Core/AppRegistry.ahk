@@ -28,12 +28,10 @@ global Apps := [
 ]
 
 GetAppCategory(appName) {
-    if InStr(appName, "Financial Planning") || InStr(appName, "FPS")
-        return 0 ; Interactive TR apps requiring manual password (FPS first of all, before Accounting and Practice)
     if InStr(appName, "Accounting") || InStr(appName, "Practice")
-        return 1 ; Interactive TR apps (Accounting CS, Practice CS)
-    if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets") || InStr(appName, "PPC")
-        return 2 ; Automated TR apps
+        return 1 ; Interactive TR apps (Accounting CS, Practice CS run first to trigger TR login early)
+    if InStr(appName, "UltraTax") || InStr(appName, "FileCabinet") || InStr(appName, "Fixed Assets") || InStr(appName, "PPC") || InStr(appName, "FPS") || InStr(appName, "Financial Planning")
+        return 2 ; Automated TR apps (FPS, UltraTax, FileCabinet, Fixed Assets, PPC)
     if InStr(appName, "QB") || InStr(appName, "Quickbooks")
         return 3 ; QuickBooks Desktop
     if InStr(appName, "Chrome") || InStr(appName, "Edge") || InStr(appName, "Firefox")

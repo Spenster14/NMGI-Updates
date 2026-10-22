@@ -104,6 +104,7 @@ NMGI-Updates/
 │   ├── Auth/                   # Authentication & modal handlers
 │   │   ├── TRLogin.ahk         # Upfront Thomson Reuters CS credentials & MFA
 │   │   ├── LacerteLogin.ahk    # Intuit Lacerte upfront credentials
+│   │   ├── DatabaseLogin.ahk   # Upfront database passwords (Accounting CS, Practice CS, FPS)
 │   │   └── Bulletins.ahk       # Universal dismissal of modal popups/bulletins
 │   └── Modules/                # Isolated application update plugins
 │       ├── UpdateUT.ahk
