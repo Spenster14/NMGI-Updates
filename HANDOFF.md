@@ -242,9 +242,21 @@
 ### Unfinished Logic / Known Quirks Documented
 - Tooltip Coordinates: Anchored to `(100, 100)` screen coordinates via `CoordMode("ToolTip", "Screen")`, remaining visible across all monitor configurations while `ResolveAppPath` executes.
 
+- **Step 4.4k**:
+  - Technician-Facing GitHub README.md:
+    - Authored comprehensive `README.md` targeting MSP and IT technicians.
+    - Documented architecture, runtime prerequisites, elevation, initial launch & network caching (`GUIsettings.ini`), dashboard interface, visual status colors, and technician shortcuts (such as `Shift + Right-Click "Rescan"` to uncheck processed apps).
+    - Detailed the centralized upfront credential collection modal and zero-persistence memory-only security policy.
+    - Documented module-specific operational details across Thomson Reuters CS Suite (UltraTax, Practice CS, Accounting CS, FileCabinet, Fixed Assets, PPC Tools, FPS), QuickBooks Desktop (OCR progress monitoring), Lacerte Tax, Adobe Acrobat (multi-UI detection & trial bypass), and Web Browsers.
+    - Included audit log format, post-run summary modal, compilation instructions (`Ahk2Exe`), automated smoke testing (`/smoke`), and troubleshooting guidance.
+
+### Tested
+- Verified formatting, table rendering, code blocks, and markdown structure.
+
 ### Next Step / Status
-- Step 4.4j complete.
+- Step 4.4k complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

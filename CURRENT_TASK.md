@@ -213,6 +213,9 @@
   - [x] Unconditionally clear `ToolTip()` once `MyGui.Show("NoActivate")` has positioned and displayed the main dashboard window.
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
   - [x] Atomically commit Step 4.4j.
+- [x] **Step 4.4k**: Author Comprehensive Technician-Focused GitHub README.md
+  - [x] Write `README.md` covering architecture, prerequisites, initial launch/caching, UI features & shortcuts, upfront credential handling, application-specific operational details, troubleshooting, and build instructions.
+  - [x] Atomically commit Step 4.4k.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 
