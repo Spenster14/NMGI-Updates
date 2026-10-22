@@ -302,13 +302,22 @@
     - Updated `Lib/UpdateAdobe.ahk` to launch `Acrobat.exe` using `ShellRun` with explicit `workingDir`, matching the exact behavior of desktop shortcuts and Start -> Run.
     - Added fallback chain (`ShellRun` -> `explorer.exe <path>` -> `Run(<path>, workingDir)`) and increased window wait timeout to 20s.
 
+- **Step 4.4p**:
+  - Fix Adobe Acrobat Window Detection and Classic UI Menu Navigation:
+    - Root cause: `WinWait("ahk_exe Acrobat.exe",, 20)` hung / timed out because `ahk_exe` requires AutoHotkey to query process image paths via `OpenProcess`. When Adobe Acrobat runs in 64-bit mode with Protected Mode sandboxing, restricted DACLs / AppContainers deny `PROCESS_QUERY_LIMITED_INFORMATION`, causing `GetWindowProcessName` to fail and return an empty string. Additionally, Acrobat Classic UI (with standard top menu bar) requires `Alt+H` -> `u` (Check for Updates) rather than `Alt+F` (which opens File menu in Classic UI).
+    - Replaced `WinWait("ahk_exe Acrobat.exe")` with multi-criteria window wait loop (`ahk_class AcrobatSDIWindow`, `"Adobe Acrobat"`, `"Acrobat Reader"`, process fallbacks) capturing `adobeHwnd`. Window class and title checks use standard User32 APIs (`GetClassName`, `GetWindowText`) which operate unrestricted across all integrity levels and AppContainers.
+    - Activated the window directly via `adobeHwnd` with `SetForegroundWindow` and `BringWindowToTop`.
+    - Added runtime UI mode detection via UIA on `adobeHwnd`: checks for MenuItem "Help" (Classic UI) vs Button "Menu" (Modern New Experience UI).
+    - Configured Classic UI key sequence: `Alt+H` -> `u`.
+    - Passed `adobeHwnd` directly to `UIA.ElementFromHandle(adobeHwnd)` for fallback menu interaction.
+
 ### Tested
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
-- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 17456)`).
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 26836)`).
 
 ### Next Step / Status
-- Step 4.4o complete.
+- Step 4.4p complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

@@ -239,6 +239,14 @@
   - [x] Update `Lib/UpdateAdobe.ahk` to launch `Acrobat.exe` via `ShellRun` with the proper working directory (`workingDir`), bypassing Adobe Protected Mode / Sandbox elevation deadlocks.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4o.
+- [x] **Step 4.4p**: Fix Adobe Acrobat Window Detection and Classic UI Menu Navigation
+  - [x] Implement multi-criteria window detection (`ahk_class AcrobatSDIWindow`, title `"Adobe Acrobat"`, title `"Acrobat Reader"`, process fallbacks) capturing `adobeHwnd` to eliminate AppContainer / Protected Mode `OpenProcess` detection failures.
+  - [x] Use `adobeHwnd` directly for `WinActivate`, foreground enforcement (`SetForegroundWindow`, `BringWindowToTop`), and `WinWaitActive`.
+  - [x] Add runtime UI mode detection (Classic UI with MenuBar vs. Modern New Experience UI with Menu button) via UIA element detection on `adobeHwnd`.
+  - [x] Correct Classic UI accelerator key sequence to `Alt+H` -> `u` (Check for Updates).
+  - [x] Pass `adobeHwnd` directly to `UIA.ElementFromHandle(adobeHwnd)` for fallback menu interaction and eliminate string-based `"ahk_exe Acrobat.exe"` references in `UpdateAdobe.ahk`.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4p.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 
