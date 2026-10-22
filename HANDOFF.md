@@ -418,9 +418,23 @@
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 26952)`).
 
+- **Step 5.6**:
+  - Discovery Source Tracking (`[PathSources]` in `GUIsettings.ini` & Dashboard Hover Tooltips):
+    - Implemented `FindShortcutInfo` and `FindAppShortcutInfo` in `Core/ShortcutScanner.ahk` returning rich metadata objects (`{ Target, LnkPath, LnkName, IsApplicationsFolder }`).
+    - Updated `ResolveAppPath` in `Core/Config.ahk` to write the discovery origin and shortcut file path into `[PathSources]` in `GUIsettings.ini` (`Shortcut: <lnk>` vs `FallbackScan` vs `NotInstalled`) and set `app.Source` on the in-memory application object. Backfills legacy `NotInstalled` and cached UNC paths into `[PathSources]`.
+    - Implemented `WM_MOUSEMOVE (0x0200)` and periodic `CheckHoverLeave` hover tooltips in `NMGIUpdates.ahk` mapped to application checkbox (`app.cb.Hwnd`) and label (`app.txt.Hwnd`) controls. Hovering over any application control displays application name, resolved path, and discovery origin. Moving the cursor off controls immediately dismisses the tooltip.
+    - Strict Isolation: Per operator requirement, discovery source tracking is strictly confined to `GUIsettings.ini` and GUI hover tooltips; daily log (`yyMMdd-Update.log`) and summary modal remain clean and untampered.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 20 s (PID 34268)`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 11444)`).
+
 ### Final Status
 - All milestones (1 through 5) complete and fully verified.
 - The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
+- Technicians can inspect discovery provenance in real-time by hovering over any application on the dashboard or by reviewing `[PathSources]` in `GUIsettings.ini`.
+
 
 
 

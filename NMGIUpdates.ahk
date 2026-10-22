@@ -73,6 +73,52 @@ global SortedApps := []
 global MyGui := ""
 global LacerteEmail := ""
 global LacertePassword := ""
+global HoverAppMap := Map()
+global CurrentHoverApp := ""
+
+OnMessage(0x0200, OnGuiMouseMove)
+
+OnGuiMouseMove(wParam, lParam, msg, hwnd) {
+    global CurrentHoverApp, HoverAppMap
+    if (HoverAppMap.Has(hwnd)) {
+        app := HoverAppMap[hwnd]
+        if (CurrentHoverApp != app) {
+            CurrentHoverApp := app
+            src := (HasProp(app, "Source") && app.Source != "") ? app.Source : "Unknown"
+            tipText := app.Label . "`nPath: " . app.Path . "`nSource: " . src
+            ToolTip(tipText)
+            SetTimer(CheckHoverLeave, 100)
+        }
+    } else {
+        if (CurrentHoverApp != "") {
+            CurrentHoverApp := ""
+            ToolTip()
+            SetTimer(CheckHoverLeave, 0)
+        }
+    }
+}
+
+CheckHoverLeave() {
+    global CurrentHoverApp, HoverAppMap
+    if (CurrentHoverApp == "") {
+        SetTimer(CheckHoverLeave, 0)
+        return
+    }
+    MouseGetPos(, , &mWin, &mCtrlHwnd, 2)
+    if (!HoverAppMap.Has(mCtrlHwnd)) {
+        ToolTip()
+        CurrentHoverApp := ""
+        SetTimer(CheckHoverLeave, 0)
+    } else {
+        app := HoverAppMap[mCtrlHwnd]
+        if (CurrentHoverApp != app) {
+            CurrentHoverApp := app
+            src := (HasProp(app, "Source") && app.Source != "") ? app.Source : "Unknown"
+            tipText := app.Label . "`nPath: " . app.Path . "`nSource: " . src
+            ToolTip(tipText)
+        }
+    }
+}
 
 UpdateStatus(msg := "", args*) {
     global StatusBox
@@ -108,9 +154,13 @@ SetTimer(FlashActiveCheckbox, 500)
 BuildGUI()
 
 BuildGUI(forceRescan := false) {
-    global StatusBox, SortedApps, MyGui, Apps, AppVersion
+    global StatusBox, SortedApps, MyGui, Apps, AppVersion, HoverAppMap, CurrentHoverApp
 
     ToolTip("Scanning applications, please wait...", 100, 100)
+
+    HoverAppMap.Clear()
+    CurrentHoverApp := ""
+    SetTimer(CheckHoverLeave, 0)
 
     if (MyGui != "") {
         MyGui.Destroy()
@@ -171,6 +221,9 @@ BuildGUI(forceRescan := false) {
 
                 ; Allow clicking the text to toggle the checkbox
                 app.txt.OnEvent("Click", ((cb, *) => cb.Value := !cb.Value).Bind(app.cb))
+
+                HoverAppMap[app.cb.Hwnd] := app
+                HoverAppMap[app.txt.Hwnd] := app
 
                 app.cb.Value := 1
                 opts := "xs"
@@ -248,7 +301,10 @@ BuildGUI(forceRescan := false) {
 }
 
 RunSelectedApps(*) {
-    global ActiveCheckbox, LacerteEmail, LacertePassword, AcsPassword, PracticePassword, FpsPassword
+    global ActiveCheckbox, LacerteEmail, LacertePassword, AcsPassword, PracticePassword, FpsPassword, CurrentHoverApp
+    ToolTip()
+    CurrentHoverApp := ""
+    SetTimer(CheckHoverLeave, 0)
     saved := MyGui.Submit(0)
 
     ; --- Upfront Credentials (Accounting CS, Practice CS, FPS, Lacerte) ---
@@ -380,6 +436,7 @@ ShowSummaryReport(results) {
 }
 
 CloseApp(*) {
+    ToolTip()
     ExitApp
 }
 

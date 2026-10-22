@@ -97,7 +97,7 @@ IndexShortcuts(forceRefresh := false) {
     return ShortcutCache
 }
 
-FindShortcutPath(exeNames, namePatterns := [], filterFn := "") {
+FindShortcutInfo(exeNames, namePatterns := [], filterFn := "") {
     scList := IndexShortcuts()
     if (scList.Length == 0)
         return ""
@@ -153,31 +153,36 @@ FindShortcutPath(exeNames, namePatterns := [], filterFn := "") {
 
             ; 4. Validate physical reachability and existence
             if (SafeFileExist(item.Target))
-                return item.Target
+                return { Target: item.Target, LnkPath: item.LnkPath, LnkName: item.LnkName, IsApplicationsFolder: item.IsApplicationsFolder }
         }
     }
 
     return ""
 }
 
-FindAppShortcut(appName) {
+FindShortcutPath(exeNames, namePatterns := [], filterFn := "") {
+    info := FindShortcutInfo(exeNames, namePatterns, filterFn)
+    return info ? info.Target : ""
+}
+
+FindAppShortcutInfo(appName) {
     if (appName == "FixedAssetsCS")
-        return FindShortcutPath("dsw.exe", ["(?i)Fixed\s*Assets|(?i)\bDSW\b"])
+        return FindShortcutInfo("dsw.exe", ["(?i)Fixed\s*Assets|(?i)\bDSW\b"])
     if (appName == "FileCabinet")
-        return FindShortcutPath("fcab.exe", ["(?i)FileCabinet|(?i)File\s*Cabinet"])
+        return FindShortcutInfo("fcab.exe", ["(?i)FileCabinet|(?i)File\s*Cabinet"])
     if (appName == "AccountingCS")
-        return FindShortcutPath(["AccountingCS.exe", "acs.exe"], ["(?i)Accounting\s*CS|(?i)\bACS\b"])
+        return FindShortcutInfo(["AccountingCS.exe", "acs.exe"], ["(?i)Accounting\s*CS|(?i)\bACS\b"])
     if (appName == "PracticeCS")
-        return FindShortcutPath(["CreativeSolutions.Practice.exe", "PracticeCS.exe", "practice.exe"], ["(?i)Practice\s*CS"])
+        return FindShortcutInfo(["CreativeSolutions.Practice.exe", "PracticeCS.exe", "practice.exe"], ["(?i)Practice\s*CS"])
     if (appName == "FPS")
-        return FindShortcutPath("FAS.EXE", ["(?i)Financial\s*Planning|(?i)\bFPS\b|(?i)\bFAS\b"])
+        return FindShortcutInfo("FAS.EXE", ["(?i)Financial\s*Planning|(?i)\bFPS\b|(?i)\bFAS\b"])
     if (appName == "PPC")
-        return FindShortcutPath("PPCWebMultiSelect.exe", ["(?i)PPC|(?i)Practice\s*Aids"])
+        return FindShortcutInfo("PPCWebMultiSelect.exe", ["(?i)PPC|(?i)Practice\s*Aids"])
 
     ; UltraTax
     if RegExMatch(appName, "^Ultratax\s*(\d+)", &m) {
         yr := m[1]
-        return FindShortcutPath("utw" . yr . ".exe", ["(?i)UltraTax.*20" . yr . "|(?i)UT.*" . yr . "|(?i)UltraTax.*" . yr])
+        return FindShortcutInfo("utw" . yr . ".exe", ["(?i)UltraTax.*20" . yr . "|(?i)UT.*" . yr . "|(?i)UltraTax.*" . yr])
     }
 
     ; QuickBooks
@@ -185,7 +190,7 @@ FindAppShortcut(appName) {
         ed := m[1]
         yr := m[2]
         isEnt := (ed == "Enterprise")
-        return FindShortcutPath(
+        return FindShortcutInfo(
             ["qbw32.exe", "QBWEnterpriseAccountant.exe", "QBWEnterprise.exe", "QBWPremierAccountant.exe", "QBWPremier.exe", "QBWPro.exe", "QBW32Enterprise.exe", "QBW32EnterpriseAccountant.exe"],
             ,
             (item) => (
@@ -198,20 +203,25 @@ FindAppShortcut(appName) {
     ; Lacerte
     if RegExMatch(appName, "^Lacerte\s*(\d+)", &m) {
         yr := m[1]
-        return FindShortcutPath(["w" . yr . "tax-launcher.exe", "w" . yr . "tax.exe"], ["(?i)Lacerte.*20" . yr . "|(?i)20" . yr . ".*Lacerte|(?i)Lacerte.*" . yr])
+        return FindShortcutInfo(["w" . yr . "tax-launcher.exe", "w" . yr . "tax.exe"], ["(?i)Lacerte.*20" . yr . "|(?i)20" . yr . ".*Lacerte|(?i)Lacerte.*" . yr])
     }
 
     ; Adobe Acrobat
     if (appName == "Adobe Acrobat")
-        return FindShortcutPath(["Acrobat.exe", "AcroRd32.exe"], ["(?i)Adobe\s*Acrobat|(?i)\bAcrobat\b|(?i)Adobe\s*Reader"])
+        return FindShortcutInfo(["Acrobat.exe", "AcroRd32.exe"], ["(?i)Adobe\s*Acrobat|(?i)\bAcrobat\b|(?i)Adobe\s*Reader"])
 
     ; Browsers
     if (appName == "Chrome")
-        return FindShortcutPath("chrome.exe", ["(?i)Google\s*Chrome|(?i)\bChrome\b"])
+        return FindShortcutInfo("chrome.exe", ["(?i)Google\s*Chrome|(?i)\bChrome\b"])
     if (appName == "Edge")
-        return FindShortcutPath("msedge.exe", ["(?i)Microsoft\s*Edge|(?i)\bEdge\b"])
+        return FindShortcutInfo("msedge.exe", ["(?i)Microsoft\s*Edge|(?i)\bEdge\b"])
     if (appName == "Firefox")
-        return FindShortcutPath("firefox.exe", ["(?i)Mozilla\s*Firefox|(?i)\bFirefox\b"])
+        return FindShortcutInfo("firefox.exe", ["(?i)Mozilla\s*Firefox|(?i)\bFirefox\b"])
 
     return ""
+}
+
+FindAppShortcut(appName) {
+    info := FindAppShortcutInfo(appName)
+    return info ? info.Target : ""
 }

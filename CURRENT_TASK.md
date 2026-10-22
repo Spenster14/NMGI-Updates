@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Production Ready (Milestones 1–5 Complete)
-- **Active Step**: All Planned Steps Complete
+- **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
+- **Active Step**: Step 5.6: Discovery Source Tracking ([PathSources] in GUIsettings.ini & Dashboard Hover Tooltips)
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -313,5 +313,11 @@
   - [x] Ran automated syntax and runtime smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
   - [x] Recompiled production `NMGIupdates.exe` binary.
   - [x] Atomically commit Step 5.5.
+- [x] **Step 5.6**: Discovery Source Tracking (`[PathSources]` in `GUIsettings.ini` & Dashboard Hover Tooltips)
+  - [x] Implement `FindShortcutInfo` and `FindAppShortcutInfo` in `Core/ShortcutScanner.ahk` returning `{ Target, LnkPath, LnkName }`.
+  - [x] Update `ResolveAppPath` in `Core/Config.ahk` to write discovery origin and shortcut file to `[PathSources]` in `GUIsettings.ini` and set `app.Source`.
+  - [x] Implement `WM_MOUSEMOVE` hover tooltips in `NMGIUpdates.ahk` displaying application name, path, and discovery source (`Shortcut: <lnk>` vs `FallbackScan`), ensuring zero impact on audit logs or summary modal.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary (`smoke_exe.ps1`).
+  - [x] Atomically commit Step 5.6.
 
 

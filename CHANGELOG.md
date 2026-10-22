@@ -29,6 +29,11 @@ All notable changes to this project will be documented in this file.
   - Updated `Core/Config.ahk` (`ResolveAppPath`) to automatically synchronize `GUIsettings.ini` whenever an authoritative desktop shortcut points to a different location than previously cached, eliminating the multi-installation path dilemma.
   - Wired `ClearShortcutCache()` into `BuildGUI(forceRescan)` in `NMGIUpdates.ahk`.
 - **QuickBooks Subscription Expired/Expiring Dismissal**: Added `DismissQBSubscriptionPopup` and `HandleQBPopups` in `Lib/UpdateQB.ahk` with multi-tiered dismissal (UIA button click, Win32 ControlClick "Close", Button2, Esc, proportional coordinate click, and WinClose). Replaced blind `WinWait` with an active polling loop that filters out subscription dialogs and captures `mainHwnd`, allowing QuickBooks to launch and update smoothly even when subscription expiration warnings are displayed.
+- **Discovery Source Tracking & Dashboard Hover Tooltips**: Added discovery provenance tracking across the shortcut-first discovery engine:
+  - Extended `Core/ShortcutScanner.ahk` with `FindShortcutInfo` and `FindAppShortcutInfo` returning rich metadata objects (`{ Target, LnkPath, LnkName, IsApplicationsFolder }`).
+  - Updated `ResolveAppPath` in `Core/Config.ahk` to persist discovery origins to `[PathSources]` in `GUIsettings.ini` (`Shortcut: <lnk>` vs `FallbackScan` vs `NotInstalled`) and assign `app.Source` in memory.
+  - Implemented `WM_MOUSEMOVE (0x0200)` and periodic `CheckHoverLeave` hover tooltips in `NMGIUpdates.ahk` mapped to application checkbox (`app.cb.Hwnd`) and label (`app.txt.Hwnd`) controls. Hovering over any application control displays application name, resolved path, and discovery origin. Moving the cursor off controls immediately dismisses the tooltip.
+  - Strict Isolation: Discovery source information is strictly confined to `GUIsettings.ini` and hover tooltips, preserving the pristine format of the daily audit log (`yyMMdd-Update.log`) and summary modal report.
 
 ### Changed
 - Renamed main entry point `CheckboxGUItest.ahk` to `NMGIUpdates.ahk` reflecting production readiness.
