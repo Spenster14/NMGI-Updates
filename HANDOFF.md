@@ -180,8 +180,23 @@
 ### Unfinished Logic / Known Quirks Documented
 - Windows Forms Password Styling: .NET textboxes using custom `PasswordChar` characters omit `ES_PASSWORD (0x0020)` Win32 style bit. Index-based and text-presence detection on the modal dialog avoids this limitation completely.
 
+- **Step 4.4g**:
+  - Precise Password Field Targeting in `SubmitCSDatabaseLogin`:
+    - Root cause of Open Firm overwrite: In Windows Forms, `Open Firm:` and `Staff ID:` ComboBoxes host child `Edit` controls (`WindowsForms10.EDIT`). `SubmitCSDatabaseLogin` captured all `Edit` controls, and because `ControlGetText` on the ComboBox child edit returned `""`, it selected the `Open Firm` edit control as the target password box. This overwrote the firm name with the password (`RustyP509`), which caused Practice CS to hide the Password field and disable OK.
+    - Excluded ComboBox child edit controls by querying Win32 parent class (`DllCall("GetParent")` -> `COMBOBOX`).
+    - Anchored password box detection to the `"Password:"` static label row (`Abs(ey - ly) <= 20` and `ex >= lx + lw - 10`).
+    - Added auto-recovery logic: If the `"Password:"` label is missing (due to a corrupted `Open Firm` field), checks if any ComboBox matches `dbPassword`, re-selects the first valid firm via `CB_SETCURSEL 0` and `CBN_SELCHANGE`, and waits without typing into unverified controls.
+    - Added geometric fallback click relative to the `"Password:"` label (`lx + lw + 40`, `ly + lh // 2`).
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running OK PID: 9196`).
+
+### Unfinished Logic / Known Quirks Documented
+- Windows Forms ComboBox Child Controls: In Win32, dropdown ComboBoxes (`CBS_DROPDOWN`) contain a child `Edit` control. Filtering out any control whose parent is a `COMBOBOX` prevents accidental text entry into dropdown controls.
+
 ### Next Step / Status
-- Step 4.4f complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
+- Step 4.4g complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
 - Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

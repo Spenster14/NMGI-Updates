@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
   - `Auth/LacerteLogin.ahk`: Upfront Lacerte operator credential collection modal (`PromptLacerteLogin`).
 - **Unified Upfront Credentials**: Consolidated Lacerte authentication (`LacerteEmail`, `LacertePassword`) into `Auth/DatabaseLogin.ahk` (`PromptDatabasePasswords`), providing a single upfront credentials modal for all selected password-requiring applications (Accounting CS, Practice CS, FPS, Lacerte) and eliminating sequential secondary popups.
 - **CS Suite Database Login Automation**: Added shared `SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword)` in `Core/CSConnect.ahk` to reliably detect and inject database passwords on borderless WinForms login dialogs without freezing or slow cross-process UIA tree walks, resolving the Practice CS login hang.
+- **Precise CS Password Field Targeting**: Excluded ComboBox child edit controls (`Open Firm`, `Staff ID`) from password injection via Win32 parent class inspection (`GetParent`), and anchored password box detection to the `"Password:"` static label row, preventing accidental overwriting of firm names. Added auto-recovery logic to re-select valid firms via `CB_SETCURSEL` if `Open Firm` was previously corrupted.
 - **Batch Completion Summary**: Added `ShowSummaryReport(results)` to `NMGIUpdates.ahk`, displaying a clean categorized report modal with counts and itemized breakdowns of Updated, Already Current, Attention Required, and Error states upon batch completion.
 
 ### Changed

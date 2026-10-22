@@ -110,8 +110,8 @@ ClickCallNow(hwnd) {
 }
 
 ; Submits database password for CS Professional Suite apps (Practice CS and Accounting CS).
-; Identifies the active login modal dialog by inspecting visible process windows for Edit and OK controls.
-; Bypasses slow/freezing cross-process UIA tree walks and unstyled WinForms ES_PASSWORD caveats.
+; Identifies the active login modal dialog and precisely targets the Password textbox.
+; Explicitly excludes ComboBox child edit controls (Open Firm, Staff ID) to prevent field corruption.
 SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
     if (dbPassword != "") {
         UpdateStatus("Submitting " . winPrefix . " database password...", 100, 100)
@@ -159,18 +159,18 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                 ctrls := []
                 try ctrls := WinGetControls(h)
                 hasEdit := false
-                hasOk := false
+                hasButtons := false
                 for c in ctrls {
                     if InStr(c, "Edit")
                         hasEdit := true
                     if InStr(c, "Button") {
                         txt := ""
                         try txt := ControlGetText(c, h)
-                        if (txt = "OK" || InStr(txt, "OK") || InStr(txt, "Change password"))
-                            hasOk := true
+                        if (txt = "OK" || InStr(txt, "OK") || InStr(txt, "Cancel") || InStr(txt, "Change password"))
+                            hasButtons := true
                     }
                 }
-                if (hasEdit && hasOk) {
+                if (hasEdit && hasButtons) {
                     loginHwnd := h
                     break
                 }
@@ -185,47 +185,90 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                 try ctrlNames := WinGetControls("ahk_id " . loginHwnd)
                 try ctrlHwnds := WinGetControlsHwnd("ahk_id " . loginHwnd)
 
-                editControls := []
+                standaloneEdits := []
+                comboHwnds := []
                 okCtrlHwnd := 0
+                pwdLabelHwnd := 0
 
                 for i, c in ctrlNames {
-                    if InStr(c, "Edit")
-                        editControls.Push(ctrlHwnds[i])
+                    h := ctrlHwnds[i]
                     if InStr(c, "Button") {
                         txt := ""
-                        try txt := ControlGetText(ctrlHwnds[i], "ahk_id " . loginHwnd)
+                        try txt := ControlGetText(h, "ahk_id " . loginHwnd)
                         if (txt = "OK" || InStr(txt, "OK"))
-                            okCtrlHwnd := ctrlHwnds[i]
+                            okCtrlHwnd := h
+                    } else if InStr(c, "ComboBox") {
+                        comboHwnds.Push(h)
+                    } else if InStr(c, "STATIC") || InStr(c, "Text") {
+                        txt := ""
+                        try txt := ControlGetText(h, "ahk_id " . loginHwnd)
+                        ; Must match "Password:" label and NOT "Change password..." button/label
+                        if (txt = "Password:" || (InStr(txt, "Password:") && !InStr(txt, "Change")))
+                            pwdLabelHwnd := h
+                    } else if InStr(c, "Edit") {
+                        ; CRITICAL RULE: Filter out any Edit control that is inside a ComboBox (e.g. Open Firm)
+                        parent := DllCall("GetParent", "ptr", h, "ptr")
+                        pClass := ""
+                        if (parent) {
+                            try pClass := WinGetClass(parent)
+                        }
+                        if (!InStr(pClass, "COMBOBOX") && !InStr(pClass, "ComboBox")) {
+                            standaloneEdits.Push(h)
+                        }
                     }
                 }
 
+                ; Auto-recovery: If the Password: label is missing, Open Firm was likely corrupted.
+                ; Check if any ComboBox contains dbPassword, and restore the first firm in the list.
+                if (!pwdLabelHwnd) {
+                    for cb in comboHwnds {
+                        cbText := ""
+                        try cbText := ControlGetText(cb, "ahk_id " . loginHwnd)
+                        if (cbText = dbPassword || InStr(cbText, dbPassword)) {
+                            ; Reset to the first valid firm in the dropdown
+                            SendMessage(0x014E, 0, 0, cb, "ahk_id " . loginHwnd) ; CB_SETCURSEL 0
+                            cbId := DllCall("GetDlgCtrlID", "ptr", cb, "int")
+                            SendMessage(0x0111, (1 << 16) | (cbId & 0xFFFF), cb, "ahk_id " . loginHwnd) ; CBN_SELCHANGE
+                            ControlFocus(cb, "ahk_id " . loginHwnd)
+                            Send("{Down}{Enter}")
+                            Sleep(500)
+                            break
+                        }
+                    }
+                    UpdateStatus("Waiting for " . winPrefix . " Password field...", 100, 100)
+                    Sleep(500)
+                    continue
+                }
+
+                ; Locate the exact password control on the dialog
                 pwdCtrl := 0
-                ; Check for standard ES_PASSWORD (0x0020)
-                for eh in editControls {
-                    s := 0
-                    try s := WinGetStyle(eh)
-                    if (s & 0x0020) {
+                lx := 0, ly := 0, lw := 0, lh := 0
+                ControlGetPos(&lx, &ly, &lw, &lh, pwdLabelHwnd, "ahk_id " . loginHwnd)
+
+                ; 1. First, search standalone edits that are on the same row as Password:
+                for eh in standaloneEdits {
+                    ex := 0, ey := 0, ew := 0, ehH := 0
+                    ControlGetPos(&ex, &ey, &ew, &ehH, eh, "ahk_id " . loginHwnd)
+                    ; On the same vertical line (within 20px) and horizontally to the right of "Password:"
+                    if (Abs(ey - ly) <= 20 && ex >= lx + lw - 10) {
                         pwdCtrl := eh
                         break
                     }
                 }
 
-                ; Fallback: If 2 edit controls, edit 1 is Staff ID ("ADMIN"), edit 2 is Password
-                if (!pwdCtrl && editControls.Length >= 2) {
-                    for eh in editControls {
-                        val := ""
-                        try val := ControlGetText(eh, "ahk_id " . loginHwnd)
-                        if (val == "") {
+                ; 2. Fallback: Check if any standalone edit has ES_PASSWORD (0x0020)
+                if (!pwdCtrl) {
+                    for eh in standaloneEdits {
+                        s := 0
+                        try s := WinGetStyle(eh)
+                        if (s & 0x0020) {
                             pwdCtrl := eh
                             break
                         }
                     }
-                    if (!pwdCtrl)
-                        pwdCtrl := editControls[2]
-                } else if (!pwdCtrl && editControls.Length == 1) {
-                    pwdCtrl := editControls[1]
                 }
 
+                ; Inject password into the verified password control
                 if (pwdCtrl) {
                     try ControlFocus(pwdCtrl, "ahk_id " . loginHwnd)
                     Sleep(100)
@@ -248,48 +291,28 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                         handledLogin := true
                         break
                     }
-                } else {
-                    ; UIA fallback on loginHwnd with bounded timeout
-                    try {
-                        oldTimeout := UIA.TransactionTimeout
-                        UIA.TransactionTimeout := 1500
-                        dlgEl := UIA.ElementFromHandle(loginHwnd)
-                        pwdEl := ""
-                        try pwdEl := dlgEl.FindElement({Type: "Edit", IsPassword: true})
-                        if (!pwdEl)
-                            try pwdEl := dlgEl.FindElement({Name: "Password", Type: "Edit", mm: 2})
-                        if (pwdEl) {
-                            pwdEl.Click("left")
-                            Sleep(100)
-                            SendText(dbPassword)
-                            Sleep(150)
-                            okBtn := ""
-                            try okBtn := dlgEl.FindElement({Name: "OK", Type: "Button", mm: 2})
-                            if (okBtn)
-                                okBtn.Click()
-                            else
-                                Send("{Enter}")
-                            UIA.TransactionTimeout := oldTimeout
-                            if (WinWaitClose("ahk_id " . loginHwnd, , 3) || WinExist(winPrefix . " -")) {
-                                handledLogin := true
-                                break
-                            }
-                        }
-                        UIA.TransactionTimeout := oldTimeout
+                } else if (pwdLabelHwnd) {
+                    ; Geometric fallback: click directly to the right of the "Password:" label
+                    clickX := lx + lw + 40
+                    clickY := ly + (lh // 2)
+                    ControlClick("x" . clickX . " y" . clickY, "ahk_id " . loginHwnd, , , , "NA")
+                    Sleep(100)
+                    Send("^a")
+                    Sleep(50)
+                    SendText(dbPassword)
+                    Sleep(150)
+                    if (okCtrlHwnd) {
+                        try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
+                    }
+                    Send("{Enter}")
+
+                    if (WinWaitClose("ahk_id " . loginHwnd, , 3) || WinExist(winPrefix . " -")) {
+                        handledLogin := true
+                        break
                     }
                 }
             }
             Sleep(500)
-        }
-
-        ; Last-resort fallback: keyboard navigation
-        if (!handledLogin && WinExist(winPrefix) && !WinExist(winPrefix . " -")) {
-            WinActivate(winPrefix)
-            Send("{Tab 2}")
-            Sleep(200)
-            SendText(dbPassword)
-            Sleep(200)
-            Send("{Enter}")
         }
     }
 

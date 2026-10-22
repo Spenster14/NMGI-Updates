@@ -187,6 +187,11 @@
     - Focus, click, and inject `PracticePassword` using `SendText` + `ControlSetText`.
     - Click OK button / send `{Enter}` and wait for modal closure (`WinWaitClose`) before awaiting `"Practice CS -"`.
   - [x] Harmonize `Lib/UpdateAccountingCS.ahk` with the same robust login dialog detection (`SubmitCSDatabaseLogin` in `Core/CSConnect.ahk`).
-  - [x] Atomically commit Step 4.4f.
+- [x] **Step 4.4g**: Precise Password Field Targeting in `SubmitCSDatabaseLogin` (Fix Open Firm Overwrite)
+  - [x] Exclude ComboBox child edit controls: filter out any Edit control where `DllCall("GetParent")` class contains `"COMBOBOX"`.
+  - [x] Anchor password box detection to the `"Password:"` static label: match Edit control with `Abs(ey - ly) <= 20` and `ex >= lx + lw`.
+  - [x] Auto-recovery if `"Password:"` label is missing (due to corrupted `Open Firm`): do not type into unverified controls; re-select the first valid firm via `CB_SETCURSEL (0x014E)`.
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
+  - [x] Atomically commit Step 4.4g.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
