@@ -393,9 +393,23 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 13308)`).
 
+- **Step 5.4**:
+  - Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration:
+    - Added `FindAppShortcut(appName)` to `Core/ShortcutScanner.ahk` mapping all 22 registered applications to their corresponding shortcut search rules.
+    - Updated `ResolveAppPath` in `Core/Config.ahk`:
+      - Evaluates `FindAppShortcut(appName)` as Priority 1 before querying the INI cache.
+      - If an authoritative desktop shortcut is detected in `C:\Users\Public\Desktop\Applications` (or Desktop) and its target differs from `cachedPath`, automatically updates `GUIsettings.ini` to align with the active shortcut without requiring manual INI edits or a forced full scan.
+      - Retains fast INI cache evaluation for applications without desktop shortcuts.
+    - Wired `ClearShortcutCache()` into `BuildGUI(forceRescan)` in `NMGIUpdates.ahk` so clicking "Rescan" clears both network and shortcut caches.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 26952)`).
+
 ### Next Step / Status
-- Step 5.3 complete.
-- Next step: Step 5.4: Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration.
+- Step 5.4 complete.
+- Next step: Step 5.5: End-to-End Verification, Documentation & Release.
 
 
 

@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.4: Authoritative Shortcut Synchronization in Core/Config.ahk & Dashboard Integration
+- **Active Step**: Step 5.5: End-to-End Verification, Documentation & Release
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -300,10 +300,12 @@
   - [x] Integrated `FindShortcutPath` into `Lib/UpdateEdge.ahk` (`msedge.exe`).
   - [x] Integrated `FindShortcutPath` into `Lib/UpdateFirefox.ahk` (`firefox.exe`).
   - [x] Atomically commit Step 5.3.
-- [ ] **Step 5.4**: Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration
-  - Update `ResolveAppPath` to synchronize with authoritative desktop shortcuts.
-  - Wire `ClearShortcutCache()` into `ClearHostCache()` and `btnRescan`.
-  - Atomically commit Step 5.4.
+- [x] **Step 5.4**: Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration
+  - [x] Implemented `FindAppShortcut(appName)` in `Core/ShortcutScanner.ahk` covering all 22 registered applications.
+  - [x] Updated `ResolveAppPath` in `Core/Config.ahk` to check `FindAppShortcut` first and auto-synchronize `GUIsettings.ini` whenever a shortcut points to a different path than cached.
+  - [x] Wired `ClearShortcutCache()` into `BuildGUI(forceRescan)` in `NMGIUpdates.ahk`.
+  - [x] Validated via `smoke.ps1`, recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`, and tested compiled binary (`smoke_exe.ps1`).
+  - [x] Atomically commit Step 5.4.
 - [ ] **Step 5.5**: End-to-End Verification, Documentation & Release
   - Atomically commit Step 5.5.
 

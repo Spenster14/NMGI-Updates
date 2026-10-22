@@ -16,6 +16,17 @@ ResolveAppPath(app, forceRescan := false, iniFile := "GUIsettings.ini") {
         return resolved
     }
 
+    ; Priority 1: Check authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindAppShortcut(appName)
+    if (scPath != "") {
+        cachedPath := IniRead(iniFile, "Paths", appName, "")
+        if (cachedPath != scPath) {
+            IniWrite(scPath, iniFile, "Paths", appName)
+        }
+        return scPath
+    }
+
+    ; Priority 2: Check INI cache
     cachedPath := IniRead(iniFile, "Paths", appName, "")
 
     if (cachedPath == "NotInstalled") {
@@ -23,6 +34,7 @@ ResolveAppPath(app, forceRescan := false, iniFile := "GUIsettings.ini") {
     } else if (cachedPath != "" && SafeFileExist(cachedPath)) {
         return cachedPath
     } else {
+        ; Priority 3: Fallback to manual candidate path lists
         resolved := pathFn()
         if (resolved != "") {
             IniWrite(resolved, iniFile, "Paths", appName)

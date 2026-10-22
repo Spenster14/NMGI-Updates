@@ -159,3 +159,59 @@ FindShortcutPath(exeNames, namePatterns := [], filterFn := "") {
 
     return ""
 }
+
+FindAppShortcut(appName) {
+    if (appName == "FixedAssetsCS")
+        return FindShortcutPath("dsw.exe", ["(?i)Fixed\s*Assets|(?i)\bDSW\b"])
+    if (appName == "FileCabinet")
+        return FindShortcutPath("fcab.exe", ["(?i)FileCabinet|(?i)File\s*Cabinet"])
+    if (appName == "AccountingCS")
+        return FindShortcutPath(["AccountingCS.exe", "acs.exe"], ["(?i)Accounting\s*CS|(?i)\bACS\b"])
+    if (appName == "PracticeCS")
+        return FindShortcutPath(["CreativeSolutions.Practice.exe", "PracticeCS.exe", "practice.exe"], ["(?i)Practice\s*CS"])
+    if (appName == "FPS")
+        return FindShortcutPath("FAS.EXE", ["(?i)Financial\s*Planning|(?i)\bFPS\b|(?i)\bFAS\b"])
+    if (appName == "PPC")
+        return FindShortcutPath("PPCWebMultiSelect.exe", ["(?i)PPC|(?i)Practice\s*Aids"])
+
+    ; UltraTax
+    if RegExMatch(appName, "^Ultratax\s*(\d+)", &m) {
+        yr := m[1]
+        return FindShortcutPath("utw" . yr . ".exe", ["(?i)UltraTax.*20" . yr . "|(?i)UT.*" . yr . "|(?i)UltraTax.*" . yr])
+    }
+
+    ; QuickBooks
+    if RegExMatch(appName, "^Quickbooks\s*(Enterprise|Premier)\s*(\d+)", &m) {
+        ed := m[1]
+        yr := m[2]
+        isEnt := (ed == "Enterprise")
+        return FindShortcutPath(
+            ["qbw32.exe", "QBWEnterpriseAccountant.exe", "QBWEnterprise.exe", "QBWPremierAccountant.exe", "QBWPremier.exe", "QBWPro.exe", "QBW32Enterprise.exe", "QBW32EnterpriseAccountant.exe"],
+            ,
+            (item) => (
+                (isEnt ? (InStr(item.Target, "Enterprise") || InStr(item.LnkName, "Enterprise")) : (!InStr(item.Target, "Enterprise") && !InStr(item.LnkName, "Enterprise")))
+                && (InStr(item.Target, "20" . yr) || InStr(item.Target, " " . yr . ".") || InStr(item.LnkName, "20" . yr) || InStr(item.LnkName, yr))
+            )
+        )
+    }
+
+    ; Lacerte
+    if RegExMatch(appName, "^Lacerte\s*(\d+)", &m) {
+        yr := m[1]
+        return FindShortcutPath(["w" . yr . "tax-launcher.exe", "w" . yr . "tax.exe"], ["(?i)Lacerte.*20" . yr . "|(?i)20" . yr . ".*Lacerte|(?i)Lacerte.*" . yr])
+    }
+
+    ; Adobe Acrobat
+    if (appName == "Adobe Acrobat")
+        return FindShortcutPath(["Acrobat.exe", "AcroRd32.exe"], ["(?i)Adobe\s*Acrobat|(?i)\bAcrobat\b|(?i)Adobe\s*Reader"])
+
+    ; Browsers
+    if (appName == "Chrome")
+        return FindShortcutPath("chrome.exe", ["(?i)Google\s*Chrome|(?i)\bChrome\b"])
+    if (appName == "Edge")
+        return FindShortcutPath("msedge.exe", ["(?i)Microsoft\s*Edge|(?i)\bEdge\b"])
+    if (appName == "Firefox")
+        return FindShortcutPath("firefox.exe", ["(?i)Mozilla\s*Firefox|(?i)\bFirefox\b"])
+
+    return ""
+}
