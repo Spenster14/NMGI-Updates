@@ -1,6 +1,13 @@
 #Requires AutoHotkey v2.0
 
 GetUTPath(UTversion) {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    targetExe := "utw" . UTversion . ".exe"
+    scPath := FindShortcutPath(targetExe, ["(?i)UltraTax.*20" . UTversion . "|(?i)UT.*" . UTversion . "|(?i)UltraTax.*" . UTversion])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate network & local paths
     possiblePaths := [
         ; UNC network shares
         "\\agcfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",

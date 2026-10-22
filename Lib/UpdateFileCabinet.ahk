@@ -1,6 +1,12 @@
 #Requires AutoHotkey v2.0
 
 GetFileCabinetPath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("fcab.exe", ["(?i)FileCabinet|(?i)File\s*Cabinet"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate network & local paths
     potentialPaths := [
         ; UNC network shares
         "\\chfsapp1\WINCSI\CABINET\fcab.exe",

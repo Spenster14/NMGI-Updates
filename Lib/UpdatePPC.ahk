@@ -3,6 +3,12 @@
 ; Detects available product updates by inspecting the tree checkboxes in PPCWebMultiSelect.
 
 GetPPCPath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("PPCWebMultiSelect.exe", ["(?i)PPC|(?i)Practice\s*Aids"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     candidatePaths := [
         "C:\Program Files (x86)\Common Files\PPC\PPCWebMultiSelectInstaller\PPCWebMultiSelect.exe",
         "C:\Program Files\Common Files\PPC\PPCWebMultiSelectInstaller\PPCWebMultiSelect.exe",

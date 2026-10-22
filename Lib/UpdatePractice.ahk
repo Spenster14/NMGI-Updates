@@ -4,6 +4,12 @@
 ; to prevent disruptive firm-wide database locks.
 
 GetPracticePath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath(["CreativeSolutions.Practice.exe", "PracticeCS.exe", "practice.exe"], ["(?i)Practice\s*CS"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate network & local paths
     potentialPaths := [
         ; UNC network shares (CreativeSolutions.Practice.exe)
         "\\sql1\winCSI\Practice CS\CreativeSolutions.Practice.exe",

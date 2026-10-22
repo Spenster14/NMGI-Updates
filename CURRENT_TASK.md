@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.2: Wire Shortcut Discovery into Thomson Reuters Modules
+- **Active Step**: Step 5.3: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -283,9 +283,15 @@
   - [x] Provide `ClearShortcutCache()` and wire into `BuildGUI(forceRescan)` in `NMGIUpdates.ahk`.
   - [x] Validate with unit tests and mock recursive nested folder tests.
   - [x] Atomically commit Step 5.1.
-- [ ] **Step 5.2**: Wire Shortcut Discovery into Thomson Reuters Modules
-  - Update `Lib/UpdateFixedAssets.ahk`, `Lib/UpdateUT.ahk`, `Lib/UpdateFileCabinet.ahk`, `Lib/UpdateAccountingCS.ahk`, `Lib/UpdatePractice.ahk`, `Lib/UpdateFPS.ahk`, `Lib/UpdatePPC.ahk`.
-  - Atomically commit Step 5.2.
+- [x] **Step 5.2**: Wire Shortcut Discovery into Thomson Reuters Modules
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateFixedAssets.ahk` (`dsw.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateUT.ahk` (`utw[XX].exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateFileCabinet.ahk` (`fcab.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateAccountingCS.ahk` (`AccountingCS.exe`, `acs.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdatePractice.ahk` (`CreativeSolutions.Practice.exe`, `PracticeCS.exe`, `practice.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateFPS.ahk` (`FAS.EXE`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdatePPC.ahk` (`PPCWebMultiSelect.exe`).
+  - [x] Atomically commit Step 5.2.
 - [ ] **Step 5.3**: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers
   - Update `Lib/UpdateQB.ahk`, `Lib/UpdateLacerte.ahk`, `Lib/UpdateAdobe.ahk`, `Lib/UpdateChrome.ahk`, `Lib/UpdateEdge.ahk`, `Lib/UpdateFirefox.ahk`.
   - Atomically commit Step 5.3.

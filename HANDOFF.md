@@ -364,9 +364,24 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 36160)`).
 
+- **Step 5.2**:
+  - Wire Shortcut Discovery into Thomson Reuters Modules:
+    - Updated `GetFixedAssetsPath()` in `Lib/UpdateFixedAssets.ahk`: checks `dsw.exe` shortcuts matching `(?i)Fixed\s*Assets|(?i)\bDSW\b` before `potentialPaths`.
+    - Updated `GetUTPath(UTversion)` in `Lib/UpdateUT.ahk`: checks `utw[XX].exe` shortcuts matching `(?i)UltraTax.*20[XX]|(?i)UT.*[XX]` before `possiblePaths`.
+    - Updated `GetFileCabinetPath()` in `Lib/UpdateFileCabinet.ahk`: checks `fcab.exe` shortcuts matching `(?i)FileCabinet|(?i)File\s*Cabinet` before `potentialPaths`.
+    - Updated `GetAccountingCSPath()` in `Lib/UpdateAccountingCS.ahk`: checks `AccountingCS.exe` and `acs.exe` shortcuts matching `(?i)Accounting\s*CS|(?i)\bACS\b` before `potentialPaths`.
+    - Updated `GetPracticePath()` in `Lib/UpdatePractice.ahk`: checks `CreativeSolutions.Practice.exe`, `PracticeCS.exe`, and `practice.exe` shortcuts matching `(?i)Practice\s*CS` before `potentialPaths`.
+    - Updated `GetFPSPath()` in `Lib/UpdateFPS.ahk`: checks `FAS.EXE` shortcuts matching `(?i)Financial\s*Planning|(?i)\bFPS\b|(?i)\bFAS\b` before `potentialPaths`.
+    - Updated `GetPPCPath()` in `Lib/UpdatePPC.ahk`: checks `PPCWebMultiSelect.exe` shortcuts matching `(?i)PPC|(?i)Practice\s*Aids` before `candidatePaths`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 42004)`).
+
 ### Next Step / Status
-- Step 5.1 complete.
-- Next step: Step 5.2: Wire Shortcut Discovery into Thomson Reuters Modules (`Lib/UpdateFixedAssets.ahk`, `Lib/UpdateUT.ahk`, `Lib/UpdateFileCabinet.ahk`, `Lib/UpdateAccountingCS.ahk`, `Lib/UpdatePractice.ahk`, `Lib/UpdateFPS.ahk`, `Lib/UpdatePPC.ahk`).
+- Step 5.2 complete.
+- Next step: Step 5.3: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers (`Lib/UpdateQB.ahk`, `Lib/UpdateLacerte.ahk`, `Lib/UpdateAdobe.ahk`, `Lib/UpdateChrome.ahk`, `Lib/UpdateEdge.ahk`, `Lib/UpdateFirefox.ahk`).
 
 
 

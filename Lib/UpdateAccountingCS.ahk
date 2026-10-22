@@ -1,6 +1,12 @@
 #Requires AutoHotkey v2.0
 
 GetAccountingCSPath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath(["AccountingCS.exe", "acs.exe"], ["(?i)Accounting\s*CS|(?i)\bACS\b"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate network & local paths
     potentialPaths := [
         ; UNC network shares
         "\\sql1\WinCSI\Accounting CS\AccountingCS.exe",

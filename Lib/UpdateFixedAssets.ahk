@@ -1,6 +1,12 @@
 #Requires AutoHotkey v2.0
 
 GetFixedAssetsPath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("dsw.exe", ["(?i)Fixed\s*Assets|(?i)\bDSW\b"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate network & local paths
     potentialPaths := [
         ; UNC network shares
         "\\goserver\Y\WinCSI\DSW\dsw.exe",

@@ -3,7 +3,12 @@
 ; Modernized for AHK v2 with SafeFileExist UNC reachability and standardized return strings.
 
 GetFPSPath() {
-    ; Candidate network and local paths
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("FAS.EXE", ["(?i)Financial\s*Planning|(?i)\bFPS\b|(?i)\bFAS\b"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate network & local paths
     potentialPaths := [
         ; UNC network shares
         "\\sql1\FPS\FAS706\FAS\FAS.EXE",
