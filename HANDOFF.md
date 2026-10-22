@@ -304,20 +304,27 @@
 
 - **Step 4.4p**:
   - Fix Adobe Acrobat Window Detection and Classic UI Menu Navigation:
-    - Root cause: `WinWait("ahk_exe Acrobat.exe",, 20)` hung / timed out because `ahk_exe` requires AutoHotkey to query process image paths via `OpenProcess`. When Adobe Acrobat runs in 64-bit mode with Protected Mode sandboxing, restricted DACLs / AppContainers deny `PROCESS_QUERY_LIMITED_INFORMATION`, causing `GetWindowProcessName` to fail and return an empty string. Additionally, Acrobat Classic UI (with standard top menu bar) requires `Alt+H` -> `u` (Check for Updates) rather than `Alt+F` (which opens File menu in Classic UI).
+    - Root cause: `WinWait("ahk_exe Acrobat.exe",, 20)` hung / timed out because `ahk_exe` requires AutoHotkey to query process image paths via `OpenProcess`. When Adobe Acrobat runs in 64-bit mode with Protected Mode sandboxing, restricted DACLs / AppContainers deny `PROCESS_QUERY_LIMITED_INFORMATION`, causing `GetWindowProcessName` to fail and return an empty string.
     - Replaced `WinWait("ahk_exe Acrobat.exe")` with multi-criteria window wait loop (`ahk_class AcrobatSDIWindow`, `"Adobe Acrobat"`, `"Acrobat Reader"`, process fallbacks) capturing `adobeHwnd`. Window class and title checks use standard User32 APIs (`GetClassName`, `GetWindowText`) which operate unrestricted across all integrity levels and AppContainers.
     - Activated the window directly via `adobeHwnd` with `SetForegroundWindow` and `BringWindowToTop`.
-    - Added runtime UI mode detection via UIA on `adobeHwnd`: checks for MenuItem "Help" (Classic UI) vs Button "Menu" (Modern New Experience UI).
-    - Configured Classic UI key sequence: `Alt+H` -> `u`.
-    - Passed `adobeHwnd` directly to `UIA.ElementFromHandle(adobeHwnd)` for fallback menu interaction.
+
+- **Step 4.4q**:
+  - Multi-Tiered Adobe Acrobat "Check for Updates" Invocation:
+    - Root cause: In Adobe Acrobat DC 64-bit with Classic UI, the accelerator key under the Help menu is `c` (for `Check for Updates...`), whereas Acrobat 2020 uses `u`. In Step 4.4p, sending `u` failed to match the menu item in Acrobat DC, leaving `Help` highlighted on the menu bar without invoking the update check. Furthermore, `isClassicUI` previously defaulted to `is2020` (which is `false` for Acrobat DC), causing elevated runs without standard HKCU keys to incorrectly attempt New UI navigation.
+    - Defaulted UI mode to Classic (`isClassicUI := true`), only switching to Modern New Experience UI if a "Menu" hamburger button is explicitly found.
+    - Implemented a multi-tiered invocation sequence in `Lib/UpdateAdobe.ahk`:
+      - Tier 1 (Immediate): `Alt+H` -> `c` -> `{Enter}` (Acrobat DC standard) or `Alt+H` -> `u` (Acrobat 2020).
+      - Tier 2 (after 2s): `Alt+H` -> `u` -> `{Enter}`.
+      - Tier 3 (after 4s): `Alt+H` -> `{Up}` -> `{Enter}` (wraps to bottom item in Help menu).
+      - Tier 4 (after 6s): Desktop-wide UIA search across popup menus for `(?i)check for updates`.
 
 ### Tested
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
-- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 26836)`).
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 11720)`).
 
 ### Next Step / Status
-- Step 4.4p complete.
+- Step 4.4q complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

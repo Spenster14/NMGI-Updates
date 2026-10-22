@@ -101,33 +101,28 @@ Adobe(*)
 
     ; Detect whether Acrobat is running Classic UI (Menu Bar) or Modern New Experience UI (Menu Button)
     is2020 := InStr(adobePath, "2020") ? true : false
-    isClassicUI := is2020
+    isClassicUI := true ; Default to Classic UI (standard in CPA/enterprise environments)
 
-    ; Inspect UI via UIA directly on the window handle
+    ; Only treat as Modern UI if "Menu" hamburger button is explicitly found
     try {
         acrobatEl := UIA.ElementFromHandle(adobeHwnd)
-        if (acrobatEl.FindElement({Name: "Help", Type: "MenuItem", mm: 2})) {
-            isClassicUI := true
-        } else if (acrobatEl.FindElement({Name: "Menu", Type: "Button", mm: 2})) {
+        if (acrobatEl.FindElement({Name: "Menu", Type: "Button", mm: 2})) {
             isClassicUI := false
-        }
-    } catch {
-        try {
-            if (RegRead("HKEY_CURRENT_USER\Software\Adobe\Adobe Acrobat\DC\AVGeneral", "bEnableAV2") == 0)
-                isClassicUI := true
-        }
-        try {
-            if (RegRead("HKEY_CURRENT_USER\Software\Adobe\Acrobat Reader\DC\AVGeneral", "bEnableAV2") == 0)
-                isClassicUI := true
         }
     }
 
     try WinActivate(adobeHwnd)
     if (isClassicUI) {
-        ; Classic Acrobat DC / Pro / 2020 UI (Top-level Menu Bar: Alt+H -> U)
+        ; Tier 1: Classic Acrobat DC / Pro 64-bit standard: Alt+H -> c -> Enter
         Send("!h")
-        Sleep(200)
-        Send("u")
+        Sleep(250)
+        if (is2020) {
+            Send("u")
+        } else {
+            Send("c")
+            Sleep(100)
+            Send("{Enter}")
+        }
     } else {
         ; Modern Acrobat New Experience UI (Hamburger Menu: Alt+F -> L -> C)
         Send("!f")
@@ -141,55 +136,54 @@ Adobe(*)
     UpdateStatus("Waiting for Adobe Updater...", 100, 100)
     updaterFound := false
 
-    loop 20 {
+    loop 25 {
         if WinExist("Adobe Acrobat Updater") || WinExist("Adobe Acrobat 2020 Updater") || WinExist("ahk_exe AdobeARM.exe") {
             updaterFound := true
             break
         }
 
-        ; Fallback: If not open after 2 seconds, try UIA directly on the window handle
-        if (A_Index == 5 && !updaterFound) {
+        ; Fallback Tier 2 (after 2s): Try Alt+H -> u -> Enter (Acrobat 2020 / Reader accelerator)
+        if (A_Index == 4 && !updaterFound && isClassicUI) {
+            try WinActivate(adobeHwnd)
+            Send("{Esc}")
+            Sleep(150)
+            Send("!h")
+            Sleep(250)
+            Send("u")
+            Sleep(100)
+            Send("{Enter}")
+        }
+
+        ; Fallback Tier 3 (after 4s): Try Alt+H -> {Up} (wraps to bottom item in Help menu) -> Enter
+        if (A_Index == 8 && !updaterFound && isClassicUI) {
+            try WinActivate(adobeHwnd)
+            Send("{Esc}")
+            Sleep(150)
+            Send("!h")
+            Sleep(250)
+            Send("{Up}")
+            Sleep(100)
+            Send("{Enter}")
+        }
+
+        ; Fallback Tier 4 (after 6s): UIA search across desktop popup menus
+        if (A_Index == 12 && !updaterFound) {
             try {
-                acrobatEl := UIA.ElementFromHandle(adobeHwnd)
-                menuBtn := acrobatEl.FindElement({Name: "Menu", mm: 2})
-                if (menuBtn) {
-                    ; Confirmed New UI via UIA
-                    menuBtn.Click()
-                    Sleep(200)
-                    helpItem := UIA.WaitElement({Name: "Help", mm: 2}, 1500)
-                    if (helpItem) {
-                        helpItem.Click()
-                        Sleep(200)
-                        updateItem := UIA.WaitElement({Name: "Check for updates", mm: 2}, 1500)
+                updateItem := UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"})
+                if (updateItem)
+                    updateItem.Click()
+            } catch {
+                try {
+                    acrobatEl := UIA.ElementFromHandle(adobeHwnd)
+                    helpBtn := acrobatEl.FindElement({Name: "Help", mm: 2})
+                    if (helpBtn) {
+                        helpBtn.Click()
+                        Sleep(250)
+                        updateItem := UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"})
                         if (updateItem)
                             updateItem.Click()
-                    }
-                } else {
-                    ; Confirmed Classic UI via UIA
-                    helpItem := acrobatEl.FindElement({Name: "Help", Type: "MenuItem", Order: "LastToFirstOrder"})
-                    if (helpItem) {
-                        helpItem.Click()
-                        Sleep(200)
-                        updateItem := acrobatEl.WaitElement({Name: "Check for Updates...", Type: "MenuItem", Order: "LastToFirstOrder"}, 1500)
-                        if (!updateItem)
-                            updateItem := UIA.WaitElement({Name: "Check for updates", mm: 2}, 1500)
-                        if (updateItem)
-                            updateItem.Click()
-                    } else {
-                        try WinActivate(adobeHwnd)
-                        Send("!h")
-                        Sleep(200)
-                        Send("u")
                     }
                 }
-            } catch {
-                ; Blind keyboard retry with alternative accelerator
-                try WinActivate(adobeHwnd)
-                Send("{Esc}")
-                Sleep(100)
-                Send("!h")
-                Sleep(200)
-                Send("u")
             }
         }
 

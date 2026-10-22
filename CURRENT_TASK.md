@@ -247,6 +247,15 @@
   - [x] Pass `adobeHwnd` directly to `UIA.ElementFromHandle(adobeHwnd)` for fallback menu interaction and eliminate string-based `"ahk_exe Acrobat.exe"` references in `UpdateAdobe.ahk`.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4p.
+- [x] **Step 4.4q**: Multi-Tiered Adobe Acrobat "Check for Updates" Invocation
+  - [x] Default UI mode to Classic (`isClassicUI := true`) unless modern "Menu" button is explicitly detected via UIA.
+  - [x] Implement multi-tiered trigger sequence in `Lib/UpdateAdobe.ahk`:
+    - Tier 1: `Alt+H` -> `c` -> `{Enter}` (Acrobat DC / Pro 64-bit standard accelerator)
+    - Tier 2 (after 2s): `Alt+H` -> `u` -> `{Enter}` (Acrobat 2020 / Reader accelerator)
+    - Tier 3 (after 4s): `Alt+H` -> `{Up}` -> `{Enter}` (wrap-around to bottom menu item)
+    - Tier 4: `UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"})` across desktop popup menus
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4q.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 
