@@ -459,9 +459,28 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 5140)`).
 
+- **Step 5.9**:
+  - Prioritize Local C:\ and Alphabetical Mapped Drive Paths Before UNC Fallbacks:
+    - Background & Rationale: In Step 4.4r, UNC network paths were prioritized ahead of local drive paths to prevent picking up outdated `C:\` installations when network shares were primary. Now that the 2-tier Shortcut-First discovery engine (Priority 1) reliably catches authoritative application installations via desktop `.lnk` files (including MSI advertised shortcuts), candidate path lists only serve as the secondary fallback.
+    - Operator Requirement: Prioritize local `C:\` paths first, followed by mapped network drive letters in alphabetical order, and lastly UNC network shares in alphabetical order.
+    - Reordered candidate path lists across all 6 Thomson Reuters modules:
+      - `Lib/UpdateFixedAssets.ahk`: `C:\` -> Mapped (`U:\`, `W:\`, `X:\`, `Y:\`) -> UNC (`\\agcfsapp1`, `\\app1`, `\\chfsapp1`, `\\goserver`, `\\hfaapp1`, `\\wbsql1`).
+      - `Lib/UpdateAccountingCS.ahk`: `C:\` -> Mapped (`P:\`, `S:\`, `W:\`, `X:\`) -> UNC (`\\agcfsapp1`, `\\app1`, `\\chfsapp1`, `\\sql1`, `\\tho1`, `\\wbsql1`).
+      - `Lib/UpdatePractice.ahk`: `C:\` -> Mapped (`P:\`, `S:\`, `T:\`, `W:\`, `X:\`) -> UNC (`\\agcfsapp1`, `\\app1`, `\\chfsapp1`, `\\sql1`, `\\tho1`, `\\wbsql1`).
+      - `Lib/UpdateUT.ahk`: `C:\` -> Mapped (`P:\`, `S:\`, `W:\`) -> UNC (`\\agcfsapp1`, `\\app1`, `\\chfsapp1`, `\\kmitho1`, `\\przfsapp1`, `\\sql1`, `\\swtho1`, `\\Tho1`, `\\wbsql1`).
+      - `Lib/UpdateFileCabinet.ahk`: `C:\` -> Mapped (`W:\`, `X:\`) -> UNC (`\\agcfsapp1`, `\\app1`, `\\chfsapp1`, `\\sql1`, `\\tho1`, `\\wbsql1`).
+      - `Lib/UpdateFPS.ahk`: `C:\` -> Mapped (`F:\`, `P:\`, `S:\`, `T:\`, `W:\`, `X:\`) -> UNC (`\\agcfsapp1`, `\\app1`, `\\chfsapp1`, `\\sql1`, `\\wbsql1`).
+    - Note: `Lib/UpdateAdobe.ahk`, `Lib/UpdateQB.ahk`, `Lib/UpdateLacerte.ahk`, and `Lib/UpdatePPC.ahk` are already strictly local `C:\` paths and required no modifications.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 12916)`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 34172)`).
+
 ### Final Status
 - All milestones (1 through 5) complete and fully verified.
 - The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
+- Fallback candidate path ordering prioritizes local `C:\`, followed by alphabetical mapped drives, and then UNC network shares, maximizing scan performance while shortcut-first handles multi-install disambiguation.
 - Technicians can inspect discovery provenance in real-time by hovering over any application on the dashboard or by reviewing `[PathSources]` in `GUIsettings.ini`.
 - MSI Advertised Shortcuts (both direct MSI resolution and name-paired stubs) are natively resolved out-of-the-box, ensuring zero technician overhead.
 

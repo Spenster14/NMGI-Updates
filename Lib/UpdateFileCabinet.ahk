@@ -8,19 +8,21 @@ GetFileCabinetPath() {
 
     ; 2. Candidate network & local paths
     potentialPaths := [
-        ; UNC network shares
-        "\\chfsapp1\WINCSI\CABINET\fcab.exe",
-        "\\tho1\Thomson\WinCSI\CABINET\fcab.exe",
-        "\\sql1\WinCSI\CABINET\fcab.exe",
-        "\\sql1\WINCSI$\CABINET\fcab.exe",
-        "\\wbsql1\WINCSI$\CABINET\fcab.exe",
-        "\\agcfsapp1\WinCSI\CABINET\fcab.exe",
-        "\\app1\WinCSI\CABINET\fcab.exe",
+        ; Local installations (C:\)
+        "C:\WinCSI\CABINET\fcab.exe",
 
-        ; Mapped network drive letters & local paths
+        ; Mapped network drive letters (alphabetical: W, X)
         "W:\WinCSI\CABINET\fcab.exe",
         "X:\CABINET\fcab.exe",
-        "C:\WinCSI\CABINET\fcab.exe"
+
+        ; UNC network shares (alphabetical: agcfsapp1, app1, chfsapp1, sql1, tho1, wbsql1)
+        "\\agcfsapp1\WinCSI\CABINET\fcab.exe",
+        "\\app1\WinCSI\CABINET\fcab.exe",
+        "\\chfsapp1\WINCSI\CABINET\fcab.exe",
+        "\\sql1\WinCSI\CABINET\fcab.exe",
+        "\\sql1\WINCSI$\CABINET\fcab.exe",
+        "\\tho1\Thomson\WinCSI\CABINET\fcab.exe",
+        "\\wbsql1\WINCSI$\CABINET\fcab.exe"
     ]
 
     for index, path in potentialPaths {

@@ -9,23 +9,25 @@ GetUTPath(UTversion) {
 
     ; 2. Candidate network & local paths
     possiblePaths := [
-        ; UNC network shares
-        "\\agcfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\wbsql1\WINCSI$\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\Tho1\thomson\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\przfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\swtho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\kmitho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\app1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\sql1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "\\chfsapp1\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        ; Local installations (C:\)
+        "C:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
 
-        ; Mapped network drive letters & local paths
-        "W:\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "W:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        ; Mapped network drive letters (alphabetical: P, S, W)
         "P:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "S:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
-        "C:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe"
+        "W:\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "W:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+
+        ; UNC network shares (alphabetical: agcfsapp1, app1, chfsapp1, kmitho1, przfsapp1, sql1, swtho1, Tho1, wbsql1)
+        "\\agcfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\app1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\chfsapp1\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\kmitho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\przfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\sql1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\swtho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\Tho1\thomson\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\wbsql1\WINCSI$\UT" . UTversion . "\utw" . UTversion . ".exe"
     ]
 
     for path in possiblePaths {

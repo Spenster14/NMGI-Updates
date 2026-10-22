@@ -10,37 +10,39 @@ GetFPSPath() {
 
     ; 2. Candidate network & local paths
     potentialPaths := [
-        ; UNC network shares
-        "\\sql1\FPS\FAS706\FAS\FAS.EXE",
-        "\\sql1\FPS\FAS\FAS.EXE",
-        "\\wbsql1\FPS\FAS706\FAS\FAS.EXE",
-        "\\wbsql1\FPS\FAS\FAS.EXE",
-        "\\chfsapp1\FPS\FAS706\FAS\FAS.EXE",
-        "\\chfsapp1\FPS\FAS\FAS.EXE",
-        "\\agcfsapp1\FPS\FAS706\FAS\FAS.EXE",
-        "\\agcfsapp1\FPS\FAS\FAS.EXE",
-        "\\app1\FPS\FAS706\FAS\FAS.EXE",
-        "\\app1\FPS\FAS\FAS.EXE",
+        ; Local installations (C:\)
+        "C:\FPS\FAS706\FAS\FAS.EXE",
+        "C:\FPS\FAS\FAS.EXE",
+        "C:\Program Files (x86)\Thomson Reuters\FPS\FAS706\FAS\FAS.EXE",
+        "C:\Program Files (x86)\Thomson Reuters\FPS\FAS\FAS.EXE",
+        "C:\Program Files\Thomson Reuters\FPS\FAS706\FAS\FAS.EXE",
+        "C:\Program Files\Thomson Reuters\FPS\FAS\FAS.EXE",
 
-        ; Mapped network drive letters & local paths
+        ; Mapped network drive letters (alphabetical: F, P, S, T, W, X)
         "F:\FPS\FAS706\FAS\FAS.EXE",
         "F:\FPS\FAS\FAS.EXE",
-        "W:\FPS\FAS706\FAS\FAS.EXE",
-        "W:\FPS\FAS\FAS.EXE",
-        "X:\FPS\FAS706\FAS\FAS.EXE",
-        "X:\FPS\FAS\FAS.EXE",
         "P:\FPS\FAS706\FAS\FAS.EXE",
         "P:\FPS\FAS\FAS.EXE",
         "S:\FPS\FAS706\FAS\FAS.EXE",
         "S:\FPS\FAS\FAS.EXE",
         "T:\FPS\FAS706\FAS\FAS.EXE",
         "T:\FPS\FAS\FAS.EXE",
-        "C:\FPS\FAS706\FAS\FAS.EXE",
-        "C:\FPS\FAS\FAS.EXE",
-        "C:\Program Files (x86)\Thomson Reuters\FPS\FAS706\FAS\FAS.EXE",
-        "C:\Program Files (x86)\Thomson Reuters\FPS\FAS\FAS.EXE",
-        "C:\Program Files\Thomson Reuters\FPS\FAS706\FAS\FAS.EXE",
-        "C:\Program Files\Thomson Reuters\FPS\FAS\FAS.EXE"
+        "W:\FPS\FAS706\FAS\FAS.EXE",
+        "W:\FPS\FAS\FAS.EXE",
+        "X:\FPS\FAS706\FAS\FAS.EXE",
+        "X:\FPS\FAS\FAS.EXE",
+
+        ; UNC network shares (alphabetical: agcfsapp1, app1, chfsapp1, sql1, wbsql1)
+        "\\agcfsapp1\FPS\FAS706\FAS\FAS.EXE",
+        "\\agcfsapp1\FPS\FAS\FAS.EXE",
+        "\\app1\FPS\FAS706\FAS\FAS.EXE",
+        "\\app1\FPS\FAS\FAS.EXE",
+        "\\chfsapp1\FPS\FAS706\FAS\FAS.EXE",
+        "\\chfsapp1\FPS\FAS\FAS.EXE",
+        "\\sql1\FPS\FAS706\FAS\FAS.EXE",
+        "\\sql1\FPS\FAS\FAS.EXE",
+        "\\wbsql1\FPS\FAS706\FAS\FAS.EXE",
+        "\\wbsql1\FPS\FAS\FAS.EXE"
     ]
 
     for index, path in potentialPaths {

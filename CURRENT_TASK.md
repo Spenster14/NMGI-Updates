@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.6: Discovery Source Tracking ([PathSources] in GUIsettings.ini & Dashboard Hover Tooltips)
+- **Active Step**: Step 5.9: Prioritize Local C:\ and Alphabetical Mapped Drive Paths Before UNC Fallbacks
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -331,6 +331,12 @@
   - [x] Update `FindShortcutInfo()` and `Core/Config.ahk` to pair advertised desktop shortcuts with validated executable paths even if MSI internal component resolution fails.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary (`smoke_exe.ps1`).
   - [x] Atomically commit Step 5.8.
+- [x] **Step 5.9**: Prioritize Local C:\ and Alphabetical Mapped Drive Paths Before UNC Fallbacks
+  - [x] Reorder candidate paths across all Thomson Reuters modules (`UpdateFixedAssets.ahk`, `UpdateAccountingCS.ahk`, `UpdatePractice.ahk`, `UpdateUT.ahk`, `UpdateFileCabinet.ahk`, `UpdateFPS.ahk`): `C:\` first, then mapped drive letters alphabetically, then UNC network paths alphabetically.
+  - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
+  - [x] Recompile production `NMGIupdates.exe` binary.
+  - [x] Atomically commit Step 5.9.
+
 
 
 

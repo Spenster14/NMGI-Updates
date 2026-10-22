@@ -8,22 +8,24 @@ GetAccountingCSPath() {
 
     ; 2. Candidate network & local paths
     potentialPaths := [
-        ; UNC network shares
-        "\\sql1\WinCSI\Accounting CS\AccountingCS.exe",
-        "\\sql1\WINCSI$\Accounting CS\AccountingCS.exe",
-        "\\wbsql1\WINCSI$\Accounting CS\AccountingCS.exe",
-        "\\app1\WinCSI\Accounting CS\AccountingCS.exe",
-        "\\agcfsapp1\WinCSI\Accounting CS\AccountingCS.exe",
-        "\\chfsapp1\WINCSI\Accounting CS\AccountingCS.exe",
-        "\\tho1\thomson\WINCSI\Accounting CS\AccountingCS.exe",
+        ; Local installations (C:\)
+        "C:\Program Files (x86)\Creative Solutions\Accounting CS\AccountingCS.exe",
+        "C:\Program Files\Creative Solutions\Accounting CS\AccountingCS.exe",
 
-        ; Mapped network drive letters & local paths
-        "W:\Creative Solutions\Accounting CS\AccountingCS.exe",
-        "X:\Creative Solutions\Accounting CS\AccountingCS.exe",
+        ; Mapped network drive letters (alphabetical: P, S, W, X)
         "P:\Creative Solutions\Accounting CS\AccountingCS.exe",
         "S:\Creative Solutions\Accounting CS\AccountingCS.exe",
-        "C:\Program Files (x86)\Creative Solutions\Accounting CS\AccountingCS.exe",
-        "C:\Program Files\Creative Solutions\Accounting CS\AccountingCS.exe"
+        "W:\Creative Solutions\Accounting CS\AccountingCS.exe",
+        "X:\Creative Solutions\Accounting CS\AccountingCS.exe",
+
+        ; UNC network shares (alphabetical: agcfsapp1, app1, chfsapp1, sql1, tho1, wbsql1)
+        "\\agcfsapp1\WinCSI\Accounting CS\AccountingCS.exe",
+        "\\app1\WinCSI\Accounting CS\AccountingCS.exe",
+        "\\chfsapp1\WINCSI\Accounting CS\AccountingCS.exe",
+        "\\sql1\WinCSI\Accounting CS\AccountingCS.exe",
+        "\\sql1\WINCSI$\Accounting CS\AccountingCS.exe",
+        "\\tho1\thomson\WINCSI\Accounting CS\AccountingCS.exe",
+        "\\wbsql1\WINCSI$\Accounting CS\AccountingCS.exe"
     ]
 
     for index, path in potentialPaths {

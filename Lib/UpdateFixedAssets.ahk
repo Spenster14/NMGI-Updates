@@ -8,24 +8,26 @@ GetFixedAssetsPath() {
 
     ; 2. Candidate network & local paths
     potentialPaths := [
-        ; UNC network shares
+        ; Local installations (C:\)
+        "C:\WinCSI\DSW\dsw.exe",
+
+        ; Mapped network drive letters (alphabetical: U, W, X, Y)
+        "U:\WinCSI\DSW\dsw.exe",
+        "W:\WinCSI\DSW\dsw.exe",
+        "X:\DSW\DSW.exe",
+        "Y:\WinCSI\DSW\dsw.exe",
+        "Y:\DSW\dsw.exe",
+
+        ; UNC network shares (alphabetical: agcfsapp1, app1, chfsapp1, goserver, hfaapp1, wbsql1)
+        "\\agcfsapp1\WinCSI\DSW\dsw.exe",
+        "\\app1\WinCSI\DSW\dsw.exe",
+        "\\chfsapp1\WINCSI\DSW\dsw.exe",
         "\\goserver\Y\WinCSI\DSW\dsw.exe",
         "\\goserver\Y$\WinCSI\DSW\dsw.exe",
         "\\goserver\WinCSI\DSW\dsw.exe",
         "\\goserver\WINCSI$\DSW\dsw.exe",
-        "\\agcfsapp1\WinCSI\DSW\dsw.exe",
-        "\\wbsql1\WINCSI$\DSW\dsw.exe",
-        "\\chfsapp1\WINCSI\DSW\dsw.exe",
         "\\hfaapp1\WINCSI\FA25\DSW\dsw.exe",
-        "\\app1\WinCSI\DSW\dsw.exe",
-
-        ; Mapped network drive letters & local paths
-        "Y:\WinCSI\DSW\dsw.exe",
-        "Y:\DSW\dsw.exe",
-        "X:\DSW\DSW.exe",
-        "U:\WinCSI\DSW\dsw.exe",
-        "W:\WinCSI\DSW\dsw.exe",
-        "C:\WinCSI\DSW\dsw.exe"
+        "\\wbsql1\WINCSI$\DSW\dsw.exe"
     ]
 
     for index, path in potentialPaths {
