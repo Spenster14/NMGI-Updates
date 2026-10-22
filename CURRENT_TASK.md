@@ -364,6 +364,21 @@
   - [x] Recompile production `NMGIupdates.exe` binary.
   - [x] Atomically commit Step 5.12.
 
+---
+
+### Milestone 6 (EXPERIMENT branch `experiment/qb-behind-the-scenes`): Headless QuickBooks Updater via COM
+*Goal: Update QuickBooks patches without opening QB, using Intuit COM objects (ServiceMgr / QBDAgent / QBInstanceFinder). Full plan: `qb_headless_plan.md` in artifacts. Kill criteria: COM objects missing, or DoUpdateNow needs interactive QB.*
+
+- [x] **Step 6.1**: COM recon (READ-ONLY) - scratch script scanning registry (64/32-bit views) for QBAgent/ServiceMgr/QBInstanceFinder ProgIDs, CLSIDs, server paths; output to text file. Script: `experiments/qb/com_recon.ps1`. Dev PC has no QuickBooks (0 Intuit COM objects); MUST be re-run on the QB test PC (output `com_recon.txt` next to script).
+- [ ] **Step 6.2**: Instantiate each COM object from AHK (64-bit and 32-bit); no update calls.
+- [ ] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.).
+- [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse.
+- [ ] **Step 6.5**: Safe first call: `Initialize` + `ApplicationExit` only.
+- [ ] **Step 6.6**: Real update, ONE channel, on test PC (backup first).
+- [ ] **Step 6.7**: Channel loop, timeouts, cleanup.
+- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`.
+- [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
+
 
 
 
