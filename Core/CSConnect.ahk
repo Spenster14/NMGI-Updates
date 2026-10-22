@@ -126,101 +126,101 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
         return true
     }
 
+    loginHwnd := 0
     handledLogin := false
 
-    if (dbPassword != "") {
-        ; Poll up to 30 seconds (60 x 500ms) for the login modal dialog
-        loop 60 {
-            if WinExist(winPrefix . " -") {
-                handledLogin := true
+    ; Poll up to 30 seconds (60 x 500ms) for either dashboard or the login modal dialog
+    loop 60 {
+        if WinExist(winPrefix . " -") {
+            handledLogin := true
+            break
+        }
+
+        hwnds := []
+        if (exeName != "") {
+            try hwnds := WinGetList("ahk_exe " . exeName)
+        }
+        if (hwnds.Length == 0) {
+            try hwnds := WinGetList(winPrefix)
+        }
+
+        for h in hwnds {
+            style := 0
+            try style := WinGetStyle(h)
+            if (!(style & 0x10000000)) ; Must be visible (WS_VISIBLE)
+                continue
+
+            title := ""
+            try title := WinGetTitle(h)
+            if InStr(title, winPrefix . " -")
+                continue
+
+            ctrls := []
+            try ctrls := WinGetControls(h)
+            hasEdit := false
+            hasButtons := false
+            for c in ctrls {
+                if InStr(c, "Edit")
+                    hasEdit := true
+                if InStr(c, "Button") {
+                    txt := ""
+                    try txt := ControlGetText(c, h)
+                    if (txt = "OK" || InStr(txt, "OK") || InStr(txt, "Cancel") || InStr(txt, "Change password"))
+                        hasButtons := true
+                }
+            }
+            if (hasEdit && hasButtons) {
+                loginHwnd := h
                 break
             }
+        }
 
-            hwnds := []
-            if (exeName != "") {
-                try hwnds := WinGetList("ahk_exe " . exeName)
-            }
-            if (hwnds.Length == 0) {
-                try hwnds := WinGetList(winPrefix)
-            }
+        if (loginHwnd) {
+            WinActivate("ahk_id " . loginHwnd)
+            Sleep(100)
 
-            loginHwnd := 0
-            for h in hwnds {
-                style := 0
-                try style := WinGetStyle(h)
-                if (!(style & 0x10000000)) ; Must be visible (WS_VISIBLE)
-                    continue
+            ctrlNames := []
+            ctrlHwnds := []
+            try ctrlNames := WinGetControls("ahk_id " . loginHwnd)
+            try ctrlHwnds := WinGetControlsHwnd("ahk_id " . loginHwnd)
 
-                title := ""
-                try title := WinGetTitle(h)
-                if InStr(title, winPrefix . " -")
-                    continue
+            standaloneEdits := []
+            comboHwnds := []
+            okCtrlHwnd := 0
+            pwdLabelHwnd := 0
 
-                ctrls := []
-                try ctrls := WinGetControls(h)
-                hasEdit := false
-                hasButtons := false
-                for c in ctrls {
-                    if InStr(c, "Edit")
-                        hasEdit := true
-                    if InStr(c, "Button") {
-                        txt := ""
-                        try txt := ControlGetText(c, h)
-                        if (txt = "OK" || InStr(txt, "OK") || InStr(txt, "Cancel") || InStr(txt, "Change password"))
-                            hasButtons := true
+            for i, c in ctrlNames {
+                h := ctrlHwnds[i]
+                if InStr(c, "Button") {
+                    txt := ""
+                    try txt := ControlGetText(h, "ahk_id " . loginHwnd)
+                    if (txt = "OK" || InStr(txt, "OK"))
+                        okCtrlHwnd := h
+                } else if InStr(c, "ComboBox") {
+                    comboHwnds.Push(h)
+                } else if InStr(c, "STATIC") || InStr(c, "Text") {
+                    txt := ""
+                    try txt := ControlGetText(h, "ahk_id " . loginHwnd)
+                    ; Must match "Password:" label and NOT "Change password..." button/label
+                    if (txt = "Password:" || (InStr(txt, "Password:") && !InStr(txt, "Change")))
+                        pwdLabelHwnd := h
+                } else if InStr(c, "Edit") {
+                    ; CRITICAL RULE: Filter out any Edit control that is inside a ComboBox (e.g. Open Firm)
+                    parent := DllCall("GetParent", "ptr", h, "ptr")
+                    pClass := ""
+                    if (parent) {
+                        try pClass := WinGetClass(parent)
+                    }
+                    if (!InStr(pClass, "COMBOBOX") && !InStr(pClass, "ComboBox")) {
+                        standaloneEdits.Push(h)
                     }
                 }
-                if (hasEdit && hasButtons) {
-                    loginHwnd := h
-                    break
-                }
             }
 
-            if (loginHwnd) {
-                WinActivate("ahk_id " . loginHwnd)
-                Sleep(100)
-
-                ctrlNames := []
-                ctrlHwnds := []
-                try ctrlNames := WinGetControls("ahk_id " . loginHwnd)
-                try ctrlHwnds := WinGetControlsHwnd("ahk_id " . loginHwnd)
-
-                standaloneEdits := []
-                comboHwnds := []
-                okCtrlHwnd := 0
-                pwdLabelHwnd := 0
-
-                for i, c in ctrlNames {
-                    h := ctrlHwnds[i]
-                    if InStr(c, "Button") {
-                        txt := ""
-                        try txt := ControlGetText(h, "ahk_id " . loginHwnd)
-                        if (txt = "OK" || InStr(txt, "OK"))
-                            okCtrlHwnd := h
-                    } else if InStr(c, "ComboBox") {
-                        comboHwnds.Push(h)
-                    } else if InStr(c, "STATIC") || InStr(c, "Text") {
-                        txt := ""
-                        try txt := ControlGetText(h, "ahk_id " . loginHwnd)
-                        ; Must match "Password:" label and NOT "Change password..." button/label
-                        if (txt = "Password:" || (InStr(txt, "Password:") && !InStr(txt, "Change")))
-                            pwdLabelHwnd := h
-                    } else if InStr(c, "Edit") {
-                        ; CRITICAL RULE: Filter out any Edit control that is inside a ComboBox (e.g. Open Firm)
-                        parent := DllCall("GetParent", "ptr", h, "ptr")
-                        pClass := ""
-                        if (parent) {
-                            try pClass := WinGetClass(parent)
-                        }
-                        if (!InStr(pClass, "COMBOBOX") && !InStr(pClass, "ComboBox")) {
-                            standaloneEdits.Push(h)
-                        }
-                    }
-                }
-
-                ; Auto-recovery: If the Password: label is missing, Open Firm was likely corrupted.
-                ; Check if any ComboBox contains dbPassword, and restore the first firm in the list.
-                if (!pwdLabelHwnd) {
+            ; Auto-recovery: If the Password: label is missing, Open Firm was likely corrupted.
+            ; Check if any ComboBox contains dbPassword, and restore the first firm in the list.
+            if (!pwdLabelHwnd) {
+                if (dbPassword != "") {
                     for cb in comboHwnds {
                         cbText := ""
                         try cbText := ControlGetText(cb, "ahk_id " . loginHwnd)
@@ -235,74 +235,80 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                             break
                         }
                     }
-                    UpdateStatus("Waiting for " . winPrefix . " Password field...", 100, 100)
-                    Sleep(500)
-                    continue
                 }
+                UpdateStatus("Waiting for " . winPrefix . " Password field...", 100, 100)
+                Sleep(500)
+                continue
+            }
 
-                ; Locate the exact password control on the dialog
-                pwdCtrl := 0
-                lx := 0, ly := 0, lw := 0, lh := 0
-                ControlGetPos(&lx, &ly, &lw, &lh, pwdLabelHwnd, "ahk_id " . loginHwnd)
+            ; Locate the exact password control on the dialog
+            pwdCtrl := 0
+            lx := 0, ly := 0, lw := 0, lh := 0
+            ControlGetPos(&lx, &ly, &lw, &lh, pwdLabelHwnd, "ahk_id " . loginHwnd)
 
-                ; 1. First, search standalone edits that are on the same row as Password:
+            ; 1. First, search standalone edits that are on the same row as Password:
+            for eh in standaloneEdits {
+                ex := 0, ey := 0, ew := 0, ehH := 0
+                ControlGetPos(&ex, &ey, &ew, &ehH, eh, "ahk_id " . loginHwnd)
+                ; On the same vertical line (within 20px) and horizontally to the right of "Password:"
+                if (Abs(ey - ly) <= 20 && ex >= lx + lw - 10) {
+                    pwdCtrl := eh
+                    break
+                }
+            }
+
+            ; 2. Fallback: Check if any standalone edit has ES_PASSWORD (0x0020)
+            if (!pwdCtrl) {
                 for eh in standaloneEdits {
-                    ex := 0, ey := 0, ew := 0, ehH := 0
-                    ControlGetPos(&ex, &ey, &ew, &ehH, eh, "ahk_id " . loginHwnd)
-                    ; On the same vertical line (within 20px) and horizontally to the right of "Password:"
-                    if (Abs(ey - ly) <= 20 && ex >= lx + lw - 10) {
+                    s := 0
+                    try s := WinGetStyle(eh)
+                    if (s & 0x0020) {
                         pwdCtrl := eh
                         break
                     }
                 }
-
-                ; 2. Fallback: Check if any standalone edit has ES_PASSWORD (0x0020)
-                if (!pwdCtrl) {
-                    for eh in standaloneEdits {
-                        s := 0
-                        try s := WinGetStyle(eh)
-                        if (s & 0x0020) {
-                            pwdCtrl := eh
-                            break
-                        }
-                    }
-                }
-
-                ; Inject password into the verified password control
-                if (pwdCtrl) {
-                    try ControlFocus(pwdCtrl, "ahk_id " . loginHwnd)
-                    Sleep(150)
-                    try ControlClick(pwdCtrl, "ahk_id " . loginHwnd, , , , "NA")
-                    Sleep(150)
-                    Send("^a{Backspace}")
-                    Sleep(100)
-                    SendText(dbPassword)
-                    Sleep(200)
-                } else if (pwdLabelHwnd) {
-                    clickX := lx + lw + 40
-                    clickY := ly + (lh // 2)
-                    ControlClick("x" . clickX . " y" . clickY, "ahk_id " . loginHwnd, , , , "NA")
-                    Sleep(150)
-                    Send("^a{Backspace}")
-                    Sleep(100)
-                    SendText(dbPassword)
-                    Sleep(200)
-                }
-
-                ; SINGLE deliberate submit action - never spam multiple click events
-                UpdateStatus("Submitting " . winPrefix . " credentials...", 100, 100)
-                if (okCtrlHwnd) {
-                    try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
-                } else {
-                    Send("{Enter}")
-                }
-
-                ; Exit the input loop immediately so we never re-enter or re-submit
-                handledLogin := true
-                break
             }
-            Sleep(500)
+
+            ; Inject password into the verified password control (or clear if blank)
+            if (pwdCtrl) {
+                try ControlFocus(pwdCtrl, "ahk_id " . loginHwnd)
+                Sleep(150)
+                try ControlClick(pwdCtrl, "ahk_id " . loginHwnd, , , , "NA")
+                Sleep(150)
+                Send("^a{Backspace}")
+                Sleep(100)
+                if (dbPassword != "") {
+                    SendText(dbPassword)
+                    Sleep(200)
+                }
+            } else if (pwdLabelHwnd) {
+                clickX := lx + lw + 40
+                clickY := ly + (lh // 2)
+                ControlClick("x" . clickX . " y" . clickY, "ahk_id " . loginHwnd, , , , "NA")
+                Sleep(150)
+                Send("^a{Backspace}")
+                Sleep(100)
+                if (dbPassword != "") {
+                    SendText(dbPassword)
+                    Sleep(200)
+                }
+            }
+
+            ; SINGLE deliberate submit action - never spam multiple click events
+            UpdateStatus("Submitting " . winPrefix . " credentials...", 100, 100)
+            WinActivate("ahk_id " . loginHwnd)
+            Sleep(50)
+            if (okCtrlHwnd) {
+                try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
+            } else {
+                Send("{Enter}")
+            }
+
+            ; Exit the input loop immediately so we never re-enter or re-submit
+            handledLogin := true
+            break
         }
+        Sleep(500)
     }
 
     ; Patient verification loop: wait for SQL database verification over network without re-submitting

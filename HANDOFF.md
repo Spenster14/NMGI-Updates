@@ -477,12 +477,31 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 34172)`).
 
+- **Step 5.10**:
+  - Support Blank Database Passwords & Fix loginHwnd Scoping in `Core/CSConnect.ahk`:
+    - Root Cause Analysis:
+      1. In `SubmitCSDatabaseLogin()`, `loginHwnd` was defined inside an `if (dbPassword != "")` block. When a database had a blank password (`dbPassword == ""`), this block was completely bypassed. As a result, `loginHwnd` remained unassigned, and calling `DismissAllLoginErrors(winPrefix, exeName, loginHwnd)` during the verification loop caused AutoHotkey v2 to throw: `Error: This local variable has not been assigned a value. Specifically: loginHwnd`.
+      2. Furthermore, bypassing the detection loop on blank passwords prevented Practice CS and Accounting CS from ever submitting the login card (clicking OK / pressing Enter), leaving the login card hanging on screen indefinitely.
+      3. In `InStr(cbText, dbPassword)`, if `dbPassword == ""`, AutoHotkey v2's `InStr` evaluates to `1` (true), which would have falsely triggered the ComboBox dropdown auto-recovery reset.
+    - Fixes Applied:
+      - Initialized `loginHwnd := 0` and `handledLogin := false` in the root scope of `SubmitCSDatabaseLogin()`.
+      - Removed the `if (dbPassword != "")` loop wrapper so the login modal is always detected whether a password is provided or blank.
+      - For blank passwords (`dbPassword == ""`), focused and cleared the password control (`Send("^a{Backspace}")`) and deliberately clicked OK / sent `{Enter}` to authenticate into the firm database.
+      - Guarded ComboBox string matching with `if (dbPassword != "" && ...)` to prevent false auto-recovery on blank passwords.
+      - Updated `Auth/DatabaseLogin.ahk` modal label to clarify that fields may be left blank if no password is configured.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 43120)`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 42484)`).
+
 ### Final Status
 - All milestones (1 through 5) complete and fully verified.
 - The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
 - Fallback candidate path ordering prioritizes local `C:\`, followed by alphabetical mapped drives, and then UNC network shares, maximizing scan performance while shortcut-first handles multi-install disambiguation.
 - Technicians can inspect discovery provenance in real-time by hovering over any application on the dashboard or by reviewing `[PathSources]` in `GUIsettings.ini`.
 - MSI Advertised Shortcuts (both direct MSI resolution and name-paired stubs) are natively resolved out-of-the-box, ensuring zero technician overhead.
+- Database login automation handles both password-protected and blank-password databases seamlessly across Practice CS and Accounting CS.
 
 
 

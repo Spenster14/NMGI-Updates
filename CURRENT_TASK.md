@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.9: Prioritize Local C:\ and Alphabetical Mapped Drive Paths Before UNC Fallbacks
+- **Active Step**: Step 5.10: Support Blank Database Passwords & Fix loginHwnd Scoping in Core/CSConnect.ahk
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -336,6 +336,15 @@
   - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
   - [x] Recompile production `NMGIupdates.exe` binary.
   - [x] Atomically commit Step 5.9.
+- [x] **Step 5.10**: Support Blank Database Passwords & Fix loginHwnd Scoping in Core/CSConnect.ahk
+  - [x] Initialize `loginHwnd := 0` at the top of `SubmitCSDatabaseLogin()` so it is always safely scoped.
+  - [x] Remove `if (dbPassword != "")` guard around dialog detection loop so databases with blank passwords properly detect the login card and submit (click OK).
+  - [x] For blank passwords (`dbPassword == ""`), ensure password field is cleared (`^a{Backspace}`) before clicking OK / sending `{Enter}`.
+  - [x] Guard `InStr(cbText, dbPassword)` with `dbPassword != ""` to prevent empty string matches from falsely triggering dropdown auto-recovery.
+  - [x] Update `Auth/DatabaseLogin.ahk` label to indicate fields may be left blank if no database password is required.
+  - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
+  - [x] Recompile production `NMGIupdates.exe` binary.
+  - [x] Atomically commit Step 5.10.
 
 
 

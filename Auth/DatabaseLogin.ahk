@@ -37,7 +37,7 @@ PromptDatabasePasswords(appList) {
 
     dbGui := Gui("+AlwaysOnTop -MinimizeBox -MaximizeBox", "Application Credentials")
     dbGui.SetFont("s10", "Segoe UI")
-    dbGui.Add("Text", "w320", "Enter credentials for the selected applications:")
+    dbGui.Add("Text", "w320", "Enter credentials for the selected applications (leave blank if none):")
 
     editAcs := ""
     editPractice := ""
