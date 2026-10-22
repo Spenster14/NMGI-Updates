@@ -46,6 +46,58 @@ ExpandEnvVars(str) {
     return StrGet(buf.Ptr)
 }
 
+ResolveAdvertisedShortcut(lnkPath) {
+    ; Tier 1: WindowsInstaller.Installer COM Automation
+    try {
+        installer := ComObject("WindowsInstaller.Installer")
+        targetRec := installer.ShortcutTarget(lnkPath)
+        if (targetRec) {
+            prod := targetRec.StringData(1)
+            comp := targetRec.StringData(3)
+            if (prod != "" && comp != "") {
+                compPath := installer.ComponentPath(prod, comp)
+                if (compPath != "")
+                    return compPath
+            }
+        }
+    } catch {
+    }
+
+    ; Tier 2: Win32 MSI API (msi.dll)
+    try {
+        productCode := Buffer(78, 0)
+        featureId := Buffer(78, 0)
+        componentCode := Buffer(78, 0)
+        res := DllCall("msi\MsiGetShortcutTargetW",
+            "WStr", lnkPath,
+            "Ptr", productCode.Ptr,
+            "Ptr", featureId.Ptr,
+            "Ptr", componentCode.Ptr,
+            "UInt")
+        if (res == 0) {
+            cchBuf := 1024
+            buf := Buffer(cchBuf * 2, 0)
+            cchVar := Buffer(4, 0)
+            NumPut("UInt", cchBuf, cchVar)
+            installState := DllCall("msi\MsiGetComponentPathW",
+                "Ptr", productCode.Ptr,
+                "Ptr", componentCode.Ptr,
+                "Ptr", buf.Ptr,
+                "Ptr", cchVar.Ptr,
+                "Int")
+            ; INSTALLSTATE_LOCAL = 3, INSTALLSTATE_SOURCE = 4
+            if (installState == 3 || installState == 4) {
+                targetPath := StrGet(buf.Ptr, "UTF-16")
+                if (targetPath != "")
+                    return targetPath
+            }
+        }
+    } catch {
+    }
+
+    return ""
+}
+
 IndexShortcuts(forceRefresh := false) {
     global ShortcutCache, ShortcutCacheInitialized
     if (ShortcutCacheInitialized && !forceRefresh)
@@ -71,12 +123,20 @@ IndexShortcuts(forceRefresh := false) {
                     continue
                 }
 
+                ; Fallback for Windows Installer (MSI) Advertised Shortcuts
+                if (target == "") {
+                    target := ResolveAdvertisedShortcut(lnkPath)
+                }
+
                 if (target == "")
                     continue
 
-                target := ExpandEnvVars(target)
+                target := Trim(ExpandEnvVars(target), '" ')
                 SplitPath(target, &targetFileName, &targetDir)
                 SplitPath(lnkPath, , , , &lnkNameNoExt)
+
+                if (workingDir == "" && targetDir != "")
+                    workingDir := targetDir
 
                 ShortcutCache.Push({
                     LnkPath: lnkPath,

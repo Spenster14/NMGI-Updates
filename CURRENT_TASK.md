@@ -319,5 +319,14 @@
   - [x] Implement `WM_MOUSEMOVE` hover tooltips in `NMGIUpdates.ahk` displaying application name, path, and discovery source (`Shortcut: <lnk>` vs `FallbackScan`), ensuring zero impact on audit logs or summary modal.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary (`smoke_exe.ps1`).
   - [x] Atomically commit Step 5.6.
+- [x] **Step 5.7**: Automatic Resolution of MSI Advertised Shortcuts in `Core/ShortcutScanner.ahk`
+  - [x] Implement `ResolveAdvertisedShortcut(lnkPath)` with dual-tier MSI resolution (COM `WindowsInstaller.Installer` and Win32 `msi.dll` `MsiGetShortcutTargetW` / `MsiGetComponentPathW`).
+  - [x] Integrate into `IndexShortcuts()` in `Core/ShortcutScanner.ahk` whenever `FileGetShortcut` returns an empty target.
+  - [x] Populate `WorkingDir` from `Target` if empty for advertised shortcuts.
+  - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
+  - [x] Recompile production `NMGIupdates.exe` binary.
+  - [x] Atomically commit Step 5.7.
+
+
 
 
