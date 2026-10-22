@@ -2,6 +2,16 @@
 
 GetAccountingCSPath() {
     potentialPaths := [
+        ; UNC network shares
+        "\\sql1\WinCSI\Accounting CS\AccountingCS.exe",
+        "\\sql1\WINCSI$\Accounting CS\AccountingCS.exe",
+        "\\wbsql1\WINCSI$\Accounting CS\AccountingCS.exe",
+        "\\app1\WinCSI\Accounting CS\AccountingCS.exe",
+        "\\agcfsapp1\WinCSI\Accounting CS\AccountingCS.exe",
+        "\\chfsapp1\WINCSI\Accounting CS\AccountingCS.exe",
+        "\\tho1\thomson\WINCSI\Accounting CS\AccountingCS.exe",
+
+        ; Mapped network drive letters & local paths
         "W:\Creative Solutions\Accounting CS\AccountingCS.exe",
         "X:\Creative Solutions\Accounting CS\AccountingCS.exe",
         "P:\Creative Solutions\Accounting CS\AccountingCS.exe",
@@ -11,7 +21,7 @@ GetAccountingCSPath() {
     ]
 
     for index, path in potentialPaths {
-        if FileExist(path) {
+        if SafeFileExist(path) {
             return path
         }
     }

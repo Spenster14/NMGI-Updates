@@ -256,6 +256,14 @@
     - Tier 4: `UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"})` across desktop popup menus
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4q.
+- [x] **Step 4.4r**: Prioritize UNC Paths Before Drive Letter Paths Across All Applications
+  - [x] Reorder `potentialPaths` in `Lib/UpdateFixedAssets.ahk`: All UNC (`\\...`) paths first, then mapped/local drive letters (`Y:\`, `X:\`, `U:\`, `W:\`, `C:\`).
+  - [x] Reorder `potentialPaths` in `Lib/UpdateFPS.ahk`: All UNC (`\\...`) paths first, then drive letters (`F:\`, `W:\`, `X:\`, `P:\`, `S:\`, `T:\`, `C:\`).
+  - [x] Reorder `potentialPaths` in `Lib/UpdatePractice.ahk`: All UNC (`\\...`) paths first across production and legacy binaries, then drive letters (`T:\`, `W:\`, `X:\`, etc.).
+  - [x] Add UNC network share paths (`\\sql1\...`, `\\wbsql1\...`, `\\app1\...`, `\\agcfsapp1\...`, `\\chfsapp1\...`) to `Lib/UpdateAccountingCS.ahk`, update to `SafeFileExist`, and ensure UNC paths precede drive letters.
+  - [x] Verify `Lib/UpdateFileCabinet.ahk` and `Lib/UpdateUT.ahk` to ensure all UNC paths strictly precede drive letter paths.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4r.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

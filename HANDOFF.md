@@ -318,13 +318,22 @@
       - Tier 3 (after 4s): `Alt+H` -> `{Up}` -> `{Enter}` (wraps to bottom item in Help menu).
       - Tier 4 (after 6s): Desktop-wide UIA search across popup menus for `(?i)check for updates`.
 
+- **Step 4.4r**:
+  - Prioritize UNC Paths Before Drive Letter Paths Across All Applications:
+    - User requirement: Reorganize all application path checks so UNC paths (`\\...`) are always checked before drive letter paths (`[A-Za-z]:\...`), ensuring network server shares like `\\app1` or `\\goserver` are preferred over local paths like `C:\`.
+    - Updated `Lib/UpdateFixedAssets.ahk`: All UNC shares (`\\goserver\...`, `\\agcfsapp1\...`, `\\wbsql1\...`, `\\chfsapp1\...`, `\\hfaapp1\...`, `\\app1\...`) strictly precede mapped/local drives (`Y:\`, `X:\`, `U:\`, `W:\`, `C:\`).
+    - Updated `Lib/UpdateFPS.ahk`: All UNC shares (`\\sql1\...`, `\\wbsql1\...`, `\\chfsapp1\...`, `\\agcfsapp1\...`, `\\app1\...`) moved to the top of `potentialPaths`, strictly preceding drive letters (`F:\`, `W:\`, `X:\`, etc.).
+    - Updated `Lib/UpdatePractice.ahk`: Grouped all production and legacy UNC shares (`\\sql1\...`, `\\wbsql1\...`, `\\tho1\...`, `\\agcfsapp1\...`, `\\app1\...`, `\\chfsapp1\...`) at the top, preceding drive letters (`T:\`, `W:\`, `X:\`, etc.).
+    - Updated `Lib/UpdateAccountingCS.ahk`: Added candidate UNC shares (`\\sql1\...`, `\\wbsql1\...`, `\\app1\...`, `\\agcfsapp1\...`, `\\chfsapp1\...`, `\\tho1\...`), wrapped lookups in `SafeFileExist`, and placed them before drive letters.
+    - Updated `Lib/UpdateFileCabinet.ahk` & `Lib/UpdateUT.ahk`: Added common network server UNC shares and verified UNC paths strictly precede drive letter paths.
+
 ### Tested
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
-- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 11720)`).
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 16496)`).
 
 ### Next Step / Status
-- Step 4.4q complete.
+- Step 4.4r complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

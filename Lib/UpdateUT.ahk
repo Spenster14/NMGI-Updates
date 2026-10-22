@@ -2,12 +2,18 @@
 
 GetUTPath(UTversion) {
     possiblePaths := [
+        ; UNC network shares
         "\\agcfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\wbsql1\WINCSI$\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\Tho1\thomson\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\przfsapp1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\swtho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "\\kmitho1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\app1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\sql1\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+        "\\chfsapp1\WINCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
+
+        ; Mapped network drive letters & local paths
         "W:\UT" . UTversion . "\utw" . UTversion . ".exe",
         "W:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",
         "P:\WinCSI\UT" . UTversion . "\utw" . UTversion . ".exe",

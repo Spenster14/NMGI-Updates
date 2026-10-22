@@ -5,8 +5,7 @@
 GetFPSPath() {
     ; Candidate network and local paths
     potentialPaths := [
-        "F:\FPS\FAS706\FAS\FAS.EXE",
-        "F:\FPS\FAS\FAS.EXE",
+        ; UNC network shares
         "\\sql1\FPS\FAS706\FAS\FAS.EXE",
         "\\sql1\FPS\FAS\FAS.EXE",
         "\\wbsql1\FPS\FAS706\FAS\FAS.EXE",
@@ -17,6 +16,10 @@ GetFPSPath() {
         "\\agcfsapp1\FPS\FAS\FAS.EXE",
         "\\app1\FPS\FAS706\FAS\FAS.EXE",
         "\\app1\FPS\FAS\FAS.EXE",
+
+        ; Mapped network drive letters & local paths
+        "F:\FPS\FAS706\FAS\FAS.EXE",
+        "F:\FPS\FAS\FAS.EXE",
         "W:\FPS\FAS706\FAS\FAS.EXE",
         "W:\FPS\FAS\FAS.EXE",
         "X:\FPS\FAS706\FAS\FAS.EXE",
