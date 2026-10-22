@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.11: Fix QuickBooks Duplicate Launch & Handle Empty Window Popup
+- **Active Step**: Step 5.12: Fast Adobe Update Check, Trial Popup Dismissal & Two-Attempt Retry
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -354,6 +354,15 @@
   - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
   - [x] Recompile production `NMGIupdates.exe` binary.
   - [x] Atomically commit Step 5.11.
+- [x] **Step 5.12**: Fast Adobe Update Check, Trial Popup Dismissal & Two-Attempt Retry
+  - [x] Implement `DismissAdobeTrialPopup(mainHwnd)` to dismiss modal trial banners without touching the main window.
+  - [x] Replace slow deep UIA UI-mode detection with instant Win32 `GetMenu` and window title inspection (0ms latency).
+  - [x] Lower `WinWaitActive` timeout to 1s and trigger update check immediately upon launch so it precedes the trial popup.
+  - [x] Implement 2-attempt retry loop for update check: if `Adobe Acrobat Updater` is not detected on Attempt 1, reset menus, dismiss any trial popups, and retry on Attempt 2 before failing.
+  - [x] Continuously monitor and dismiss trial popups in the polling loop.
+  - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
+  - [x] Recompile production `NMGIupdates.exe` binary.
+  - [x] Atomically commit Step 5.12.
 
 
 

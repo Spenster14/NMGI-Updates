@@ -64,24 +64,39 @@ Adobe(*)
     adobeHwnd := 0
     startTime := A_TickCount
     loop {
-        ; 1. Check canonical Acrobat/Reader SDI window class (does not require OpenProcess)
+        ; 1. Canonical Acrobat/Reader SDI main window class
         if (hwnd := WinExist("ahk_class AcrobatSDIWindow")) {
             adobeHwnd := hwnd
             break
         }
-        ; 2. Check title (SetTitleMatchMode 2 allows partial title match)
-        if (hwnd := WinExist("Adobe Acrobat")) {
+        ; 2. Modern Acrobat New Experience home title
+        if (hwnd := WinExist("Welcome to Acrobat")) {
             adobeHwnd := hwnd
             break
+        }
+        ; 3. Title check (ensure we don't accidentally grab the trial modal)
+        if (hwnd := WinExist("Adobe Acrobat")) {
+            try {
+                txt := WinGetText(hwnd)
+                if (!InStr(txt, "free trial") && !InStr(txt, "Quit Adobe Acrobat")) {
+                    adobeHwnd := hwnd
+                    break
+                }
+            }
         }
         if (hwnd := WinExist("Acrobat Reader")) {
             adobeHwnd := hwnd
             break
         }
-        ; 3. Fallback to process name
+        ; 4. Process-based fallbacks
         if (hwnd := WinExist("ahk_exe Acrobat.exe")) {
-            adobeHwnd := hwnd
-            break
+            try {
+                txt := WinGetText(hwnd)
+                if (!InStr(txt, "free trial") && !InStr(txt, "Quit Adobe Acrobat")) {
+                    adobeHwnd := hwnd
+                    break
+                }
+            }
         }
         if (hwnd := WinExist("ahk_exe AcroRd32.exe")) {
             adobeHwnd := hwnd
@@ -90,7 +105,7 @@ Adobe(*)
 
         if ((A_TickCount - startTime) >= 20000)
             break
-        Sleep(250)
+        Sleep(100)
     }
 
     if (!adobeHwnd) {
@@ -100,100 +115,154 @@ Adobe(*)
     try WinActivate(adobeHwnd)
     DllCall("user32\SetForegroundWindow", "ptr", adobeHwnd)
     DllCall("user32\BringWindowToTop", "ptr", adobeHwnd)
-    WinWaitActive(adobeHwnd,, 5)
+    WinWaitActive(adobeHwnd,, 1)
 
-    ; --- 3. Instantly Trigger Update Check (Fast Path for Unlicensed/Trial Environments) ---
+    ; Immediately dismiss trial popup if already active
+    DismissAdobeTrialPopup(adobeHwnd)
+
+    ; --- 3. Instantly Trigger Update Check (Fast Path with UI Detection) ---
     UpdateStatus("Checking for Adobe updates...", 100, 100)
 
     ; Detect whether Acrobat is running Classic UI (Menu Bar) or Modern New Experience UI (Menu Button)
     is2020 := InStr(adobePath, "2020") ? true : false
-    isClassicUI := true ; Default to Classic UI (standard in CPA/enterprise environments)
+    isClassicUI := true ; Default to Classic UI
 
-    ; Only treat as Modern UI if "Menu" hamburger button is explicitly found
-    try {
-        acrobatEl := UIA.ElementFromHandle(adobeHwnd)
-        if (acrobatEl.FindElement({Name: "Menu", Type: "Button", mm: 2})) {
-            isClassicUI := false
-        }
+    ; Instant Check 1: Win32 native MenuBar (0ms)
+    hMenu := DllCall("user32\GetMenu", "ptr", adobeHwnd, "ptr")
+    if (hMenu == 0) {
+        isClassicUI := false
     }
 
-    try WinActivate(adobeHwnd)
-    if (isClassicUI) {
-        ; Tier 1: Classic Acrobat DC / Pro 64-bit standard: Alt+H -> c -> Enter
-        Send("!h")
-        Sleep(250)
-        if (is2020) {
-            Send("u")
-        } else {
-            Send("c")
-            Sleep(100)
-            Send("{Enter}")
-        }
-    } else {
-        ; Modern Acrobat New Experience UI (Hamburger Menu: Alt+F -> L -> C)
-        Send("!f")
-        Sleep(200)
-        Send("l")
-        Sleep(200)
-        Send("c")
+    ; Instant Check 2: Title contains "Welcome to Acrobat" (Modern Home Screen)
+    mainTitle := ""
+    try mainTitle := WinGetTitle(adobeHwnd)
+    if InStr(mainTitle, "Welcome to Acrobat") {
+        isClassicUI := false
     }
 
-    ; --- 4. Wait for AdobeARM / Updater Window ---
-    UpdateStatus("Waiting for Adobe Updater...", 100, 100)
+    ; --- 4. Trigger Update Check & Wait for Updater (with 2-attempt retry) ---
     updaterFound := false
 
-    loop 25 {
-        if WinExist("Adobe Acrobat Updater") || WinExist("Adobe Acrobat 2020 Updater") || WinExist("ahk_exe AdobeARM.exe") {
-            updaterFound := true
-            break
-        }
+    loop 2 {
+        attemptNum := A_Index
+        UpdateStatus("Triggering Adobe update check (Attempt " . attemptNum . " of 2)...", 100, 100)
 
-        ; Fallback Tier 2 (after 2s): Try Alt+H -> u -> Enter (Acrobat 2020 / Reader accelerator)
-        if (A_Index == 4 && !updaterFound && isClassicUI) {
-            try WinActivate(adobeHwnd)
-            Send("{Esc}")
-            Sleep(150)
+        ; Ensure trial popup is dismissed and main window is active
+        DismissAdobeTrialPopup(adobeHwnd)
+        try WinActivate(adobeHwnd)
+        DllCall("user32\SetForegroundWindow", "ptr", adobeHwnd)
+        Sleep(100)
+        DismissAdobeTrialPopup(adobeHwnd)
+
+        ; Trigger update menu
+        if (isClassicUI) {
+            ; Classic Acrobat DC / Pro / 2020 Menu Bar: Alt+H
             Send("!h")
-            Sleep(250)
-            Send("u")
-            Sleep(100)
-            Send("{Enter}")
-        }
-
-        ; Fallback Tier 3 (after 4s): Try Alt+H -> {Up} (wraps to bottom item in Help menu) -> Enter
-        if (A_Index == 8 && !updaterFound && isClassicUI) {
-            try WinActivate(adobeHwnd)
-            Send("{Esc}")
             Sleep(150)
-            Send("!h")
-            Sleep(250)
-            Send("{Up}")
-            Sleep(100)
-            Send("{Enter}")
-        }
-
-        ; Fallback Tier 4 (after 6s): UIA search across desktop popup menus
-        if (A_Index == 12 && !updaterFound) {
+            if (is2020) {
+                Send("u")
+            } else {
+                if (attemptNum == 1) {
+                    Send("c")
+                    Sleep(100)
+                    Send("{Enter}")
+                } else {
+                    Send("u")
+                    Sleep(100)
+                    Send("{Enter}")
+                }
+            }
+        } else {
+            ; Modern Acrobat New Experience UI (Hamburger Menu)
+            menuTriggered := false
             try {
-                updateItem := UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"})
-                if (updateItem)
-                    updateItem.Click()
-            } catch {
-                try {
-                    acrobatEl := UIA.ElementFromHandle(adobeHwnd)
-                    helpBtn := acrobatEl.FindElement({Name: "Help", mm: 2})
-                    if (helpBtn) {
-                        helpBtn.Click()
-                        Sleep(250)
-                        updateItem := UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"})
-                        if (updateItem)
-                            updateItem.Click()
+                acrobatEl := UIA.ElementFromHandle(adobeHwnd)
+                menuBtn := acrobatEl.FindElement({Name: "Menu", Type: "Button", mm: 2}, 2, 2)
+                if (menuBtn) {
+                    menuBtn.Click()
+                    menuTriggered := true
+                    Sleep(200)
+                    rootEl := UIA.GetRootElement()
+                    updateItem := rootEl.FindElement({Name: "(?i)check for updates", mm: "regex"}, 2, 3)
+                    if (updateItem) {
+                        updateItem.Click()
+                    } else {
+                        helpItem := rootEl.FindElement({Name: "(?i)help", mm: "regex"}, 2, 3)
+                        if (helpItem) {
+                            helpItem.Click()
+                            Sleep(150)
+                            updateItem2 := rootEl.FindElement({Name: "(?i)check for updates", mm: "regex"}, 2, 3)
+                            if (updateItem2)
+                                updateItem2.Click()
+                        }
                     }
                 }
             }
+
+            if (!menuTriggered) {
+                Send("!f")
+                Sleep(150)
+                Send("l")
+                Sleep(150)
+                Send("c")
+                Sleep(100)
+                Send("{Enter}")
+            }
         }
 
-        Sleep(500)
+        ; Wait up to 10 seconds (20 x 500ms) for Updater window
+        UpdateStatus("Waiting for Adobe Updater (Attempt " . attemptNum . " of 2)...", 100, 100)
+        loop 20 {
+            ; Keep dismissing trial popup if it appears while waiting
+            DismissAdobeTrialPopup(adobeHwnd)
+
+            if WinExist("Adobe Acrobat Updater") || WinExist("Adobe Acrobat 2020 Updater") || WinExist("ahk_exe AdobeARM.exe") {
+                updaterFound := true
+                break 2 ; Success! Break out of both attempt and wait loops
+            }
+
+            ; Mid-wait fallback triggers
+            if (A_Index == 6 && !updaterFound) {
+                try WinActivate(adobeHwnd)
+                DismissAdobeTrialPopup(adobeHwnd)
+                if (isClassicUI) {
+                    Send("{Esc}")
+                    Sleep(100)
+                    Send("!h")
+                    Sleep(200)
+                    Send("{Up}{Enter}")
+                } else {
+                    Send("{Esc}")
+                    Sleep(100)
+                    Send("!f")
+                    Sleep(150)
+                    Send("h")
+                    Sleep(150)
+                    Send("u")
+                    Sleep(100)
+                    Send("{Enter}")
+                }
+            }
+
+            ; UIA desktop popup menu fallback
+            if (A_Index == 10 && !updaterFound) {
+                try {
+                    updateItem := UIA.GetRootElement().FindElement({Name: "(?i)check for updates", mm: "regex"}, 2, 2)
+                    if (updateItem)
+                        updateItem.Click()
+                }
+            }
+
+            Sleep(500)
+        }
+
+        ; If Attempt 1 failed to find updater, reset menu state, dismiss trial popups, and pause 1s
+        if (!updaterFound && attemptNum < 2) {
+            UpdateStatus("Adobe Updater not detected, retrying update check...", 100, 100)
+            DismissAdobeTrialPopup(adobeHwnd)
+            Send("{Esc}")
+            Sleep(1000)
+        }
     }
 
     if (!updaterFound) {
@@ -275,4 +344,38 @@ Adobe(*)
     UpdateStatus()
 
     return (updateResult != "") ? updateResult : " - Error (Unknown update state)"
+}
+
+; Detects and dismisses modal Adobe trial popups ("Start your free trial of Adobe Acrobat")
+; Targets only child/popup dialogs without touching the main Acrobat window.
+DismissAdobeTrialPopup(mainHwnd := 0) {
+    found := false
+    for h in WinGetList("Adobe Acrobat") {
+        if (mainHwnd && h == mainHwnd)
+            continue
+        try {
+            txt := WinGetText(h)
+            if (InStr(txt, "free trial") || InStr(txt, "Start your free trial") || InStr(txt, "Quit Adobe Acrobat") || InStr(txt, "different Adobe ID")) {
+                UpdateStatus("Dismissing Adobe trial popup...", 100, 100)
+                WinActivate(h)
+                Sleep(50)
+                Send("{Esc}")
+                Sleep(150)
+                if !WinExist(h) {
+                    found := true
+                    continue
+                }
+                try ControlClick("Close", h,,,, "NA")
+                Sleep(100)
+                if !WinExist(h) {
+                    found := true
+                    continue
+                }
+                try WinClose(h)
+                Sleep(100)
+                found := true
+            }
+        }
+    }
+    return found
 }

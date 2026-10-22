@@ -513,6 +513,24 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 20276)`).
 
+- **Step 5.12**:
+  - Fast Adobe Update Check, Trial Popup Dismissal & Two-Attempt Retry:
+    - Root Cause Analysis:
+      1. After launching Adobe Acrobat (Modern "New Experience" UI), the prior implementation did a slow deep UIA search for the "Menu" hamburger button. That UIA tree traversal took 3–10 seconds.
+      2. In that interval, Adobe's cloud licensing / subscription service popped up a modal trial dialog titled `"Adobe Acrobat"` with content: *"Start your free trial of Adobe Acrobat. Start your free trial or go ahead and buy now. Quit Adobe Acrobat / Buy now"*.
+      3. This modal popup captured keyboard focus, blocked standard accelerators (`!h` / `!f`), and caused Jacro to sit on `"Waiting for Adobe Updater..."` until timing out.
+    - Fixes Applied:
+      - **Instant 0ms UI Mode Detection**: Replaced the deep UIA search with instant Win32 `DllCall("user32\GetMenu", "ptr", adobeHwnd, "ptr")` (Classic UI has a Win32 HMENU, Modern New Experience returns 0) and `"Welcome to Acrobat"` window title check.
+      - **Early Update Check Trigger**: Tightened initial window polling (100ms interval) and lowered `WinWaitActive` bound to 1s so the update check is triggered immediately upon launch before the trial popup can appear.
+      - **Modal Trial Popup Dismissal (`DismissAdobeTrialPopup`)**: Added dedicated popup dismissal function targeting only child/popup dialogs where `h != mainHwnd` and text contains `"free trial"`, `"Start your free trial"`, or `"Quit Adobe Acrobat"`. It cleanly dismisses the dialog with `{Esc}`, `ControlClick("Close")`, or `WinClose` without touching the main Acrobat window.
+      - **Two-Attempt Retry Loop**: Wrapped the update check trigger in a 2-attempt loop. Attempt 1 fires immediately. If `Adobe Acrobat Updater` or `AdobeARM.exe` is not detected after a 10s wait, it resets menu state (`{Esc}`), sweeps any trial popup, pauses 1s, and executes Attempt 2 before declaring failure.
+      - **Active Mid-Wait Dismissal**: The 10s wait loop continuously calls `DismissAdobeTrialPopup(adobeHwnd)` on every 500ms cycle to ensure any trial banner that appears while waiting for the updater is dismissed immediately.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 11544)`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 18976)`).
+
 ### Final Status
 - All milestones (1 through 5) complete and fully verified.
 - The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
@@ -521,6 +539,8 @@
 - MSI Advertised Shortcuts (both direct MSI resolution and name-paired stubs) are natively resolved out-of-the-box, ensuring zero technician overhead.
 - Database login automation handles both password-protected and blank-password databases seamlessly across Practice CS and Accounting CS.
 - QuickBooks launcher is protected against duplicate execution, auto-dismisses IE/subscription/empty-window popups, and cleans up processes reliably.
+- Adobe Acrobat updater is protected against trial popup lockouts, uses 0ms instant UI detection, and retries the update check a second time if the updater window is not initially detected.
+
 
 
 
