@@ -175,9 +175,18 @@
   - [x] Update `Lib/UpdatePractice.ahk` to detect login modal and automate password submission using `PracticePassword`.
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe`.
   - [x] Atomically commit Step 4.4e.
+- [x] **Step 4.4f**: Fix Practice CS Database Login Automation & Unify Lacerte Credentials into Upfront Prompt
+  - [x] Consolidate Lacerte credentials into `Auth/DatabaseLogin.ahk`:
+    - Add Lacerte check (`InStr(app.Name, "Lacerte")`) to `PromptDatabasePasswords(appList)`.
+    - Add `Lacerte Email:` and `Lacerte Password:` fields to the upfront modal.
+    - Populate `global LacerteEmail` and `global LacertePassword` in-memory.
+    - Remove redundant separate `PromptLacerteLogin()` call in `NMGIUpdates.ahk`.
+  - [x] Fix Practice CS login automation in `Lib/UpdatePractice.ahk`:
+    - Dynamically locate the active login dialog handle via `WinGetList("ahk_exe " practiceExe)` matching visible dialog with Edit and OK controls.
+    - Target the password control directly (second edit control / empty edit control) without relying on UIA tree walk or `ES_PASSWORD (0x0020)` style.
+    - Focus, click, and inject `PracticePassword` using `SendText` + `ControlSetText`.
+    - Click OK button / send `{Enter}` and wait for modal closure (`WinWaitClose`) before awaiting `"Practice CS -"`.
+  - [x] Harmonize `Lib/UpdateAccountingCS.ahk` with the same robust login dialog detection (`SubmitCSDatabaseLogin` in `Core/CSConnect.ahk`).
+  - [x] Atomically commit Step 4.4f.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
-
-
-
-
 

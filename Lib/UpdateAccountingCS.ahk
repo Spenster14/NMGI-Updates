@@ -19,110 +19,30 @@ GetAccountingCSPath() {
 }
 
 AccountingCS(PostUpdate := false) {
-    ; --- 1. Launch / Activate -------------------------------------------------
+    acsExe := ""
     if (!PostUpdate) {
         acsPath := GetAccountingCSPath()
         if (acsPath = "") {
             MsgBox("Error: Accounting CS executable not found in any specified location.")
             return " - Error (Path not found)"
         }
+        SplitPath(acsPath, &acsExe)
         Run(acsPath)
 
         TRLogin() ; Initial Login
+    } else {
+        acsPath := GetAccountingCSPath()
+        if (acsPath != "")
+            SplitPath(acsPath, &acsExe)
     }
 
-    ;UpdateStatus("Waiting for Accounting CS to load...", 100, 100)
     WinWait("Accounting CS")
     WinActivate("Accounting CS")
     WinMaximize("Accounting CS")
-    UpdateStatus("Waiting for Accounting CS to load...", 100, 100)
 
     ; --- Database Login Automation ---
     global AcsPassword
-    if (AcsPassword != "") {
-        UpdateStatus("Submitting Accounting CS database password...", 100, 100)
-        handledLogin := false
-        loop 40 {
-            if WinExist("Accounting CS -") {
-                handledLogin := true
-                break
-            }
-
-            if WinExist("Accounting CS") {
-                WinActivate("Accounting CS")
-
-                ; Tier A: UIA inspection for Password Edit element
-                try {
-                    aEl := UIA.ElementFromHandle("Accounting CS")
-                    pwdEl := ""
-                    try pwdEl := aEl.FindElement({Type: "Edit", IsPassword: true})
-                    if (!pwdEl) {
-                        try pwdEl := aEl.FindElement({Name: "Password", Type: "Edit", mm: 2})
-                    }
-                    if (!pwdEl) {
-                        try pwdEl := aEl.FindElement({AutomationId: "txtPassword", mm: 2})
-                    }
-
-                    if (pwdEl) {
-                        try pwdEl.Highlight(500)
-                        pwdEl.Click("left")
-                        Sleep(100)
-                        SendText(AcsPassword)
-                        Sleep(200)
-
-                        okBtn := ""
-                        try okBtn := aEl.FindElement({Name: "OK", Type: "Button", mm: 2})
-                        if (okBtn)
-                            okBtn.Click()
-                        else
-                            Send("{Enter}")
-
-                        handledLogin := true
-                        break
-                    }
-                }
-
-                ; Tier B: Win32 Edit control with ES_PASSWORD (0x0020)
-                try {
-                    controls := WinGetControls("Accounting CS")
-                    ctrlHwnds := WinGetControlsHwnd("Accounting CS")
-                    for i, ctrlName in controls {
-                        if InStr(ctrlName, "Edit") {
-                            style := WinGetStyle(ctrlHwnds[i])
-                            if (style & 0x0020) {
-                                ControlFocus(ctrlHwnds[i], "Accounting CS")
-                                ControlSetText(AcsPassword, ctrlHwnds[i], "Accounting CS")
-                                Sleep(200)
-                                ControlClick("&OK", "Accounting CS")
-                                handledLogin := true
-                                break
-                            }
-                        }
-                    }
-                    if (handledLogin)
-                        break
-                }
-            }
-            Sleep(500)
-        }
-
-        ; Fallback: Tab navigation if still on login screen
-        if (!handledLogin && WinExist("Accounting CS") && !WinExist("Accounting CS -")) {
-            WinActivate("Accounting CS")
-            Send("{Tab 2}")
-            Sleep(200)
-            SendText(AcsPassword)
-            Sleep(200)
-            Send("{Enter}")
-        }
-    }
-
-    UpdateStatus("Waiting for Accounting CS dashboard to load...", 100, 100)
-
-    ; Wait for the main dashboard to appear (which means login is complete)
-    WinWait("Accounting CS -", , 120)
-    WinActivate("Accounting CS -")
-    WinMaximize("Accounting CS -")
+    SubmitCSDatabaseLogin("Accounting CS", acsExe, AcsPassword)
 
     UpdateStatus()
 

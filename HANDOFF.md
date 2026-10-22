@@ -158,8 +158,30 @@
 ### Unfinished Logic / Known Quirks Documented
 - Memory-Only Credential Policy: In accordance with `PROJECT_SPEC.md` security constraints, database passwords are never persisted to disk or `GUIsettings.ini` and remain strictly scoped to the active execution run.
 
+- **Step 4.4f**:
+  - Unified Upfront Credentials Modal:
+    - Expanded `Auth/DatabaseLogin.ahk` (`PromptDatabasePasswords`) to inspect for Lacerte applications (`InStr(app.Name, "Lacerte")`).
+    - Added `Lacerte Email:` and `Lacerte Password:` fields to the upfront credentials GUI alongside `Accounting CS`, `Practice CS`, and `FPS`.
+    - Populated in-memory globals `LacerteEmail` and `LacertePassword` directly on submission.
+    - Removed redundant separate `PromptLacerteLogin()` prompt in `NMGIUpdates.ahk`, giving the operator a single upfront credentials window for all selected password-requiring applications.
+  - Practice CS / Accounting CS Database Login Automation:
+    - Root cause of Practice CS hang: The login modal ("PRACTICE CS® part of the CS PROFESSIONAL SUITE®") is a borderless WinForms Form (`FormBorderStyle = None`). Targeting `"Practice CS"` matched the disabled main background window rather than the active modal. Cross-process UIA tree walks on the disabled window stalled, and WinForms controls with `PasswordChar = '*'` do not declare Win32 `ES_PASSWORD (0x0020)` in `GWL_STYLE`.
+    - Implemented shared `SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword)` in `Core/CSConnect.ahk`:
+      - Discovers the active login modal dynamically via `WinGetList("ahk_exe " exeName)` matching visible windows with Edit controls and "OK" / "Change password" buttons.
+      - Targets the password edit control directly (second edit control / empty edit control) without slow UIA tree walk or `ES_PASSWORD` style requirements.
+      - Sets password via dual-path `ControlFocus`, `ControlClick`, `SendText`, and `ControlSetText`.
+      - Clicks OK / sends `{Enter}` and waits for dialog closure (`WinWaitClose`) before awaiting the main dashboard (`Practice CS -` / `Accounting CS -`).
+    - Wired `SubmitCSDatabaseLogin` into both `Lib/UpdatePractice.ahk` and `Lib/UpdateAccountingCS.ahk`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running OK PID: 23076`).
+
+### Unfinished Logic / Known Quirks Documented
+- Windows Forms Password Styling: .NET textboxes using custom `PasswordChar` characters omit `ES_PASSWORD (0x0020)` Win32 style bit. Index-based and text-presence detection on the modal dialog avoids this limitation completely.
+
 ### Next Step / Status
-- Step 4.4e complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
+- Step 4.4f complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
 - Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

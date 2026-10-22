@@ -108,3 +108,194 @@ ClickCallNow(hwnd) {
     }
     return ""
 }
+
+; Submits database password for CS Professional Suite apps (Practice CS and Accounting CS).
+; Identifies the active login modal dialog by inspecting visible process windows for Edit and OK controls.
+; Bypasses slow/freezing cross-process UIA tree walks and unstyled WinForms ES_PASSWORD caveats.
+SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
+    if (dbPassword != "") {
+        UpdateStatus("Submitting " . winPrefix . " database password...", 100, 100)
+    } else {
+        UpdateStatus("Waiting for " . winPrefix . " to load...", 100, 100)
+    }
+
+    ; If dashboard already loaded, no password entry required
+    if WinExist(winPrefix . " -") {
+        WinActivate(winPrefix . " -")
+        WinMaximize(winPrefix . " -")
+        return true
+    }
+
+    handledLogin := false
+
+    if (dbPassword != "") {
+        ; Poll up to 30 seconds (60 x 500ms) for the login modal dialog
+        loop 60 {
+            if WinExist(winPrefix . " -") {
+                handledLogin := true
+                break
+            }
+
+            hwnds := []
+            if (exeName != "") {
+                try hwnds := WinGetList("ahk_exe " . exeName)
+            }
+            if (hwnds.Length == 0) {
+                try hwnds := WinGetList(winPrefix)
+            }
+
+            loginHwnd := 0
+            for h in hwnds {
+                style := 0
+                try style := WinGetStyle(h)
+                if (!(style & 0x10000000)) ; Must be visible (WS_VISIBLE)
+                    continue
+
+                title := ""
+                try title := WinGetTitle(h)
+                if InStr(title, winPrefix . " -")
+                    continue
+
+                ctrls := []
+                try ctrls := WinGetControls(h)
+                hasEdit := false
+                hasOk := false
+                for c in ctrls {
+                    if InStr(c, "Edit")
+                        hasEdit := true
+                    if InStr(c, "Button") {
+                        txt := ""
+                        try txt := ControlGetText(c, h)
+                        if (txt = "OK" || InStr(txt, "OK") || InStr(txt, "Change password"))
+                            hasOk := true
+                    }
+                }
+                if (hasEdit && hasOk) {
+                    loginHwnd := h
+                    break
+                }
+            }
+
+            if (loginHwnd) {
+                WinActivate("ahk_id " . loginHwnd)
+                Sleep(100)
+
+                ctrlNames := []
+                ctrlHwnds := []
+                try ctrlNames := WinGetControls("ahk_id " . loginHwnd)
+                try ctrlHwnds := WinGetControlsHwnd("ahk_id " . loginHwnd)
+
+                editControls := []
+                okCtrlHwnd := 0
+
+                for i, c in ctrlNames {
+                    if InStr(c, "Edit")
+                        editControls.Push(ctrlHwnds[i])
+                    if InStr(c, "Button") {
+                        txt := ""
+                        try txt := ControlGetText(ctrlHwnds[i], "ahk_id " . loginHwnd)
+                        if (txt = "OK" || InStr(txt, "OK"))
+                            okCtrlHwnd := ctrlHwnds[i]
+                    }
+                }
+
+                pwdCtrl := 0
+                ; Check for standard ES_PASSWORD (0x0020)
+                for eh in editControls {
+                    s := 0
+                    try s := WinGetStyle(eh)
+                    if (s & 0x0020) {
+                        pwdCtrl := eh
+                        break
+                    }
+                }
+
+                ; Fallback: If 2 edit controls, edit 1 is Staff ID ("ADMIN"), edit 2 is Password
+                if (!pwdCtrl && editControls.Length >= 2) {
+                    for eh in editControls {
+                        val := ""
+                        try val := ControlGetText(eh, "ahk_id " . loginHwnd)
+                        if (val == "") {
+                            pwdCtrl := eh
+                            break
+                        }
+                    }
+                    if (!pwdCtrl)
+                        pwdCtrl := editControls[2]
+                } else if (!pwdCtrl && editControls.Length == 1) {
+                    pwdCtrl := editControls[1]
+                }
+
+                if (pwdCtrl) {
+                    try ControlFocus(pwdCtrl, "ahk_id " . loginHwnd)
+                    Sleep(100)
+                    try ControlClick(pwdCtrl, "ahk_id " . loginHwnd, , , , "NA")
+                    Sleep(100)
+                    Send("^a")
+                    Sleep(50)
+                    SendText(dbPassword)
+                    Sleep(100)
+                    try ControlSetText(dbPassword, pwdCtrl, "ahk_id " . loginHwnd)
+                    Sleep(150)
+
+                    if (okCtrlHwnd) {
+                        try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
+                        try PostMessage(0x00F5, 0, 0, okCtrlHwnd, "ahk_id " . loginHwnd)
+                    }
+                    Send("{Enter}")
+
+                    if (WinWaitClose("ahk_id " . loginHwnd, , 3) || WinExist(winPrefix . " -")) {
+                        handledLogin := true
+                        break
+                    }
+                } else {
+                    ; UIA fallback on loginHwnd with bounded timeout
+                    try {
+                        oldTimeout := UIA.TransactionTimeout
+                        UIA.TransactionTimeout := 1500
+                        dlgEl := UIA.ElementFromHandle(loginHwnd)
+                        pwdEl := ""
+                        try pwdEl := dlgEl.FindElement({Type: "Edit", IsPassword: true})
+                        if (!pwdEl)
+                            try pwdEl := dlgEl.FindElement({Name: "Password", Type: "Edit", mm: 2})
+                        if (pwdEl) {
+                            pwdEl.Click("left")
+                            Sleep(100)
+                            SendText(dbPassword)
+                            Sleep(150)
+                            okBtn := ""
+                            try okBtn := dlgEl.FindElement({Name: "OK", Type: "Button", mm: 2})
+                            if (okBtn)
+                                okBtn.Click()
+                            else
+                                Send("{Enter}")
+                            UIA.TransactionTimeout := oldTimeout
+                            if (WinWaitClose("ahk_id " . loginHwnd, , 3) || WinExist(winPrefix . " -")) {
+                                handledLogin := true
+                                break
+                            }
+                        }
+                        UIA.TransactionTimeout := oldTimeout
+                    }
+                }
+            }
+            Sleep(500)
+        }
+
+        ; Last-resort fallback: keyboard navigation
+        if (!handledLogin && WinExist(winPrefix) && !WinExist(winPrefix . " -")) {
+            WinActivate(winPrefix)
+            Send("{Tab 2}")
+            Sleep(200)
+            SendText(dbPassword)
+            Sleep(200)
+            Send("{Enter}")
+        }
+    }
+
+    UpdateStatus("Waiting for " . winPrefix . " dashboard to load...", 100, 100)
+    WinWait(winPrefix . " -", , 120)
+    WinActivate(winPrefix . " -")
+    WinMaximize(winPrefix . " -")
+    return true
+}

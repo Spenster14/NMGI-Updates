@@ -250,23 +250,9 @@ RunSelectedApps(*) {
     global ActiveCheckbox, LacerteEmail, LacertePassword, AcsPassword, PracticePassword, FpsPassword
     saved := MyGui.Submit(0)
 
-    ; --- Database Upfront Passwords (Accounting CS, Practice CS, FPS) ---
+    ; --- Upfront Credentials (Accounting CS, Practice CS, FPS, Lacerte) ---
     if (!PromptDatabasePasswords(SortedApps))
         return
-
-    ; --- Lacerte Upfront Login ---
-    needsLacerteLogin := false
-    for app in SortedApps {
-        if (app.cb.Value && InStr(app.Name, "Lacerte")) {
-            needsLacerteLogin := true
-            break
-        }
-    }
-
-    if (needsLacerteLogin) {
-        if (!PromptLacerteLogin())
-            return
-    }
 
     batchResults := []
 

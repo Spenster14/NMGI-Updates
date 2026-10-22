@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
   - `Auth/Bulletins.ahk`: Centralized startup bulletin and popup dismissal (`HandleBulletins`).
   - `Auth/TRLogin.ahk`: Unified Thomson Reuters upfront credentials modal and window handlers (`TRLogin`, `CloseSignInTR`).
   - `Auth/LacerteLogin.ahk`: Upfront Lacerte operator credential collection modal (`PromptLacerteLogin`).
+- **Unified Upfront Credentials**: Consolidated Lacerte authentication (`LacerteEmail`, `LacertePassword`) into `Auth/DatabaseLogin.ahk` (`PromptDatabasePasswords`), providing a single upfront credentials modal for all selected password-requiring applications (Accounting CS, Practice CS, FPS, Lacerte) and eliminating sequential secondary popups.
+- **CS Suite Database Login Automation**: Added shared `SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword)` in `Core/CSConnect.ahk` to reliably detect and inject database passwords on borderless WinForms login dialogs without freezing or slow cross-process UIA tree walks, resolving the Practice CS login hang.
 - **Batch Completion Summary**: Added `ShowSummaryReport(results)` to `NMGIUpdates.ahk`, displaying a clean categorized report modal with counts and itemized breakdowns of Updated, Already Current, Attention Required, and Error states upon batch completion.
 
 ### Changed
