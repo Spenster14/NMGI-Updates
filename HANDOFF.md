@@ -495,6 +495,24 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 42484)`).
 
+- **Step 5.11**:
+  - Fix QuickBooks Duplicate Launch & Handle Empty Window Popup:
+    - Root Cause Analysis:
+      1. `Lib/UpdateQB.ahk` contained duplicate `Run(qbPath)` calls on lines 84 and 86. Calling `Run(qbPath)` twice in immediate succession spawned two concurrent `QBW32.exe` instances. The second instance detected the first initializing instance and displayed QuickBooks's modal guard dialog: `"An empty QuickBooks window already exists, so QuickBooks will use that window." [OK]`.
+      2. The startup wait loop had no handler for this modal confirmation dialog, causing QuickBooks to block until operator intervention.
+      3. `KillQBTasks()` only used WMI wildcard query without explicit termination of `QBW32.exe` / `QBW.exe` process handles.
+    - Fixes Applied:
+      - Removed duplicate `Run(qbPath)` call in `Lib/UpdateQB.ahk`.
+      - Implemented `DismissQBEmptyWindowPopup()` which searches for `"An empty QuickBooks window already exists"` across QuickBooks windows, activates the dialog, and sends `ControlClick("OK")` / `{Enter}`.
+      - Wired `DismissQBEmptyWindowPopup()` into `HandleQBPopups()` (500ms background timer) and the startup wait loop.
+      - Excluded empty window dialogs from `mainHwnd` window detection so dialog text is not mistakenly identified as the main application window.
+      - Enhanced `KillQBTasks()` to explicitly sweep `QBW32.exe`, `QBW.exe`, and enterprise edition executables via `TerminateProcessGracefully` before launching.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 43152)`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 20276)`).
+
 ### Final Status
 - All milestones (1 through 5) complete and fully verified.
 - The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
@@ -502,6 +520,7 @@
 - Technicians can inspect discovery provenance in real-time by hovering over any application on the dashboard or by reviewing `[PathSources]` in `GUIsettings.ini`.
 - MSI Advertised Shortcuts (both direct MSI resolution and name-paired stubs) are natively resolved out-of-the-box, ensuring zero technician overhead.
 - Database login automation handles both password-protected and blank-password databases seamlessly across Practice CS and Accounting CS.
+- QuickBooks launcher is protected against duplicate execution, auto-dismisses IE/subscription/empty-window popups, and cleans up processes reliably.
 
 
 

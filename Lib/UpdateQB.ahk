@@ -83,16 +83,15 @@ QB(QBversion)
     
     Run(qbPath)
 
-    Run(qbPath)
-
-    ; Start monitoring for IE and subscription popups in the background every 500ms
+    ; Start monitoring for IE, subscription, and empty window popups in the background every 500ms
     SetTimer(HandleQBPopups, 500)
 
     ; --- Handle Startup, Installers & Popups -----------------------------------
     mainHwnd := 0
     loop 60 {
-        ; Actively dismiss subscription dialog or IE warnings
+        ; Actively dismiss subscription dialog, IE warnings, or empty window warnings
         DismissQBSubscriptionPopup()
+        DismissQBEmptyWindowPopup()
         if WinExist("Upgrade Internet Explorer")
             HandleIEPopup()
 
@@ -113,12 +112,13 @@ QB(QBversion)
             }
         }
 
-        ; 2. Detect Main QuickBooks Window (exclude service, subscription, and installer dialogs)
+        ; 2. Detect Main QuickBooks Window (exclude service, subscription, installer, and empty window dialogs)
         hwndList := WinGetList("QuickBooks")
         for h in hwndList {
             try {
                 title := WinGetTitle(h)
-                if (title != "" && !InStr(title, "Service") && !InStr(title, "subscription") && !InStr(title, "Install ") && !InStr(title, "Information")) {
+                wText := WinGetText(h)
+                if (title != "" && !InStr(title, "Service") && !InStr(title, "subscription") && !InStr(title, "Install ") && !InStr(title, "Information") && !InStr(wText, "empty QuickBooks window")) {
                     mainHwnd := h
                     break 2
                 }
@@ -264,6 +264,7 @@ QB(QBversion)
 HandleQBPopups() {
     HandleIEPopup()
     DismissQBSubscriptionPopup()
+    DismissQBEmptyWindowPopup()
 }
 
 FindQBSubscriptionPopup() {
@@ -376,9 +377,36 @@ HandleIEPopup() {
     }
 }
 
+DismissQBEmptyWindowPopup() {
+    hwndList := []
+    try hwndList := WinGetList("QuickBooks")
+    for h in hwndList {
+        try {
+            txt := WinGetText(h)
+            if (InStr(txt, "empty QuickBooks window already exists") || InStr(txt, "use that window")) {
+                UpdateStatus("Dismissing QuickBooks empty window popup...", 100, 100)
+                WinActivate(h)
+                Sleep(100)
+                try ControlClick("OK", h,,,, "NA")
+                try ControlClick("Button1", h,,,, "NA")
+                Send("{Enter}")
+                Sleep(400)
+                if !WinExist(h)
+                    return true
+                try WinClose(h)
+                return true
+            }
+        }
+    }
+    return false
+}
+
 KillQBTasks() {
     UpdateStatus("Killing open QB tasks...", 100, 100)
     KillProcessesByPrefix("QB")
+    for proc in ["QBW32.exe", "QBW.exe", "QBWEnterprise.exe", "QBWEnterpriseAccountant.exe", "QBWPremier.exe", "QBWPro.exe"] {
+        TerminateProcessGracefully(proc, 2, true)
+    }
     Sleep(2500)
     UpdateStatus()
 }

@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.10: Support Blank Database Passwords & Fix loginHwnd Scoping in Core/CSConnect.ahk
+- **Active Step**: Step 5.11: Fix QuickBooks Duplicate Launch & Handle Empty Window Popup
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -345,6 +345,15 @@
   - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
   - [x] Recompile production `NMGIupdates.exe` binary.
   - [x] Atomically commit Step 5.10.
+- [x] **Step 5.11**: Fix QuickBooks Duplicate Launch & Handle Empty Window Popup
+  - [x] Remove duplicate `Run(qbPath)` call in `Lib/UpdateQB.ahk`.
+  - [x] Implement `DismissQBEmptyWindowPopup()` detecting and acknowledging "An empty QuickBooks window already exists...".
+  - [x] Wire `DismissQBEmptyWindowPopup()` into `HandleQBPopups()` (500ms background timer) and the startup loop.
+  - [x] Exclude empty window dialog from `mainHwnd` window detection.
+  - [x] Enhance `KillQBTasks()` to explicitly sweep lingering `QBW32.exe` / `QBW.exe` processes before launching.
+  - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
+  - [x] Recompile production `NMGIupdates.exe` binary.
+  - [x] Atomically commit Step 5.11.
 
 
 
