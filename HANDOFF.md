@@ -228,9 +228,24 @@
 ### Unfinished Logic / Known Quirks Documented
 - Windows Forms Label Enumeration: .NET `Label` controls do not always return their text when `WinGetText` is called on the parent Form. Explicitly querying child controls via `ControlGetText` on each `cHwnds[i]` guarantees 100% reliable error text extraction.
 
+- **Step 4.4j**:
+  - Scanning Tooltip Display on Initial Launch:
+    - Displayed `ToolTip("Scanning applications, please wait...", 100, 100)` unconditionally at the beginning of `BuildGUI()` so users immediately receive visual feedback that path scanning is active upon application launch.
+    - Preserved `ClearHostCache()` behavior when `forceRescan := true` ("Rescan" button).
+    - Unconditionally cleared the tooltip (`ToolTip()`) immediately after `MyGui.Show("NoActivate")` positions and displays the main dashboard.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 38600)`).
+
+### Unfinished Logic / Known Quirks Documented
+- Tooltip Coordinates: Anchored to `(100, 100)` screen coordinates via `CoordMode("ToolTip", "Screen")`, remaining visible across all monitor configurations while `ResolveAppPath` executes.
+
 ### Next Step / Status
-- Step 4.4i complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
-- Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+- Step 4.4j complete.
+- Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

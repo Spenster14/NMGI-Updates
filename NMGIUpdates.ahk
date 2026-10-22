@@ -109,6 +109,8 @@ BuildGUI()
 BuildGUI(forceRescan := false) {
     global StatusBox, SortedApps, MyGui, Apps, AppVersion
 
+    ToolTip("Scanning applications, please wait...", 100, 100)
+
     if (MyGui != "") {
         MyGui.Destroy()
         MyGui := ""
@@ -117,7 +119,6 @@ BuildGUI(forceRescan := false) {
 
     if (forceRescan) {
         ClearHostCache()
-        ToolTip("Scanning applications, please wait...", 100, 100)
     }
 
     FoundApps := []
@@ -241,9 +242,7 @@ BuildGUI(forceRescan := false) {
     WinMove(newX, newY, , , MyGui.Hwnd)
     MyGui.Show("NoActivate")
 
-    if (forceRescan) {
-        ToolTip() ; clear tooltip
-    }
+    ToolTip() ; clear tooltip
 }
 
 RunSelectedApps(*) {

@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Renamed main entry point `CheckboxGUItest.ahk` to `NMGIUpdates.ahk` reflecting production readiness.
+- Changed application scanning feedback to display the "Scanning applications, please wait..." ToolTip immediately upon initial launch, clearing it automatically once the main GUI is displayed.
 - Moved dormant `UpdateAdobe.ahk` and `UpdateFPS.ahk` from `Lib/` to `archive/` pending modernization.
 - Added `UpdateUT.ahk` / `UpdateFixedAssets.ahk` network locations (`\\wbsql1`, `\\agcfsapp1`).
 - Standardized return signatures across all active `Lib/Update*.ahk` modules to use uniform status prefixes (`" - Updates installed"`, `" - No updates"`, `" - Updates available (Manual)"`, `" - Error (<Reason>)"`).

@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.4b: PPC Enhancements: (1) Status bar checkbox count & 1-second pause; (2) Handle cancel confirmation dialog ("Are you sure you want to cancel the installation? -> Yes").
+- **Active Step**: Step 4.5: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -208,5 +208,11 @@
   - [x] Comprehensive multi-popup dismissal (`DismissAllLoginErrors`): poll parent text and child control text across all process and title windows, dismissing any and all cascading error modals.
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
   - [x] Atomically commit Step 4.4i.
+- [x] **Step 4.4j**: Display Scanning Tooltip on Initial Launch
+  - [x] Show `ToolTip("Scanning applications, please wait...", 100, 100)` immediately on launch when scanning starts.
+  - [x] Unconditionally clear `ToolTip()` once `MyGui.Show("NoActivate")` has positioned and displayed the main dashboard window.
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
+  - [x] Atomically commit Step 4.4j.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
+
 
