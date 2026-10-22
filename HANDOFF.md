@@ -327,14 +327,27 @@
     - Updated `Lib/UpdateAccountingCS.ahk`: Added candidate UNC shares (`\\sql1\...`, `\\wbsql1\...`, `\\app1\...`, `\\agcfsapp1\...`, `\\chfsapp1\...`, `\\tho1\...`), wrapped lookups in `SafeFileExist`, and placed them before drive letters.
     - Updated `Lib/UpdateFileCabinet.ahk` & `Lib/UpdateUT.ahk`: Added common network server UNC shares and verified UNC paths strictly precede drive letter paths.
 
+- **Step 4.4s**:
+  - Diagnose & Fix Fixed Assets Path Resolution (`\\app1` vs `C:\` Cache & Network Probe):
+    - Root Cause Analysis:
+      1. **Cache Persistence**: On standard launch (`forceRescan == false`), `ResolveAppPath` in `Core/Config.ahk` checks `GUIsettings.ini [Paths]`. Because `FixedAssetsCS=C:\WinCSI\DSW\dsw.exe` was previously recorded and `C:\WinCSI\DSW\dsw.exe` existed locally, Jacro returned the cached path immediately without rescanning `potentialPaths`.
+      2. **64-bit Winsock Struct Offset Bug in `Core/Network.ahk`**: When `IsHostReachable(host)` executed, `ai_addr` was extracted using `16 + A_PtrSize`. In 64-bit Windows, `struct addrinfo` has `ai_canonname` at offset 24 and `ai_addr` at offset 32 (`16 + A_PtrSize * 2`). Offset 24 was NULL (`0`), so `DllCall("ws2_32\connect")` was passed a NULL pointer, failing with `WSAEFAULT` (10014) on every single host. Consequently, `IsHostReachable` returned `false` for all UNC paths, causing `SafeFileExist("\\app1\...")` to return `""`, skipping `\\app1` and falling back to local `C:\` even when Rescan was pressed.
+    - Fixes Applied:
+      - Corrected `ai_addr` pointer offset calculation in `Core/Network.ahk` to `16 + A_PtrSize * 2`.
+      - Switched `hints` to `AF_UNSPEC (0)` to support both IPv4 and IPv6 network hosts (including single-label NetBIOS names like `app1`).
+      - Created `sock` dynamically using `ai_family`, `ai_socktype`, and `ai_protocol` from `getaddrinfo` results.
+    - Technician Instructions:
+      - With `NMGIupdates.exe` recompiled, the operator clicks **Rescan** in the Jacro GUI (or deletes `GUIsettings.ini`), which clears the cache and discovers `\\app1\WinCSI\DSW\dsw.exe` as the top-priority path.
+
 ### Tested
+- Verified non-blocking Winsock connection against local test host (`connect: -1 WSAGetLastError: 10035 select: 1 reachable: True`).
 - Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
-- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 16496)`).
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 4368)`).
 
 ### Next Step / Status
-- Step 4.4r complete.
-- Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+- Step 4.4s complete.
+- Next step: Step 4.5: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up).
 
 
 

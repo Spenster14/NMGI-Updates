@@ -264,6 +264,12 @@
   - [x] Verify `Lib/UpdateFileCabinet.ahk` and `Lib/UpdateUT.ahk` to ensure all UNC paths strictly precede drive letter paths.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4r.
+- [x] **Step 4.4s**: Diagnose & Fix Fixed Assets Path Resolution (`\\app1` vs `C:\` Cache & Network Probe)
+  - [x] Investigate why `GUIsettings.ini` still holds `C:\WinCSI\DSW\dsw.exe`: Root cause identified as 64-bit struct offset bug in `Core/Network.ahk` where `ai_addr` was read from offset 24 (`ai_canonname` = 0) instead of offset 32, causing `connect` to fail with WSAEFAULT (10014) and evaluate every UNC host as unreachable, forcing fallback to local `C:\` which was cached in `GUIsettings.ini`.
+  - [x] Fix `Core/Network.ahk` (`IsHostReachable`): Updated `ai_addr` offset to `16 + A_PtrSize * 2`, switched `hints` to `AF_UNSPEC (0)`, and dynamically created socket matching `ai_family`, `ai_socktype`, and `ai_protocol`.
+  - [x] Verified socket connection via diagnostic test (`reachable: True`, select = 1).
+  - [x] Validated via `smoke.ps1`, recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`, and verified compiled binary (`smoke_exe.ps1`).
+  - [x] Atomically commit Step 4.4s.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

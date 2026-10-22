@@ -28,7 +28,7 @@ IsHostReachable(host, port := 445, timeoutMs := 1000) {
     static init := DllCall("ws2_32\WSAStartup", "UShort", 0x0202, "Ptr", WSAData.Ptr)
 
     hints := Buffer(32 + A_PtrSize * 3, 0)
-    NumPut("Int", 2, hints, 4)   ; AF_INET
+    NumPut("Int", 0, hints, 4)   ; AF_UNSPEC (support IPv4 and IPv6)
     NumPut("Int", 1, hints, 8)   ; SOCK_STREAM
     NumPut("Int", 6, hints, 12)  ; IPPROTO_TCP
 
@@ -39,10 +39,13 @@ IsHostReachable(host, port := 445, timeoutMs := 1000) {
         return false
     }
 
+    ai_family := NumGet(res, 4, "Int")
+    ai_socktype := NumGet(res, 8, "Int")
+    ai_protocol := NumGet(res, 12, "Int")
     ai_addrlen := NumGet(res, 16, "UPtr")
-    ai_addr := NumGet(res, 16 + A_PtrSize, "Ptr")
+    ai_addr := NumGet(res, 16 + A_PtrSize * 2, "Ptr")
 
-    sock := DllCall("ws2_32\socket", "Int", 2, "Int", 1, "Int", 6, "UPtr")
+    sock := DllCall("ws2_32\socket", "Int", ai_family, "Int", ai_socktype, "Int", ai_protocol, "UPtr")
     if (sock == -1 || sock == 0xFFFFFFFF) {
         DllCall("ws2_32\freeaddrinfo", "Ptr", res)
         HostCache[hostKey] := false
