@@ -193,5 +193,14 @@
   - [x] Auto-recovery if `"Password:"` label is missing (due to corrupted `Open Firm`): do not type into unverified controls; re-select the first valid firm via `CB_SETCURSEL (0x014E)`.
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
   - [x] Atomically commit Step 4.4g.
+- [x] **Step 4.4h**: CS Suite Invalid Password / Credential Error Handling
+  - [x] Add invalid credential modal popup detection in `Core/CSConnect.ahk` (`SubmitCSDatabaseLogin`):
+    - Poll for error dialog containing `"not valid for the Firm"` or `"valid Staff ID and Password"`.
+    - Dismiss the error popup (`ControlClick("OK")` / `{Enter}`) and dismiss the login card (`ControlClick("Cancel")` / `{Esc}`).
+    - Return standardized status `" - Error (Invalid credentials)"`.
+    - Return `" - Error (Login timeout)"` if dashboard wait times out.
+  - [x] Propagate `SubmitCSDatabaseLogin` return value in `Lib/UpdateAccountingCS.ahk` and `Lib/UpdatePractice.ahk` to exit cleanly on failure.
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
+  - [x] Atomically commit Step 4.4h.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 

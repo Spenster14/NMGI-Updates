@@ -269,6 +269,7 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                 }
 
                 ; Inject password into the verified password control
+                submittedNow := false
                 if (pwdCtrl) {
                     try ControlFocus(pwdCtrl, "ahk_id " . loginHwnd)
                     Sleep(100)
@@ -286,11 +287,7 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                         try PostMessage(0x00F5, 0, 0, okCtrlHwnd, "ahk_id " . loginHwnd)
                     }
                     Send("{Enter}")
-
-                    if (WinWaitClose("ahk_id " . loginHwnd, , 3) || WinExist(winPrefix . " -")) {
-                        handledLogin := true
-                        break
-                    }
+                    submittedNow := true
                 } else if (pwdLabelHwnd) {
                     ; Geometric fallback: click directly to the right of the "Password:" label
                     clickX := lx + lw + 40
@@ -305,11 +302,28 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                         try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
                     }
                     Send("{Enter}")
+                    submittedNow := true
+                }
 
-                    if (WinWaitClose("ahk_id " . loginHwnd, , 3) || WinExist(winPrefix . " -")) {
-                        handledLogin := true
-                        break
+                if (submittedNow) {
+                    ; Poll up to 4s: check if error dialog appeared, dialog closed, or dashboard appeared
+                    tSub := A_TickCount
+                    while (A_TickCount - tSub < 4000) {
+                        if WinExist(winPrefix . " -") {
+                            handledLogin := true
+                            break
+                        }
+                        if CheckCSLoginError(winPrefix, exeName, loginHwnd) {
+                            return " - Error (Invalid credentials)"
+                        }
+                        if (!WinExist("ahk_id " . loginHwnd)) {
+                            handledLogin := true
+                            break
+                        }
+                        Sleep(150)
                     }
+                    if (handledLogin)
+                        break
                 }
             }
             Sleep(500)
@@ -317,8 +331,68 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
     }
 
     UpdateStatus("Waiting for " . winPrefix . " dashboard to load...", 100, 100)
-    WinWait(winPrefix . " -", , 120)
+    tWait := A_TickCount
+    dashboardLoaded := false
+    while (A_TickCount - tWait < 60000) {
+        if WinExist(winPrefix . " -") {
+            dashboardLoaded := true
+            break
+        }
+        if CheckCSLoginError(winPrefix, exeName, loginHwnd) {
+            return " - Error (Invalid credentials)"
+        }
+        Sleep(250)
+    }
+
+    if (!dashboardLoaded) {
+        UpdateStatus(winPrefix . ": Dashboard load timeout.")
+        return " - Error (Login timeout)"
+    }
+
     WinActivate(winPrefix . " -")
     WinMaximize(winPrefix . " -")
     return true
+}
+
+; Detects and dismisses the Thomson Reuters invalid credential error dialog.
+; Returns true if the error dialog was found and dismissed; false otherwise.
+CheckCSLoginError(winPrefix, exeName, loginHwnd := 0) {
+    hwnds := []
+    if (exeName != "") {
+        try hwnds := WinGetList("ahk_exe " . exeName)
+    }
+    if (hwnds.Length == 0) {
+        try hwnds := WinGetList(winPrefix)
+    }
+
+    for h in hwnds {
+        if (loginHwnd && h == loginHwnd)
+            continue
+
+        ; Check text of the window
+        txt := ""
+        try txt := WinGetText("ahk_id " . h)
+        if (InStr(txt, "not valid for the Firm") || InStr(txt, "valid Staff ID and Password") || (InStr(txt, "Staff ID") && InStr(txt, "Password") && InStr(txt, "not valid"))) {
+            ; Dismiss the error popup
+            try ControlClick("OK", "ahk_id " . h, , , , "NA")
+            try ControlClick("Button1", "ahk_id " . h, , , , "NA")
+            try PostMessage(0x0111, 1, 0, , "ahk_id " . h) ; IDOK
+            Send("{Enter}")
+            Sleep(300)
+
+            ; Dismiss the login card so the process isn't left hanging
+            if (loginHwnd && WinExist("ahk_id " . loginHwnd)) {
+                try ControlClick("Cancel", "ahk_id " . loginHwnd, , , , "NA")
+                Send("{Esc}")
+                Sleep(300)
+            } else if (WinExist(winPrefix)) {
+                try ControlClick("Cancel", winPrefix, , , , "NA")
+                Send("{Esc}")
+            }
+
+            UpdateStatus(winPrefix . ": Invalid database credentials.")
+            return true
+        }
+    }
+    return false
 }

@@ -195,8 +195,24 @@
 ### Unfinished Logic / Known Quirks Documented
 - Windows Forms ComboBox Child Controls: In Win32, dropdown ComboBoxes (`CBS_DROPDOWN`) contain a child `Edit` control. Filtering out any control whose parent is a `COMBOBOX` prevents accidental text entry into dropdown controls.
 
+- **Step 4.4h**:
+  - CS Suite Invalid Password / Credential Error Handling:
+    - Implemented `CheckCSLoginError(winPrefix, exeName, loginHwnd)` in `Core/CSConnect.ahk`.
+    - Detects the Thomson Reuters modal warning dialog ("The Staff ID or Password you entered is not valid for the Firm you are attempting to open. Please enter a valid Staff ID and Password or select a different Firm.").
+    - Automatically dismisses the warning dialog (`ControlClick("OK")` / `{Enter}`) and closes the underlying login card (`ControlClick("Cancel")` / `{Esc}`).
+    - Returns standardized status `" - Error (Invalid credentials)"` and sets status box to `"[Product]: Invalid database credentials."`.
+    - Integrated continuous checks during post-submit validation and the 60s dashboard wait loop, ensuring invalid credentials or load timeouts exit immediately without freezing or stalling the update batch.
+    - Propagated `SubmitCSDatabaseLogin` return value in `Lib/UpdateAccountingCS.ahk` and `Lib/UpdatePractice.ahk` to exit cleanly on failure.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running OK PID: 37040`).
+
+### Unfinished Logic / Known Quirks Documented
+- Thomson Reuters Error Modal Title: In CS Professional Suite, credential error modals share the application title (`Accounting CS` / `Practice CS`). Matching the window text (`"not valid for the Firm"`) distinguishes the error dialog from the parent window.
+
 ### Next Step / Status
-- Step 4.4g complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
+- Step 4.4h complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
 - Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

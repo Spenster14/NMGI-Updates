@@ -42,7 +42,11 @@ AccountingCS(PostUpdate := false) {
 
     ; --- Database Login Automation ---
     global AcsPassword
-    SubmitCSDatabaseLogin("Accounting CS", acsExe, AcsPassword)
+    loginResult := SubmitCSDatabaseLogin("Accounting CS", acsExe, AcsPassword)
+    if (loginResult != true) {
+        UpdateStatus()
+        return loginResult
+    }
 
     UpdateStatus()
 

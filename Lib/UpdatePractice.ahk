@@ -87,7 +87,11 @@ Practice(PostUpdate := false) {
 
     ; --- Database Login Automation ---
     global PracticePassword
-    SubmitCSDatabaseLogin("Practice CS", practiceExe, PracticePassword)
+    loginResult := SubmitCSDatabaseLogin("Practice CS", practiceExe, PracticePassword)
+    if (loginResult != true) {
+        UpdateStatus()
+        return loginResult
+    }
 
     UpdateStatus()
 
