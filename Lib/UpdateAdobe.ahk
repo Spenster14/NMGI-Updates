@@ -39,19 +39,28 @@ Adobe(*)
 
     ; --- 2. Launch Adobe Acrobat ---
     UpdateStatus("Launching Adobe Acrobat...", 100, 100)
+    workingDir := RegExReplace(adobePath, "\\[^\\]+$")
     try {
-        Run(adobePath)
-    } catch as err {
-        return " - Error (Launch failed: " . err.Message . ")"
+        ShellRun(adobePath, "", workingDir)
+    } catch {
+        try {
+            Run('explorer.exe "' . adobePath . '"')
+        } catch as err {
+            try {
+                Run('"' . adobePath . '"', workingDir)
+            } catch as err2 {
+                return " - Error (Launch failed: " . err2.Message . ")"
+            }
+        }
     }
 
     UpdateStatus("Waiting for Adobe Acrobat to open...", 100, 100)
-    if !WinWait("ahk_exe Acrobat.exe",, 15) {
+    if !WinWait("ahk_exe Acrobat.exe",, 20) {
         return " - Error (Did not open)"
     }
 
     WinActivate("ahk_exe Acrobat.exe")
-    WinWaitActive("ahk_exe Acrobat.exe",, 3)
+    WinWaitActive("ahk_exe Acrobat.exe",, 5)
 
     ; --- 3. Instantly Trigger Update Check (Fast Path for Unlicensed/Trial Environments) ---
     UpdateStatus("Checking for Adobe updates...", 100, 100)

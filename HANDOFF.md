@@ -295,9 +295,22 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 9000)`).
 
+- **Step 4.4o**:
+  - Fix Adobe Acrobat Headless Hang via ShellRun (Standard User Execution):
+    - Root cause: Jacro runs elevated (as Administrator). When `Acrobat.exe` is spawned from an elevated parent, Adobe Acrobat's Protected Mode (sandbox / AppContainer broker) encounters an integrity level mismatch with Windows security tokens, deadlocking before creating a top-level window and leaving 4 headless child processes in Task Manager.
+    - Implemented `ShellRun` in `Core/Process.ahk` via Windows Shell COM (`Shell.Application.Windows.Item(SWC_DESKTOP).Document.Application.ShellExecute`), launching target applications at the standard (Medium) user integrity level of the interactive desktop shell.
+    - Updated `Lib/UpdateAdobe.ahk` to launch `Acrobat.exe` using `ShellRun` with explicit `workingDir`, matching the exact behavior of desktop shortcuts and Start -> Run.
+    - Added fallback chain (`ShellRun` -> `explorer.exe <path>` -> `Run(<path>, workingDir)`) and increased window wait timeout to 20s.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 17456)`).
+
 ### Next Step / Status
-- Step 4.4n complete.
+- Step 4.4o complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

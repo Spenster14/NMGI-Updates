@@ -234,6 +234,11 @@
   - [x] Adjust `IsHostReachable` default timeout from 300ms to 1000ms in `Core/Network.ahk` to reliably accommodate VPN / WAN latencies.
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4n.
+- [x] **Step 4.4o**: Fix Adobe Acrobat Headless Hang via ShellRun (Standard User Execution)
+  - [x] Implement `ShellRun` in `Core/Process.ahk` using Windows Shell COM (`Shell.Application.Windows.Item(SWC_DESKTOP).Document.Application.ShellExecute`) to drop Administrator elevation when launching desktop applications.
+  - [x] Update `Lib/UpdateAdobe.ahk` to launch `Acrobat.exe` via `ShellRun` with the proper working directory (`workingDir`), bypassing Adobe Protected Mode / Sandbox elevation deadlocks.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4o.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

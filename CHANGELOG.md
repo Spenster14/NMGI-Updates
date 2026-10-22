@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - Wrapped UNC lookups in `UpdateUT.ahk`, `UpdateFixedAssets.ahk`, `UpdateFileCabinet.ahk`, and `Core/Config.ahk` with `SafeFileExist()` to eliminate 25–30s Windows SMB redirector freezes when disconnected from client networks or VPNs.
 
 ### Fixed
+- Fixed Adobe Acrobat headless process hang where Acrobat spawned multiple background processes without rendering a window when launched from elevated administrator context. Added `ShellRun` in `Core/Process.ahk` to drop elevation via the Windows desktop shell COM interface (`Shell.Application`) and launch Acrobat at standard user integrity with proper working directory, resolving Protected Mode sandbox deadlocks.
 - Fixed Lacerte double-logging bug where `UpdateLacerte.ahk` wrote directly to `TodayDate-Update.log` via `FileAppend` in addition to `UpdateLog()` in `Core/Logger.ahk`.
 - Fixed batch execution aborts in `UpdateQB.ahk` by replacing abrupt `ExitApp` calls on missing paths/configurations with graceful error return strings.
 - Removed duplicate `#Requires AutoHotkey v2.0` directives.
