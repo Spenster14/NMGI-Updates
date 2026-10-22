@@ -407,9 +407,20 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 26952)`).
 
-### Next Step / Status
-- Step 5.4 complete.
-- Next step: Step 5.5: End-to-End Verification, Documentation & Release.
+- **Step 5.5**:
+  - End-to-End Verification, Documentation & Release:
+    - Updated `README.md` with Shortcut-First discovery workflow and `GUIsettings.ini` auto-synchronization details.
+    - Updated `PROJECT_SPEC.md` Active Core Production Files table with `Core/ShortcutScanner.ahk`.
+    - Updated `CHANGELOG.md` with comprehensive Milestone 5 release notes.
+    - Recompiled production `NMGIupdates.exe` binary via `Ahk2Exe.exe`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 26952)`).
+
+### Final Status
+- All milestones (1 through 5) complete and fully verified.
+- The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
 
 
 

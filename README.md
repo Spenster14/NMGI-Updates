@@ -55,9 +55,10 @@ Ensure AutoHotkey v2 64-bit is installed:
 
 ### Initial Launch Experience
 1. **Scanning Indicator**: On first launch, a tooltip (`Scanning applications, please wait...`) appears at screen coordinates `(100, 100)`.
-2. **Environment Scan**: Jacro probes standard local program directories, mapped drives, and common client UNC paths. Initial discovery can take 20–25 seconds if multiple network paths must be evaluated.
-3. **Path Caching**: Resolved paths are saved to `GUIsettings.ini` under `[Paths]`. Subsequent launches load near-instantaneously from this local cache.
-4. **Dashboard Docking**: Once the scan finishes, the tooltip clears and the main dashboard docks automatically to the bottom-right corner of the primary display (`+AlwaysOnTop`).
+2. **Shortcut-First Discovery**: Jacro searches `C:\Users\Public\Desktop\Applications` (and all nested subfolders) for verified `.lnk` shortcuts deployed by NMGI, followed by user Desktop shortcuts. If an authoritative shortcut is present, Jacro binds to its exact target path.
+3. **Manual Path Fallback**: For applications without desktop shortcuts, Jacro falls back to candidate local program directories, mapped drives, and common client UNC paths.
+4. **Path Caching & Auto-Sync**: Resolved paths are saved to `GUIsettings.ini` under `[Paths]`. If a technician moves or repoints an authoritative shortcut on the client desktop, Jacro automatically synchronizes `GUIsettings.ini` to match on the next launch.
+5. **Dashboard Docking**: Once the scan finishes, the tooltip clears and the main dashboard docks automatically to the bottom-right corner of the primary display (`+AlwaysOnTop`).
 
 ---
 
