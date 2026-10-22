@@ -216,6 +216,12 @@
 - [x] **Step 4.4k**: Author Comprehensive Technician-Focused GitHub README.md
   - [x] Write `README.md` covering architecture, prerequisites, initial launch/caching, UI features & shortcuts, upfront credential handling, application-specific operational details, troubleshooting, and build instructions.
   - [x] Atomically commit Step 4.4k.
+- [x] **Step 4.4l**: QuickBooks Subscription Expired/Expiring Popup Dismissal
+  - [x] Implement `DismissQBSubscriptionPopup()` with multi-tiered dismissal (UIA button click, Win32 ControlClick "Close", Button2, Esc keyboard shortcut, geometric client coordinate click, and WinClose fallback).
+  - [x] Consolidate startup popup handling into `HandleQBPopups()` on a 500ms `SetTimer` checking for both "Upgrade Internet Explorer" and subscription expiration warnings.
+  - [x] Guard main QuickBooks window wait loop against false-positive matching on the subscription dialog (`ExcludeTitle: "subscription"` and explicit dismissal before `WinWait`).
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4l.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 

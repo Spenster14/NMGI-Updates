@@ -162,6 +162,7 @@ Thomson Reuters CS applications that require staff credentials launch an initial
 - Module: `Lib/UpdateQB.ahk`.
 - Supports Enterprise, Premier, and Pro (versions 21–24).
 - Suppresses the welcome screen by temporarily configuring `QBWUSER.INI`.
+- Automatically detects and dismisses license expiration warnings ("Quickbooks subscription expired" / "subscription expiring") by clicking "Close", allowing the application to launch and update normally.
 - Uses Windows Media OCR (`Lib/OCR.ahk`) to read the custom-rendered progress bar and status text during updates.
 - Inspects `Install.log` to confirm final patch application.
 

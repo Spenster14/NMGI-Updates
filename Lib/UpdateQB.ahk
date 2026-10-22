@@ -68,41 +68,67 @@ QB(QBversion)
     
     Run(qbPath)
 
-    ; Start monitoring for the IE popup in the background every 500ms
-    SetTimer(HandleIEPopup, 500)
+    Run(qbPath)
 
-    ; --- Handle Startup & Installers ------------------------------------------
-    WinWait("QuickBooks ")
-    UpdateStatus() ; Clear tooltip
+    ; Start monitoring for IE and subscription popups in the background every 500ms
+    SetTimer(HandleQBPopups, 500)
 
-    ; 1. Handle Major Upgrade / Install Prompt
-    if WinExist("QuickBooks ", "Install ") {
-        WinActivate
-        qbEl := UIA.ElementFromHandle("QuickBooks")
-        
-        try {
-            qbEl.WaitElement({Name:"Install Now", Type:"Pane"}).Click("left")
-            WinWait("QuickBooks", "restart your computer")
-            
-            qbEl := UIA.ElementFromHandle("QuickBooks") ; Refresh handle
-            qbEl.WaitElement({Name:"Yes", Type:"Button"}).Click("left") ; Reboot confirmation
-            return " - Updates installed"
-        } catch {
-            ; Logic to handle if elements aren't found could go here
+    ; --- Handle Startup, Installers & Popups -----------------------------------
+    mainHwnd := 0
+    loop 60 {
+        ; Actively dismiss subscription dialog or IE warnings
+        DismissQBSubscriptionPopup()
+        if WinExist("Upgrade Internet Explorer")
+            HandleIEPopup()
+
+        ; 1. Handle Major Upgrade / Install Prompt
+        if WinExist("QuickBooks ", "Install ") {
+            WinActivate("QuickBooks ", "Install ")
+            try {
+                qbEl := UIA.ElementFromHandle("QuickBooks")
+                qbEl.WaitElement({Name:"Install Now", Type:"Pane"}).Click("left")
+                WinWait("QuickBooks", "restart your computer", 60)
+                
+                qbEl := UIA.ElementFromHandle("QuickBooks") ; Refresh handle
+                qbEl.WaitElement({Name:"Yes", Type:"Button"}).Click("left") ; Reboot confirmation
+                SetTimer(HandleQBPopups, 0)
+                return " - Updates installed"
+            } catch {
+                ; Logic to handle if elements aren't found could go here
+            }
         }
+
+        ; 2. Detect Main QuickBooks Window (exclude service, subscription, and installer dialogs)
+        hwndList := WinGetList("QuickBooks")
+        for h in hwndList {
+            try {
+                title := WinGetTitle(h)
+                if (title != "" && !InStr(title, "Service") && !InStr(title, "subscription") && !InStr(title, "Install ") && !InStr(title, "Information")) {
+                    mainHwnd := h
+                    break 2
+                }
+            }
+        }
+        Sleep(1000)
     }
 
-    ; 2. Standard Update Process
-    WinWait("QuickBooks ",,,"Service") ; Exclude 'Service' windows
-    Sleep(4000) ; Wait for QB to settle and allow background timer to handle popups
-    WinActivate
-    WinMaximize
+    UpdateStatus() ; Clear status
+
+    if (!mainHwnd) {
+        SetTimer(HandleQBPopups, 0)
+        MsgBox("Timed out waiting for QuickBooks main window to open.")
+        return " - Error (Main window timeout)"
+    }
+
+    Sleep(3000) ; Wait for QB to settle and allow background timer to finish handling any popups
+    WinActivate(mainHwnd)
+    WinMaximize(mainHwnd)
     
     ; Retry getting the UIA element, as QB might be unresponsive while loading
     qbEl := ""
     loop 30 {
         try {
-            qbEl := UIA.ElementFromHandle("QuickBooks")
+            qbEl := UIA.ElementFromHandle(mainHwnd)
             if qbEl
                 break
         } catch {
@@ -111,14 +137,15 @@ QB(QBversion)
     }
     
     if !qbEl {
-        SetTimer(HandleIEPopup, 0)
+        SetTimer(HandleQBPopups, 0)
         MsgBox("Timed out waiting for QuickBooks UI to become responsive.")
         return " - Error (UI Timeout)"
     }
     
-    ; Give the timer one last chance to kill it before we send keystrokes
+    ; Give any lingering popups one last chance to be dismissed
     if WinExist("Upgrade Internet Explorer")
         Sleep(1000)
+    DismissQBSubscriptionPopup()
         
     Send("!hd") ; Open Help Menu -> Update
     
@@ -127,12 +154,12 @@ QB(QBversion)
         qbEl.WaitElement({Name:"Update Now", Type:"Pane"}).Click("left")
         qbEl.WaitElement({Name:"Get Updates", Type:"Pane"}).Click("left")
     } catch as err {
-        SetTimer(HandleIEPopup, 0) ; Stop timer on error
+        SetTimer(HandleQBPopups, 0) ; Stop timer on error
         MsgBox("Failed to navigate Update UI: " . err.Message)
         return " - Error (UI Navigation)"
     }
 
-    SetTimer(HandleIEPopup, 0) ; Stop timer once we successfully navigated
+    SetTimer(HandleQBPopups, 0) ; Stop timer once we successfully navigated
     Sleep(2000)
 
     ; --- Define OCR Area ------------------------------------------------------
@@ -218,6 +245,113 @@ QB(QBversion)
 ; ==============================================================================
 ; Helper Functions
 ; ==============================================================================
+
+HandleQBPopups() {
+    HandleIEPopup()
+    DismissQBSubscriptionPopup()
+}
+
+FindQBSubscriptionPopup() {
+    for title in ["Quickbooks subscription expired", "QuickBooks subscription expired", "Quickbooks subscription expiring", "QuickBooks subscription expiring", "subscription expired", "subscription expiring", "Quickbooks subscription", "QuickBooks subscription"] {
+        hwnd := WinExist(title)
+        if (hwnd)
+            return hwnd
+    }
+
+    if WinExist("QuickBooks", "subscription has expired")
+        return WinExist("QuickBooks", "subscription has expired")
+    if WinExist("QuickBooks", "lose access to Quickbooks")
+        return WinExist("QuickBooks", "lose access to Quickbooks")
+    if WinExist("QuickBooks", "Renew Subscription")
+        return WinExist("QuickBooks", "Renew Subscription")
+
+    return 0
+}
+
+DismissQBSubscriptionPopup() {
+    subHwnd := FindQBSubscriptionPopup()
+    if (!subHwnd)
+        return false
+
+    UpdateStatus("Dismissing QuickBooks subscription popup...", 100, 100)
+
+    ; Tier 1: UIA Element Search for Button named "Close"
+    try {
+        subEl := UIA.ElementFromHandle(subHwnd)
+        if (subEl) {
+            closeBtn := subEl.FindElement({Name: "Close", Type: "Button"})
+            if (!closeBtn)
+                closeBtn := subEl.FindElement({Name: "Close", mm: 2})
+            if (closeBtn) {
+                closeBtn.Click()
+                Sleep(500)
+                if !WinExist(subHwnd)
+                    return true
+            }
+        }
+    }
+
+    ; Tier 2: Win32 ControlClick by Text "Close"
+    try {
+        ControlClick("Close", subHwnd,,,, "NA")
+        Sleep(400)
+        if !WinExist(subHwnd)
+            return true
+    }
+
+    ; Tier 3: Scan child controls for text matching "Close"
+    try {
+        for ctrl in WinGetControls(subHwnd) {
+            try {
+                cText := ControlGetText(ctrl, subHwnd)
+                if (InStr(cText, "Close")) {
+                    ControlClick(ctrl, subHwnd,,,, "NA")
+                    Sleep(400)
+                    if !WinExist(subHwnd)
+                        return true
+                }
+            }
+        }
+    }
+
+    ; Tier 4: Second button is standard "Close" beside "Renew Subscription"
+    try {
+        ControlClick("Button2", subHwnd,,,, "NA")
+        Sleep(400)
+        if !WinExist(subHwnd)
+            return true
+    }
+
+    ; Tier 5: Keyboard Escape
+    try {
+        WinActivate(subHwnd)
+        Send("{Esc}")
+        Sleep(500)
+        if !WinExist(subHwnd)
+            return true
+    }
+
+    ; Tier 6: Client Coordinate Click (~62% width, ~72% height where Close is rendered)
+    try {
+        WinGetPos(, , &w, &h, subHwnd)
+        if (w > 100 && h > 50) {
+            targetX := Integer(w * 0.62)
+            targetY := Integer(h * 0.72)
+            ControlClick("X" . targetX . " Y" . targetY, subHwnd,,,, "NA")
+            Sleep(500)
+            if !WinExist(subHwnd)
+                return true
+        }
+    }
+
+    ; Tier 7: WinClose
+    try {
+        WinClose(subHwnd)
+        Sleep(500)
+    }
+
+    return !WinExist(subHwnd)
+}
 
 HandleIEPopup() {
     if WinExist("Upgrade Internet Explorer") {

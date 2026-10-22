@@ -253,9 +253,26 @@
 ### Tested
 - Verified formatting, table rendering, code blocks, and markdown structure.
 
+- **Step 4.4l**:
+  - QuickBooks Subscription Expired/Expiring Popup Dismissal:
+    - Implemented `DismissQBSubscriptionPopup()` in `Lib/UpdateQB.ahk`:
+      - Discovers the warning popup via `FindQBSubscriptionPopup()` matching titles (`"Quickbooks subscription expired"`, `"subscription expiring"`, etc.) and text (`"subscription has expired"`, `"lose access to Quickbooks"`).
+      - Multi-tiered dismissal: Tier 1 (UIA click on "Close" button), Tier 2 (Win32 `ControlClick("Close")`), Tier 3 (child control inspection), Tier 4 (`ControlClick("Button2")`), Tier 5 (keyboard `Esc`), Tier 6 (proportional coordinate click at `~62%` width, `~72%` height), Tier 7 (`WinClose`).
+    - Consolidated background popup handling into `HandleQBPopups()` on a 500ms `SetTimer` checking for both "Upgrade Internet Explorer" and subscription warnings.
+    - Refactored main QuickBooks window wait into an active polling loop that dismisses modal dialogs, filters out `"Service"`, `"subscription"`, `"Install "`, and `"Information"`, and captures the confirmed `mainHwnd`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 37804)`).
+
+### Unfinished Logic / Known Quirks Documented
+- Modal Title Case Sensitivity: The popup title from Intuit uses `"Quickbooks"` (lowercase 'b'), whereas other windows use `"QuickBooks"` (uppercase 'B'). Case-insensitive partial matching handles all variations.
+
 ### Next Step / Status
-- Step 4.4k complete.
+- Step 4.4l complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 
