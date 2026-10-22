@@ -325,7 +325,14 @@
   - [x] Populate `WorkingDir` from `Target` if empty for advertised shortcuts.
   - [x] Validate via automated smoke tests (`smoke.ps1`, `smoke_exe.ps1`).
   - [x] Recompile production `NMGIupdates.exe` binary.
-  - [x] Atomically commit Step 5.7.
+- [x] **Step 5.8**: Robust Advertised Shortcut Detection (\Installer\ Stubs, Extended Roots & Name Pairing)
+  - [x] Update `GetShortcutSearchRoots()` to include `A_DesktopCommon` and local profile desktop.
+  - [x] Update `IndexShortcuts()` to trigger MSI advertised shortcut resolution when target contains `\Installer\` or is empty, preserving `IsAdvertised` metadata.
+  - [x] Update `FindShortcutInfo()` and `Core/Config.ahk` to pair advertised desktop shortcuts with validated executable paths even if MSI internal component resolution fails.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary (`smoke_exe.ps1`).
+  - [x] Atomically commit Step 5.8.
+
+
 
 
 

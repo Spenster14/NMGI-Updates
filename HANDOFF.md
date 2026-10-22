@@ -445,11 +445,26 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 43300)`).
 
+- **Step 5.8**:
+  - Robust Advertised Shortcut Detection (\Installer\ Stubs, Extended Roots & Name Pairing):
+    - Root Cause Analysis: Windows Installer advertised shortcuts typically resolve via `FileGetShortcut` to an internal MSI icon/executable cache stub inside `C:\Windows\Installer\{ProductCode}\...exe` rather than an empty string. Because `target != ""` on those stubs, the previous `target == ""` check was bypassed, and `TargetExe` became an unmatchable MSI stub name (e.g., `_A9D05B64...exe`), leading to discard. Furthermore, workstations with OneDrive-redirected desktops could have shortcuts in the local profile desktop `C:\Users\%A_UserName%\Desktop`.
+    - Fixes Applied:
+      - Extended `GetShortcutSearchRoots()` to search `A_DesktopCommon` (Public Desktop) and local user desktop (`C:\Users\%A_UserName%\Desktop`) alongside `A_Desktop`.
+      - Updated `IndexShortcuts()`: Triggers `ResolveAdvertisedShortcut` whenever `target == "" || InStr(target, "\Installer\") || InStr(target, "\Windows\Installer\")`. Resolves the real executable path via `ComponentPath` and clears any internal installer stub paths.
+      - Preserved `IsAdvertised` metadata on shortcuts if unresolvable via MSI, allowing `FindShortcutInfo()` to match based on the shortcut's `LnkName` pattern.
+      - Updated `Core/Config.ahk`: If an advertised desktop shortcut matches by name but its target is unresolvable via MSI, automatically resolves the valid executable path via `pathFn()` and pairs it with the desktop shortcut as `Shortcut: <scInfo.LnkPath>`, ensuring 100% reliable discovery.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s (PID 2680)`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 5140)`).
+
 ### Final Status
 - All milestones (1 through 5) complete and fully verified.
 - The 2-tier Shortcut-First discovery architecture is live in both script and compiled executable (`NMGIupdates.exe`). Authoritative shortcuts deployed by NMGI in `C:\Users\Public\Desktop\Applications` (and nested folders) are prioritized across all applications, resolving historical multi-installation ambiguities automatically.
 - Technicians can inspect discovery provenance in real-time by hovering over any application on the dashboard or by reviewing `[PathSources]` in `GUIsettings.ini`.
-- MSI Advertised Shortcuts are natively resolved out-of-the-box, ensuring zero technician overhead.
+- MSI Advertised Shortcuts (both direct MSI resolution and name-paired stubs) are natively resolved out-of-the-box, ensuring zero technician overhead.
+
 
 
 

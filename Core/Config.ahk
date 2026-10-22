@@ -14,11 +14,16 @@ ResolveAppPath(app, forceRescan := false, iniFile := "GUIsettings.ini") {
     if (forceRescan) {
         scInfo := FindAppShortcutInfo(appName)
         if (scInfo) {
-            srcDesc := "Shortcut: " . scInfo.LnkPath
-            IniWrite(scInfo.Target, iniFile, "Paths", appName)
-            IniWrite(srcDesc, iniFile, "PathSources", appName)
-            SetAppSource(srcDesc)
-            return scInfo.Target
+            targetPath := scInfo.Target
+            if (targetPath == "")
+                targetPath := pathFn()
+            if (targetPath != "") {
+                srcDesc := "Shortcut: " . scInfo.LnkPath
+                IniWrite(targetPath, iniFile, "Paths", appName)
+                IniWrite(srcDesc, iniFile, "PathSources", appName)
+                SetAppSource(srcDesc)
+                return targetPath
+            }
         }
 
         resolved := pathFn()
@@ -37,14 +42,19 @@ ResolveAppPath(app, forceRescan := false, iniFile := "GUIsettings.ini") {
     ; Priority 1: Check authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
     scInfo := FindAppShortcutInfo(appName)
     if (scInfo) {
-        cachedPath := IniRead(iniFile, "Paths", appName, "")
-        if (cachedPath != scInfo.Target) {
-            IniWrite(scInfo.Target, iniFile, "Paths", appName)
+        targetPath := scInfo.Target
+        if (targetPath == "")
+            targetPath := pathFn()
+        if (targetPath != "") {
+            cachedPath := IniRead(iniFile, "Paths", appName, "")
+            if (cachedPath != targetPath) {
+                IniWrite(targetPath, iniFile, "Paths", appName)
+            }
+            srcDesc := "Shortcut: " . scInfo.LnkPath
+            IniWrite(srcDesc, iniFile, "PathSources", appName)
+            SetAppSource(srcDesc)
+            return targetPath
         }
-        srcDesc := "Shortcut: " . scInfo.LnkPath
-        IniWrite(srcDesc, iniFile, "PathSources", appName)
-        SetAppSource(srcDesc)
-        return scInfo.Target
     }
 
     ; Priority 2: Check INI cache

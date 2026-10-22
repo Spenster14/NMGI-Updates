@@ -27,10 +27,15 @@ GetShortcutSearchRoots() {
     ; 3. Public desktop root
     if DirExist("C:\Users\Public\Desktop")
         roots.Push("C:\Users\Public\Desktop")
+    if (A_DesktopCommon != "" && A_DesktopCommon != "C:\Users\Public\Desktop" && DirExist(A_DesktopCommon))
+        roots.Push(A_DesktopCommon)
         
     ; 4. User desktop root
     if (A_Desktop != "C:\Users\Public\Desktop" && DirExist(A_Desktop))
         roots.Push(A_Desktop)
+    localUserDesktop := "C:\Users\" . A_UserName . "\Desktop"
+    if (localUserDesktop != A_Desktop && localUserDesktop != "C:\Users\Public\Desktop" && DirExist(localUserDesktop))
+        roots.Push(localUserDesktop)
         
     return roots
 }
@@ -56,7 +61,7 @@ ResolveAdvertisedShortcut(lnkPath) {
             comp := targetRec.StringData(3)
             if (prod != "" && comp != "") {
                 compPath := installer.ComponentPath(prod, comp)
-                if (compPath != "")
+                if (compPath != "" && !InStr(compPath, "\Installer\"))
                     return compPath
             }
         }
@@ -65,9 +70,9 @@ ResolveAdvertisedShortcut(lnkPath) {
 
     ; Tier 2: Win32 MSI API (msi.dll)
     try {
-        productCode := Buffer(78, 0)
-        featureId := Buffer(78, 0)
-        componentCode := Buffer(78, 0)
+        productCode := Buffer(256, 0)
+        featureId := Buffer(256, 0)
+        componentCode := Buffer(256, 0)
         res := DllCall("msi\MsiGetShortcutTargetW",
             "WStr", lnkPath,
             "Ptr", productCode.Ptr,
@@ -77,18 +82,16 @@ ResolveAdvertisedShortcut(lnkPath) {
         if (res == 0) {
             cchBuf := 1024
             buf := Buffer(cchBuf * 2, 0)
-            cchVar := Buffer(4, 0)
-            NumPut("UInt", cchBuf, cchVar)
             installState := DllCall("msi\MsiGetComponentPathW",
                 "Ptr", productCode.Ptr,
                 "Ptr", componentCode.Ptr,
                 "Ptr", buf.Ptr,
-                "Ptr", cchVar.Ptr,
+                "UInt*", &cchBuf,
                 "Int")
             ; INSTALLSTATE_LOCAL = 3, INSTALLSTATE_SOURCE = 4
             if (installState == 3 || installState == 4) {
                 targetPath := StrGet(buf.Ptr, "UTF-16")
-                if (targetPath != "")
+                if (targetPath != "" && !InStr(targetPath, "\Installer\"))
                     return targetPath
             }
         }
@@ -124,12 +127,19 @@ IndexShortcuts(forceRefresh := false) {
                 }
 
                 ; Fallback for Windows Installer (MSI) Advertised Shortcuts
-                if (target == "") {
-                    target := ResolveAdvertisedShortcut(lnkPath)
+                ; Advertised shortcuts either return an empty target or an internal MSI stub (e.g. C:\Windows\Installer\{GUID}\...exe)
+                isAdv := (target == "" || InStr(target, "\Windows\Installer\") || InStr(target, "\Installer\"))
+                if (isAdv) {
+                    advTarget := ResolveAdvertisedShortcut(lnkPath)
+                    if (advTarget != "") {
+                        target := advTarget
+                        isAdv := false
+                    }
                 }
 
-                if (target == "")
-                    continue
+                ; If still pointing to an internal installer stub, clear target
+                if (InStr(target, "\Windows\Installer\") || InStr(target, "\Installer\"))
+                    target := ""
 
                 target := Trim(ExpandEnvVars(target), '" ')
                 SplitPath(target, &targetFileName, &targetDir)
@@ -138,15 +148,20 @@ IndexShortcuts(forceRefresh := false) {
                 if (workingDir == "" && targetDir != "")
                     workingDir := targetDir
 
+                ; Keep entries that have either a valid target OR are an Advertised Shortcut matching a known application
+                if (target == "" && !isAdv)
+                    continue
+
                 ShortcutCache.Push({
                     LnkPath: lnkPath,
                     LnkName: lnkNameNoExt,
                     Target: target,
-                    TargetExe: StrLower(targetFileName),
+                    TargetExe: targetFileName != "" ? StrLower(targetFileName) : "",
                     TargetDir: targetDir,
                     WorkingDir: workingDir,
                     Args: args,
                     Description: desc,
+                    IsAdvertised: isAdv,
                     IsApplicationsFolder: isAppFolder || InStr(lnkPath, "\Applications\")
                 })
             }
@@ -188,18 +203,19 @@ FindShortcutInfo(exeNames, namePatterns := [], filterFn := "") {
             ; 1. Executable name check
             exeMatch := false
             for targetExe in cleanExes {
-                if (item.TargetExe == targetExe) {
+                if (item.TargetExe != "" && item.TargetExe == targetExe) {
                     exeMatch := true
                     break
                 }
             }
-            if (!exeMatch)
+            ; Allow advertised shortcuts with unresolved target to match on name patterns
+            if (!exeMatch && (!HasProp(item, "IsAdvertised") || !item.IsAdvertised || namePatterns.Length == 0))
                 continue
 
             ; 2. Name / Path regex patterns check (if any specified)
             patternMatch := true
             for pattern in namePatterns {
-                if (!RegExMatch(item.LnkName, pattern) && !RegExMatch(item.LnkPath, pattern) && !RegExMatch(item.Target, pattern)) {
+                if (!RegExMatch(item.LnkName, pattern) && !RegExMatch(item.LnkPath, pattern) && (item.Target == "" || !RegExMatch(item.Target, pattern))) {
                     patternMatch := false
                     break
                 }
@@ -212,8 +228,10 @@ FindShortcutInfo(exeNames, namePatterns := [], filterFn := "") {
                 continue
 
             ; 4. Validate physical reachability and existence
-            if (SafeFileExist(item.Target))
+            if (item.Target != "" && SafeFileExist(item.Target))
                 return { Target: item.Target, LnkPath: item.LnkPath, LnkName: item.LnkName, IsApplicationsFolder: item.IsApplicationsFolder }
+            else if (HasProp(item, "IsAdvertised") && item.IsAdvertised && item.Target == "")
+                return { Target: "", LnkPath: item.LnkPath, LnkName: item.LnkName, IsApplicationsFolder: item.IsApplicationsFolder }
         }
     }
 
