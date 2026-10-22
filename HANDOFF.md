@@ -269,9 +269,26 @@
 ### Unfinished Logic / Known Quirks Documented
 - Modal Title Case Sensitivity: The popup title from Intuit uses `"Quickbooks"` (lowercase 'b'), whereas other windows use `"QuickBooks"` (uppercase 'B'). Case-insensitive partial matching handles all variations.
 
+- **Step 4.4m**:
+  - Summary Dialog "Copy Log to Clipboard" Button:
+    - Replaced basic Windows `MsgBox` in `ShowSummaryReport` ([`NMGIUpdates.ahk`](file:///c:/Users/jony/OneDrive%20-%20NMGI/Documents/GitHub/NMGI-Updates/NMGIUpdates.ahk)) with a dedicated `+AlwaysOnTop` modal GUI (`sumGui`).
+    - Added read-only scrollable Edit control rendering the categorized batch summary breakdown.
+    - Added `&Copy Log to Clipboard` (`Alt+C` accelerator) button:
+      - Reads `TodayDate . "-Update.log"` if present on disk.
+      - Assembles the clean summary report along with all raw daily log entries.
+      - Copies the combined text to `A_Clipboard`.
+      - Provides dynamic button feedback (`Copied to Clipboard!`) with automatic 2.5s label restore via `SetTimer(ResetCopyBtn, -2500)`.
+    - Added `&Close` button (Default enter button) and hooked `Escape` and `Close` events.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 37660)`).
+
 ### Next Step / Status
-- Step 4.4l complete.
+- Step 4.4m complete.
 - Next step: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
+
 
 
 

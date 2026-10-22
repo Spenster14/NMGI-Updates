@@ -341,8 +341,40 @@ ShowSummaryReport(results) {
         report .= "`n"
     }
 
-    iconOpt := (errors.Length > 0) ? "Icon!" : ((attention.Length > 0) ? "Icon!" : "Iconi")
-    MsgBox(report, "Jacro - Batch Update Summary", iconOpt)
+    sumGui := Gui("+AlwaysOnTop +Owner" . (MyGui ? MyGui.Hwnd : 0), "Jacro - Batch Update Summary")
+    sumGui.SetFont("s10", "Segoe UI")
+    sumGui.Add("Text", "xm ym", "Batch update results:")
+    sumEdit := sumGui.Add("Edit", "xm w500 h260 ReadOnly", report)
+
+    btnCopy := sumGui.Add("Button", "xm w180", "&Copy Log to Clipboard")
+    btnClose := sumGui.Add("Button", "x+10 w100 Default", "&Close")
+
+    CopyLogToClipboard(*) {
+        global TodayDate
+        logFile := TodayDate . "-Update.log"
+        copyText := report
+        if FileExist(logFile) {
+            try {
+                logContent := Trim(FileRead(logFile), "`r`n ")
+                if (logContent != "")
+                    copyText := report . "`r`n--- Raw Log (" . logFile . ") ---`r`n" . logContent
+            }
+        }
+        A_Clipboard := copyText
+        btnCopy.Text := "Copied to Clipboard!"
+        SetTimer(ResetCopyBtn, -2500)
+
+        ResetCopyBtn() {
+            try btnCopy.Text := "&Copy Log to Clipboard"
+        }
+    }
+
+    btnCopy.OnEvent("Click", CopyLogToClipboard)
+    btnClose.OnEvent("Click", (*) => sumGui.Destroy())
+    sumGui.OnEvent("Close", (*) => sumGui.Destroy())
+    sumGui.OnEvent("Escape", (*) => sumGui.Destroy())
+
+    sumGui.Show("Center")
 }
 
 CloseApp(*) {

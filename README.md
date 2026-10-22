@@ -211,6 +211,7 @@ When a batch run finishes, Jacro displays a consolidated summary report (`ShowSu
 - **Already Current**: Count of applications that needed no updates.
 - **Attention Required**: Applications with updates found that require manual intervention or server coordination.
 - **Errors**: Failures, timeouts, or invalid credentials.
+- **Copy Log to Clipboard**: Includes a dedicated button (`Alt+C`) to copy the formatted summary report along with all raw daily log entries to the clipboard for ticketing or documentation.
 
 ---
 

@@ -222,6 +222,12 @@
   - [x] Guard main QuickBooks window wait loop against false-positive matching on the subscription dialog (`ExcludeTitle: "subscription"` and explicit dismissal before `WinWait`).
   - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
   - [x] Atomically commit Step 4.4l.
+- [x] **Step 4.4m**: Add "Copy Log to Clipboard" Button to Batch Summary Dialog
+  - [x] Replace standard `MsgBox` in `ShowSummaryReport(results)` with a dedicated `+AlwaysOnTop` summary dialog.
+  - [x] Implement "Copy Log to Clipboard" button that copies the formatted summary report along with today's log entries to `A_Clipboard`, with dynamic button feedback ("Copied to Clipboard!").
+  - [x] Add "Close" button and escape / close handlers.
+  - [x] Validate via `smoke.ps1`, recompile `NMGIupdates.exe` via `Ahk2Exe.exe`, and test compiled binary.
+  - [x] Atomically commit Step 4.4m.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 
 
