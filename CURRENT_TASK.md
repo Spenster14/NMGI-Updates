@@ -202,5 +202,11 @@
   - [x] Propagate `SubmitCSDatabaseLogin` return value in `Lib/UpdateAccountingCS.ahk` and `Lib/UpdatePractice.ahk` to exit cleanly on failure.
   - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
   - [x] Atomically commit Step 4.4h.
+- [x] **Step 4.4i**: Patient Single-Submit Authentication & Multi-Popup Dismissal
+  - [x] Single submit action in `Core/CSConnect.ahk` (`SubmitCSDatabaseLogin`): eliminate multi-message rapid-fire submission (`ControlClick` + `BM_CLICK` + `{Enter}`) in favor of a single deliberate submit.
+  - [x] Patient validation wait loop: after submitting once, wait up to 45s without re-submitting while SQL database verification completes.
+  - [x] Comprehensive multi-popup dismissal (`DismissAllLoginErrors`): poll parent text and child control text across all process and title windows, dismissing any and all cascading error modals.
+  - [x] Validate via `smoke.ps1` and recompile `NMGIupdates.exe` via `Ahk2Exe.exe`.
+  - [x] Atomically commit Step 4.4i.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
 

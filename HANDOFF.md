@@ -211,8 +211,25 @@
 ### Unfinished Logic / Known Quirks Documented
 - Thomson Reuters Error Modal Title: In CS Professional Suite, credential error modals share the application title (`Accounting CS` / `Practice CS`). Matching the window text (`"not valid for the Firm"`) distinguishes the error dialog from the parent window.
 
+- **Step 4.4i**:
+  - CS Suite Patient Single-Submit Authentication & Multi-Popup Dismissal:
+    - Root cause of multiple popups: `SubmitCSDatabaseLogin` fired `ControlClick`, `BM_CLICK`, and `Send("{Enter}")` simultaneously and re-entered the submit loop before Practice CS finished checking the database, causing Practice CS to generate 3 stacked error modals.
+    - Switched to a single deliberate submit event (`ControlClick("OK")` or `{Enter}`), completely eliminating rapid-fire multi-click spam.
+    - Exited the input loop immediately upon submission and transitioned into a dedicated 45s yielding polling loop that waits for database validation without re-submitting.
+    - Implemented `DismissAllLoginErrors(winPrefix, exeName, loginHwnd)`:
+      - Searches across all window handles from both `ahk_exe exeName` and `winPrefix`.
+      - Inspects parent window text and child `WindowsForms10.STATIC` label control text via `ControlGetText` (resolving issue where WinForms labels omit parent `WM_GETTEXT`).
+      - Recursively detects and closes all cascading/stacked error popups in a loop, dismisses the underlying login card, updates launcher status, and returns `" - Error (Invalid credentials)"`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe` and smoke tested the compiled binary; confirmed clean startup with zero runtime errors (`Running OK PID: 4512`).
+
+### Unfinished Logic / Known Quirks Documented
+- Windows Forms Label Enumeration: .NET `Label` controls do not always return their text when `WinGetText` is called on the parent Form. Explicitly querying child controls via `ControlGetText` on each `cHwnds[i]` guarantees 100% reliable error text extraction.
+
 ### Next Step / Status
-- Step 4.4h complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
+- Step 4.4i complete. Ready for operator testing of `NMGIupdates.exe` on live workstation.
 - Next step upon user confirmation: Step 4.5: End-to-End Suite Smoke & Packaging (verifying all active modules, reviewing CHANGELOG.md for Milestone 4 wrap-up).
 
 

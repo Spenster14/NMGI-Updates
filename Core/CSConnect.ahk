@@ -269,78 +269,68 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
                 }
 
                 ; Inject password into the verified password control
-                submittedNow := false
                 if (pwdCtrl) {
                     try ControlFocus(pwdCtrl, "ahk_id " . loginHwnd)
-                    Sleep(100)
-                    try ControlClick(pwdCtrl, "ahk_id " . loginHwnd, , , , "NA")
-                    Sleep(100)
-                    Send("^a")
-                    Sleep(50)
-                    SendText(dbPassword)
-                    Sleep(100)
-                    try ControlSetText(dbPassword, pwdCtrl, "ahk_id " . loginHwnd)
                     Sleep(150)
-
-                    if (okCtrlHwnd) {
-                        try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
-                        try PostMessage(0x00F5, 0, 0, okCtrlHwnd, "ahk_id " . loginHwnd)
-                    }
-                    Send("{Enter}")
-                    submittedNow := true
+                    try ControlClick(pwdCtrl, "ahk_id " . loginHwnd, , , , "NA")
+                    Sleep(150)
+                    Send("^a{Backspace}")
+                    Sleep(100)
+                    SendText(dbPassword)
+                    Sleep(200)
                 } else if (pwdLabelHwnd) {
-                    ; Geometric fallback: click directly to the right of the "Password:" label
                     clickX := lx + lw + 40
                     clickY := ly + (lh // 2)
                     ControlClick("x" . clickX . " y" . clickY, "ahk_id " . loginHwnd, , , , "NA")
-                    Sleep(100)
-                    Send("^a")
-                    Sleep(50)
-                    SendText(dbPassword)
                     Sleep(150)
-                    if (okCtrlHwnd) {
-                        try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
-                    }
-                    Send("{Enter}")
-                    submittedNow := true
+                    Send("^a{Backspace}")
+                    Sleep(100)
+                    SendText(dbPassword)
+                    Sleep(200)
                 }
 
-                if (submittedNow) {
-                    ; Poll up to 4s: check if error dialog appeared, dialog closed, or dashboard appeared
-                    tSub := A_TickCount
-                    while (A_TickCount - tSub < 4000) {
-                        if WinExist(winPrefix . " -") {
-                            handledLogin := true
-                            break
-                        }
-                        if CheckCSLoginError(winPrefix, exeName, loginHwnd) {
-                            return " - Error (Invalid credentials)"
-                        }
-                        if (!WinExist("ahk_id " . loginHwnd)) {
-                            handledLogin := true
-                            break
-                        }
-                        Sleep(150)
-                    }
-                    if (handledLogin)
-                        break
+                ; SINGLE deliberate submit action - never spam multiple click events
+                UpdateStatus("Submitting " . winPrefix . " credentials...", 100, 100)
+                if (okCtrlHwnd) {
+                    try ControlClick(okCtrlHwnd, "ahk_id " . loginHwnd, , , , "NA")
+                } else {
+                    Send("{Enter}")
                 }
+
+                ; Exit the input loop immediately so we never re-enter or re-submit
+                handledLogin := true
+                break
             }
             Sleep(500)
         }
     }
 
-    UpdateStatus("Waiting for " . winPrefix . " dashboard to load...", 100, 100)
+    ; Patient verification loop: wait for SQL database verification over network without re-submitting
+    UpdateStatus("Waiting for " . winPrefix . " database verification...", 100, 100)
     tWait := A_TickCount
     dashboardLoaded := false
-    while (A_TickCount - tWait < 60000) {
+    while (A_TickCount - tWait < 45000) {
+        ; 1. Check if dashboard appeared
         if WinExist(winPrefix . " -") {
             dashboardLoaded := true
             break
         }
-        if CheckCSLoginError(winPrefix, exeName, loginHwnd) {
+
+        ; 2. Check if error dialog appeared (and dismiss all stacked popups if multiple exist)
+        if DismissAllLoginErrors(winPrefix, exeName, loginHwnd) {
+            ; Dismiss the underlying login card
+            if (loginHwnd && WinExist("ahk_id " . loginHwnd)) {
+                try ControlClick("Cancel", "ahk_id " . loginHwnd, , , , "NA")
+                Send("{Esc}")
+                Sleep(200)
+            } else if (WinExist(winPrefix)) {
+                try ControlClick("Cancel", winPrefix, , , , "NA")
+                Send("{Esc}")
+            }
+            UpdateStatus(winPrefix . ": Invalid database credentials.")
             return " - Error (Invalid credentials)"
         }
+
         Sleep(250)
     }
 
@@ -354,45 +344,96 @@ SubmitCSDatabaseLogin(winPrefix, exeName, dbPassword) {
     return true
 }
 
-; Detects and dismisses the Thomson Reuters invalid credential error dialog.
-; Returns true if the error dialog was found and dismissed; false otherwise.
-CheckCSLoginError(winPrefix, exeName, loginHwnd := 0) {
-    hwnds := []
-    if (exeName != "") {
-        try hwnds := WinGetList("ahk_exe " . exeName)
-    }
-    if (hwnds.Length == 0) {
-        try hwnds := WinGetList(winPrefix)
-    }
+; Detects and dismisses Thomson Reuters invalid credential error dialogs.
+; Recursively clears any stacked error modals and returns true if any were handled.
+DismissAllLoginErrors(winPrefix, exeName, loginHwnd := 0) {
+    foundAny := false
 
-    for h in hwnds {
-        if (loginHwnd && h == loginHwnd)
-            continue
+    loop 5 {
+        foundThisIter := false
+        hwnds := []
+        if (exeName != "") {
+            try {
+                for h in WinGetList("ahk_exe " . exeName)
+                    hwnds.Push(h)
+            }
+        }
+        try {
+            for h in WinGetList(winPrefix) {
+                already := false
+                for existing in hwnds {
+                    if (existing == h) {
+                        already := true
+                        break
+                    }
+                }
+                if (!already)
+                    hwnds.Push(h)
+            }
+        }
 
-        ; Check text of the window
-        txt := ""
-        try txt := WinGetText("ahk_id " . h)
-        if (InStr(txt, "not valid for the Firm") || InStr(txt, "valid Staff ID and Password") || (InStr(txt, "Staff ID") && InStr(txt, "Password") && InStr(txt, "not valid"))) {
-            ; Dismiss the error popup
-            try ControlClick("OK", "ahk_id " . h, , , , "NA")
-            try ControlClick("Button1", "ahk_id " . h, , , , "NA")
-            try PostMessage(0x0111, 1, 0, , "ahk_id " . h) ; IDOK
-            Send("{Enter}")
-            Sleep(300)
+        for h in hwnds {
+            if (loginHwnd && h == loginHwnd)
+                continue
 
-            ; Dismiss the login card so the process isn't left hanging
-            if (loginHwnd && WinExist("ahk_id " . loginHwnd)) {
-                try ControlClick("Cancel", "ahk_id " . loginHwnd, , , , "NA")
-                Send("{Esc}")
-                Sleep(300)
-            } else if (WinExist(winPrefix)) {
-                try ControlClick("Cancel", winPrefix, , , , "NA")
-                Send("{Esc}")
+            ; 1. Check parent window text
+            wText := ""
+            try wText := WinGetText("ahk_id " . h)
+
+            ; 2. Inspect child controls for text (critical for WinForms STATIC labels)
+            cList := []
+            cHwnds := []
+            try cList := WinGetControls("ahk_id " . h)
+            try cHwnds := WinGetControlsHwnd("ahk_id " . h)
+            for idx, cName in cList {
+                cTxt := ""
+                try cTxt := ControlGetText(cHwnds[idx], "ahk_id " . h)
+                if (cTxt != "")
+                    wText .= " " . cTxt
             }
 
-            UpdateStatus(winPrefix . ": Invalid database credentials.")
-            return true
+            ; 3. UIA fallback on small dialog
+            if (!InStr(wText, "not valid for the Firm")) {
+                try {
+                    oldTo := UIA.TransactionTimeout
+                    UIA.TransactionTimeout := 500
+                    hEl := UIA.ElementFromHandle(h)
+                    wText .= " " . hEl.DumpAll()
+                    UIA.TransactionTimeout := oldTo
+                }
+            }
+
+            if (InStr(wText, "not valid for the Firm") || InStr(wText, "valid Staff ID and Password") || (InStr(wText, "Staff ID") && InStr(wText, "Password") && InStr(wText, "not valid"))) {
+                foundAny := true
+                foundThisIter := true
+
+                ; Find and click the OK button on the error popup
+                okClicked := false
+                for idx, cName in cList {
+                    if InStr(cName, "Button") {
+                        bTxt := ""
+                        try bTxt := ControlGetText(cHwnds[idx], "ahk_id " . h)
+                        if (bTxt = "OK" || InStr(bTxt, "OK")) {
+                            ControlClick(cHwnds[idx], "ahk_id " . h, , , , "NA")
+                            okClicked := true
+                            break
+                        }
+                    }
+                }
+                if (!okClicked) {
+                    try ControlClick("OK", "ahk_id " . h, , , , "NA")
+                    try PostMessage(0x0111, 1, 0, , "ahk_id " . h) ; IDOK
+                    Send("{Enter}")
+                }
+                try WinClose("ahk_id " . h)
+                Sleep(250)
+                break ; restart search to catch any underlying stacked popups
+            }
         }
+
+        if (!foundThisIter)
+            break
     }
-    return false
+
+    return foundAny
 }
