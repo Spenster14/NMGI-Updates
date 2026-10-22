@@ -1,6 +1,12 @@
 #Requires AutoHotkey v2.0
 
 GetChromePath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("chrome.exe", ["(?i)Google\s*Chrome|(?i)\bChrome\b"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     if FileExist("C:\Program Files\Google\Chrome\Application\chrome.exe")
         return "C:\Program Files\Google\Chrome\Application\chrome.exe"
     else if FileExist("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")

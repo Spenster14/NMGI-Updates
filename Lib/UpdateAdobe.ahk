@@ -3,6 +3,12 @@
 ; Supports 64-bit and 32-bit Adobe Acrobat DC / Pro / 2020.
 
 GetAdobePath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath(["Acrobat.exe", "AcroRd32.exe"], ["(?i)Adobe\s*Acrobat|(?i)\bAcrobat\b|(?i)Adobe\s*Reader"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     candidates := [
         "C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe",
         "C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe",

@@ -1,6 +1,12 @@
 #Requires AutoHotkey v2.0
 
 GetEdgePath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("msedge.exe", ["(?i)Microsoft\s*Edge|(?i)\bEdge\b"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     if FileExist("C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
         return "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
     else if FileExist("C:\Program Files\Microsoft\Edge\Application\msedge.exe")

@@ -1,6 +1,12 @@
 #Requires AutoHotkey v2.0
 
 GetFirefoxPath() {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath("firefox.exe", ["(?i)Mozilla\s*Firefox|(?i)\bFirefox\b"])
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     if FileExist("C:\Program Files\Mozilla Firefox\firefox.exe")
         return "C:\Program Files\Mozilla Firefox\firefox.exe"
     else if FileExist("C:\Program Files (x86)\Mozilla Firefox\firefox.exe")

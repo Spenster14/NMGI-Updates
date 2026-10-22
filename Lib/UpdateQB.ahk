@@ -26,6 +26,21 @@ GetQBPath(QBversion) {
     if (cfg = "")
         return ""
     
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    year := SubStr(QBversion, 1, 2)
+    isEnterprise := InStr(QBversion, "Enterprise") ? true : false
+    scPath := FindShortcutPath(
+        ["qbw32.exe", "QBWEnterpriseAccountant.exe", "QBWEnterprise.exe", "QBWPremierAccountant.exe", "QBWPremier.exe", "QBWPro.exe", "QBW32Enterprise.exe", "QBW32EnterpriseAccountant.exe"],
+        ,
+        (item) => (
+            (isEnterprise ? (InStr(item.Target, "Enterprise") || InStr(item.LnkName, "Enterprise")) : (!InStr(item.Target, "Enterprise") && !InStr(item.LnkName, "Enterprise")))
+            && (InStr(item.Target, "20" . year) || InStr(item.Target, " " . year . ".") || InStr(item.LnkName, "20" . year) || InStr(item.LnkName, year))
+        )
+    )
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     QBLongName := cfg.Name
     exes := (Type(cfg.Exe) = "Array") ? cfg.Exe : [cfg.Exe]
     

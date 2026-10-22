@@ -379,9 +379,23 @@
 - Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
 - Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 42004)`).
 
+- **Step 5.3**:
+  - Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers:
+    - Updated `GetQBPath(QBversion)` in `Lib/UpdateQB.ahk`: checks `qbw32.exe` and specialized QuickBooks binaries with year and edition (Enterprise vs Premier) closure matching before `C:\Program Files\Intuit\` search.
+    - Updated `GetLacertePath(year)` in `Lib/UpdateLacerte.ahk`: checks `w[XX]tax-launcher.exe` and `w[XX]tax.exe` shortcuts matching `(?i)Lacerte.*20[XX]|(?i)20[XX].*Lacerte|(?i)Lacerte.*[XX]` before standard local folder.
+    - Updated `GetAdobePath()` in `Lib/UpdateAdobe.ahk`: checks `Acrobat.exe` and `AcroRd32.exe` shortcuts matching `(?i)Adobe\s*Acrobat|(?i)\bAcrobat\b|(?i)Adobe\s*Reader` before candidate list.
+    - Updated `GetChromePath()` in `Lib/UpdateChrome.ahk`: checks `chrome.exe` shortcuts matching `(?i)Google\s*Chrome|(?i)\bChrome\b`.
+    - Updated `GetEdgePath()` in `Lib/UpdateEdge.ahk`: checks `msedge.exe` shortcuts matching `(?i)Microsoft\s*Edge|(?i)\bEdge\b`.
+    - Updated `GetFirefoxPath()` in `Lib/UpdateFirefox.ahk`: checks `firefox.exe` shortcuts matching `(?i)Mozilla\s*Firefox|(?i)\bFirefox\b`.
+
+### Tested
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 13308)`).
+
 ### Next Step / Status
-- Step 5.2 complete.
-- Next step: Step 5.3: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers (`Lib/UpdateQB.ahk`, `Lib/UpdateLacerte.ahk`, `Lib/UpdateAdobe.ahk`, `Lib/UpdateChrome.ahk`, `Lib/UpdateEdge.ahk`, `Lib/UpdateFirefox.ahk`).
+- Step 5.3 complete.
+- Next step: Step 5.4: Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration.
 
 
 

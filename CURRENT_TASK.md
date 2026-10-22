@@ -2,7 +2,7 @@
 
 ## Status
 - **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
-- **Active Step**: Step 5.3: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers
+- **Active Step**: Step 5.4: Authoritative Shortcut Synchronization in Core/Config.ahk & Dashboard Integration
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -292,9 +292,14 @@
   - [x] Integrated `FindShortcutPath` into `Lib/UpdateFPS.ahk` (`FAS.EXE`).
   - [x] Integrated `FindShortcutPath` into `Lib/UpdatePPC.ahk` (`PPCWebMultiSelect.exe`).
   - [x] Atomically commit Step 5.2.
-- [ ] **Step 5.3**: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers
-  - Update `Lib/UpdateQB.ahk`, `Lib/UpdateLacerte.ahk`, `Lib/UpdateAdobe.ahk`, `Lib/UpdateChrome.ahk`, `Lib/UpdateEdge.ahk`, `Lib/UpdateFirefox.ahk`.
-  - Atomically commit Step 5.3.
+- [x] **Step 5.3**: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateQB.ahk` with year and Enterprise/Premier filtering.
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateLacerte.ahk` (`w[XX]tax-launcher.exe`, `w[XX]tax.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateAdobe.ahk` (`Acrobat.exe`, `AcroRd32.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateChrome.ahk` (`chrome.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateEdge.ahk` (`msedge.exe`).
+  - [x] Integrated `FindShortcutPath` into `Lib/UpdateFirefox.ahk` (`firefox.exe`).
+  - [x] Atomically commit Step 5.3.
 - [ ] **Step 5.4**: Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration
   - Update `ResolveAppPath` to synchronize with authoritative desktop shortcuts.
   - Wire `ClearShortcutCache()` into `ClearHostCache()` and `btnRescan`.

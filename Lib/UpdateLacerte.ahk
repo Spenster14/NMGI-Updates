@@ -3,6 +3,15 @@
 #Include <UIA_Browser>
 
 GetLacertePath(year) {
+    ; 1. Authoritative desktop shortcuts (C:\Users\Public\Desktop\Applications, etc.)
+    scPath := FindShortcutPath(
+        ["w" . year . "tax-launcher.exe", "w" . year . "tax.exe"],
+        ["(?i)Lacerte.*20" . year . "|(?i)20" . year . ".*Lacerte|(?i)Lacerte.*" . year]
+    )
+    if (scPath != "")
+        return scPath
+
+    ; 2. Candidate local paths
     pathLauncher := "C:\Lacerte\" year "tax\w" year "tax-launcher.exe"
     if FileExist(pathLauncher)
         return pathLauncher
