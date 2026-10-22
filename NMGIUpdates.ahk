@@ -40,6 +40,7 @@ if (!A_IsAdmin) {
 #Include <UpdatePractice>
 #Include <UpdateLacerte>
 #Include Core\Network.ahk
+#Include Core\ShortcutScanner.ahk
 #Include Core\Process.ahk
 #Include Core\CSConnect.ahk
 #Include Core\Logger.ahk
@@ -119,6 +120,7 @@ BuildGUI(forceRescan := false) {
 
     if (forceRescan) {
         ClearHostCache()
+        ClearShortcutCache()
     }
 
     FoundApps := []

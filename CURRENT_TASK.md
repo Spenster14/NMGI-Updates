@@ -1,8 +1,8 @@
 # Current Task Tracker: Modernizing Jacro Architecture
 
 ## Status
-- **Current Phase**: Module Expansion (Milestone 4)
-- **Active Step**: Step 4.5: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
+- **Current Phase**: Shortcut-First Discovery Engine (Milestone 5)
+- **Active Step**: Step 5.2: Wire Shortcut Discovery into Thomson Reuters Modules
 - **Rule Constraints**: Maintain atomic commits. Follow Pre-Execution Checkpoint Protocol.
 
 ---
@@ -269,7 +269,31 @@
   - [x] Fix `Core/Network.ahk` (`IsHostReachable`): Updated `ai_addr` offset to `16 + A_PtrSize * 2`, switched `hints` to `AF_UNSPEC (0)`, and dynamically created socket matching `ai_family`, `ai_socktype`, and `ai_protocol`.
   - [x] Verified socket connection via diagnostic test (`reachable: True`, select = 1).
   - [x] Validated via `smoke.ps1`, recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`, and verified compiled binary (`smoke_exe.ps1`).
-  - [x] Atomically commit Step 4.4s.
 - [ ] **Step 4.5**: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up)
+
+---
+
+### Milestone 5: Shortcut-First Discovery Engine
+*Goal: Rebuild Jacro's application discovery into a 2-tier architecture that searches authoritative desktop shortcuts in C:\Users\Public\Desktop\Applications (and recursive subfolders) before falling back to candidate path lists.*
+
+- [x] **Step 5.1**: Build `Core/ShortcutScanner.ahk`
+  - [x] Implement prioritized directory discovery (`C:\Users\Public\Desktop\Applications`, `A_Desktop . "\Applications"`, Public Desktop root, User Desktop root).
+  - [x] Implement fast recursive `.lnk` parsing and in-memory indexing (`IndexShortcuts`) with `ExpandEnvVars` support.
+  - [x] Implement signature matching (`FindShortcutPath`) with 2-pass prioritization (Applications folder first, then Desktop root) and `SafeFileExist` validation.
+  - [x] Provide `ClearShortcutCache()` and wire into `BuildGUI(forceRescan)` in `NMGIUpdates.ahk`.
+  - [x] Validate with unit tests and mock recursive nested folder tests.
+  - [x] Atomically commit Step 5.1.
+- [ ] **Step 5.2**: Wire Shortcut Discovery into Thomson Reuters Modules
+  - Update `Lib/UpdateFixedAssets.ahk`, `Lib/UpdateUT.ahk`, `Lib/UpdateFileCabinet.ahk`, `Lib/UpdateAccountingCS.ahk`, `Lib/UpdatePractice.ahk`, `Lib/UpdateFPS.ahk`, `Lib/UpdatePPC.ahk`.
+  - Atomically commit Step 5.2.
+- [ ] **Step 5.3**: Wire Shortcut Discovery into QuickBooks, Lacerte, Adobe & Browsers
+  - Update `Lib/UpdateQB.ahk`, `Lib/UpdateLacerte.ahk`, `Lib/UpdateAdobe.ahk`, `Lib/UpdateChrome.ahk`, `Lib/UpdateEdge.ahk`, `Lib/UpdateFirefox.ahk`.
+  - Atomically commit Step 5.3.
+- [ ] **Step 5.4**: Authoritative Shortcut Synchronization in `Core/Config.ahk` & Dashboard Integration
+  - Update `ResolveAppPath` to synchronize with authoritative desktop shortcuts.
+  - Wire `ClearShortcutCache()` into `ClearHostCache()` and `btnRescan`.
+  - Atomically commit Step 5.4.
+- [ ] **Step 5.5**: End-to-End Verification, Documentation & Release
+  - Atomically commit Step 5.5.
 
 

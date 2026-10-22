@@ -347,7 +347,26 @@
 
 ### Next Step / Status
 - Step 4.4s complete.
-- Next step: Step 4.5: End-to-End Suite Smoke & Packaging (Milestone 4 Wrap-Up).
+- Transitioned to Milestone 5: Shortcut-First Discovery Engine (approved by user in `shortcut_architecture_plan.md`).
+
+- **Step 5.1**:
+  - Build `Core/ShortcutScanner.ahk`:
+    - Implemented `GetShortcutSearchRoots()` querying `C:\Users\Public\Desktop\Applications`, `A_Desktop . "\Applications"`, Public Desktop root, and User Desktop root.
+    - Implemented `IndexShortcuts(forceRefresh)`: recursively walks roots (`Loop Files, root . "\*.lnk", "R"`), extracts target/workingDir/args/description via `FileGetShortcut`, expands environment variables via `ExpandEnvironmentStrings` (`ExpandEnvVars`), and caches entries in `ShortcutCache`.
+    - Implemented `FindShortcutPath(exeNames, namePatterns, filterFn)`: two-pass priority matching (pass 1 strictly scans `Applications` folder and subfolders; pass 2 searches Desktop roots as fallback). Validates physical reachability and existence with `SafeFileExist(target)`.
+    - Provided `ClearShortcutCache()` and wired into `BuildGUI(forceRescan)` in `NMGIUpdates.ahk`.
+    - Included `#Include Core\ShortcutScanner.ahk` in `NMGIUpdates.ahk`.
+
+### Tested
+- Tested `Core/ShortcutScanner.ahk` with unit test script: indexed 16 active desktop shortcuts in <10ms; successfully matched `chrome.exe` and `msedge.exe`; returned empty string for missing apps without hanging.
+- Tested recursive nested folder scanning with mock directory (`scratch\mock_root\Applications\Accounting\Fixed Assets CS.lnk`); verified nested `.lnk` discovery and `IsApplicationsFolder` flag.
+- Automated AHK v2 smoke test (`smoke.ps1`) passes cleanly (`PASS: script still running after 8 s`).
+- Recompiled `NMGIupdates.exe` via `Ahk2Exe.exe`.
+- Smoke tested the compiled binary (`smoke_exe.ps1`); confirmed clean startup with zero runtime errors (`PASS: exe still running after 6 s (PID 36160)`).
+
+### Next Step / Status
+- Step 5.1 complete.
+- Next step: Step 5.2: Wire Shortcut Discovery into Thomson Reuters Modules (`Lib/UpdateFixedAssets.ahk`, `Lib/UpdateUT.ahk`, `Lib/UpdateFileCabinet.ahk`, `Lib/UpdateAccountingCS.ahk`, `Lib/UpdatePractice.ahk`, `Lib/UpdateFPS.ahk`, `Lib/UpdatePPC.ahk`).
 
 
 
