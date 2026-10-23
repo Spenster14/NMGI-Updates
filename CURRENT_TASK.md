@@ -420,19 +420,21 @@
   - Clean `StopUpdating` and `ApplicationExit` shutdown.
   - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
 - [x] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. Script: `experiments/qb/test_update_all.ps1`.
-- **Step 6.7 FINDINGS & VERIFICATION (CRITICAL DIAGNOSIS)**:
-  - User clicked "Get Updates" in manual QB 2021 Enterprise GUI:
-    - Actively downloading: `New Features` (1.9 MB), `Maintenance Releases (E)` (95.4 MB), `Critical Fixes` (186 MB).
-    - Total ~283 MB of active patches being downloaded by official Intuit updater.
-  - Root Cause of Headless Updater False Negative (`- No updates`):
-    1. `DoUpdateNow` launches background transfer in `qbupdate.exe` and returns immediately.
-    2. Because `updateTask` completed its initial COM dispatch in 1s, the script loop exited at 1s and immediately called `agent.StopUpdating(...)`, prematurely killing the active download!
-    3. The channel for Enterprise Maintenance is `EPatch` / `Belacct`, and Critical Fixes is `FSPUpgrade` / `SUpgrade`.
-    4. Downloads of 280+ MB require active progress polling (inspecting download directory or `qbupdate.exe` process or `InstallPending`), NOT an immediate `StopUpdating`.
-  - Action Plan:
-    1. Allow the manual GUI update to complete on RASMASTER1 and inspect the resulting files, `Qbchan.dat`, and version.
-    2. Inspect what `qbupdate.exe` and `ServiceManager` methods were active during the GUI update.
-- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (PAUSED FOR INVESTIGATION)
+- **Step 6.7 FINDINGS & VERIFICATION (FORENSIC BREAKTHROUGH)**:
+  - User ran manual update on QB Enterprise 21.0. `inspect_post_install.ps1` confirmed:
+    - Installed: `EPatch` (`QB2021_Core_R16R17_msp.dat` - 95 MB), `ULIP0` (Critical Fixes - 186 MB), `NewFeatures`, `Belacct`.
+    - `Install.log` updated with 40+ patched DLLs and manifests.
+    - `Qbchan.dat` confirmed active channels are explicitly flagged with `ActiveEnabled=1` and `BackgroundEnabled=1`.
+    - `ULIP0` is the internal channel name for "Critical Fixes".
+  - Confirmed Root Cause of Headless Updater Abort:
+    - `DoUpdateNow` initiates asynchronous out-of-process download in `qbupdate.exe` and returns immediately.
+    - C# task completed at 1s, causing script loop to break and immediately invoke `agent.StopUpdating(...)`, killing the 280MB download at 1s.
+  - Solution Architecture for Production Headless Engine:
+    1. Dynamic Channel Discovery: Parse `Qbchan.dat` for target QB edition to extract all channels with `ActiveEnabled=1` (e.g. `EPatch`, `ULIP0`, `NewFeatures`, `Belacct` for Enterprise; `SPatch`, `ULIP0`, `NewFeatures` for Premier/Pro).
+    2. Patient Download Monitor: Call `DoUpdateNow` and monitor `InstallPending` / download directory activity without calling `StopUpdating`.
+    3. Headless Installation: When downloads complete (`InstallPending > 0`), invoke `agent.Install(ver, flavor, path)` to silently apply the patches via `QBINSTAL.dll` / `qbpatch.exe`.
+    4. Test on untouched QuickBooks 2024 to prove headless download and install end-to-end.
+- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (ACTIVE)
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
 
 
