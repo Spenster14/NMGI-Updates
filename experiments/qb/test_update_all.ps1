@@ -1,3 +1,8 @@
+param(
+    [string]$Path = "",
+    [switch]$All
+)
+
 # Step 6.7 - Multi-channel headless update loop across all patch channels
 # Iterates through maintenance channels ("Patch", "EPatch", "SPatch", "FPatch"), monitors progress,
 # calls agent.Install() if updates are downloaded/pending, and returns standardized status.
@@ -193,32 +198,56 @@ try {
     Write-Warning "QBHeadlessEngine notice: $($_.Exception.Message)"
 }
 
+
 $candidates = @(
     "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe",
     "C:\Program Files\Intuit\QuickBooks Enterprise Solutions 24.0\qbw.exe",
     "C:\Program Files\Intuit\QuickBooks 2023\qbw.exe",
+    "C:\Program Files\Intuit\QuickBooks Enterprise Solutions 23.0\qbw.exe",
     "C:\Program Files\Intuit\QuickBooks 2022\qbw.exe",
-    "C:\Program Files (x86)\Intuit\QuickBooks 2021\qbw32.exe"
+    "C:\Program Files\Intuit\QuickBooks Enterprise Solutions 22.0\qbw.exe",
+    "C:\Program Files (x86)\Intuit\QuickBooks 2021\qbw32.exe",
+    "C:\Program Files (x86)\Intuit\QuickBooks Enterprise Solutions 21.0\qbw32.exe"
 )
 
-$targetExe = $null
-foreach ($c in $candidates) {
-    if (Test-Path $c) {
-        $targetExe = $c
-        break
+$targets = @()
+if ($Path) {
+    if (Test-Path $Path) { $targets += $Path }
+    else { Write-Host "Specified path not found: $Path" -ForegroundColor Red; exit 1 }
+} elseif ($All) {
+    foreach ($c in $candidates) {
+        if (Test-Path $c) { $targets += $c }
+    }
+} else {
+    # Default: if neither -Path nor -All is given, ask or default to updating all found
+    foreach ($c in $candidates) {
+        if (Test-Path $c) { $targets += $c }
     }
 }
 
 $patchChannels = @("Patch", "EPatch", "SPatch", "FPatch")
 
-$report = ""
-if ($targetExe) {
-    Write-Host "Running Headless Multi-Channel Update against: $targetExe" -ForegroundColor Cyan
-    # Run through the 4 patch channels with 15-second timeout per channel
-    $report = [QBHeadlessEngine]::RunFullUpdate($targetExe, $patchChannels, 15)
-} else {
-    $report = "No QuickBooks executable found on this machine."
+if ($targets.Count -eq 0) {
+    Write-Host "No QuickBooks executables found on this machine." -ForegroundColor Red
+    exit 0
 }
 
-$report | Out-File -FilePath $outFile -Encoding UTF8
-Write-Host $report
+Write-Host "Found $($targets.Count) QuickBooks installation(s) to process:" -ForegroundColor Cyan
+foreach ($t in $targets) { Write-Host "   -> $t" }
+
+$fullReport = New-Object System.Text.StringBuilder
+
+foreach ($targetExe in $targets) {
+    Write-Host "`n========================================================" -ForegroundColor Yellow
+    Write-Host "Processing: $targetExe" -ForegroundColor Yellow
+    Write-Host "========================================================" -ForegroundColor Yellow
+
+    # Run through the 4 patch channels with 15-second timeout per channel
+    $subReport = [QBHeadlessEngine]::RunFullUpdate($targetExe, $patchChannels, 15)
+    $fullReport.AppendLine($subReport)
+    Write-Host $subReport
+}
+
+$fullReport.ToString() | Out-File -FilePath $outFile -Encoding UTF8
+Write-Host "`nAll $($targets.Count) installation(s) completed. Report written to $outFile" -ForegroundColor Green
+
