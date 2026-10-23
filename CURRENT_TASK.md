@@ -376,7 +376,7 @@
   - InstanceFinder: `QBInstanceFinder.InstalledInstanceFinder.1` `{77AD5847-AE1B-4193-9F15-6E9B2D811E4D}`, `.InstalledInstanceInfo.1`, `.RunningInstanceFinder.1`, `.InstanceFinderUtil.1` (in-proc `QBInstanceFinder.dll`, both views).
   - Agent2003 CLSID has NO TypeLib key (unknown whether IDispatch is supported -> Step 6.2 tells us).
   - QB 2024 = `QuickBooks.Application.34` (`qbw.exe`, Ent 24.0 is same engine); 2023 = v33; 2022 = v32. Legacy 2010-2021 are 32-bit (`qbw32.exe`).
-- [ ] **Step 6.2**: Instantiate each COM object from AHK (64-bit and 32-bit); no update calls. (ACTIVE) Scripts: `experiments/qb/com_instantiate.ahk`, `experiments/qb/run_com_instantiate.ps1` -> `com_instantiate.txt`.
+- [ ] **Step 6.2**: Instantiate each COM object from 64-bit and 32-bit hosts; no update calls. (ACTIVE) Scripts: `experiments/qb/com_instantiate.ps1` (zero-dependency native PowerShell testing both 64-bit and 32-bit COM), `experiments/qb/com_instantiate.ahk` / compiled `.exe` -> `com_instantiate.txt`.
 - [ ] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.).
 - [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse.
 - [ ] **Step 6.5**: Safe first call: `Initialize` + `ApplicationExit` only.
