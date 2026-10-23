@@ -420,16 +420,19 @@
   - Clean `StopUpdating` and `ApplicationExit` shutdown.
   - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
 - [x] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. Script: `experiments/qb/test_update_all.ps1`.
-- **Step 6.7 FINDINGS & VERIFICATION**:
-  - User tested `QuickBooks Enterprise Solutions 21.0` and inspected GUI:
-    - F2 Product Information: `QuickBooks Enterprise Solutions: Accountant 21.0 Release R16P` (R16_17).
-    - Update QuickBooks Desktop -> Update Now: `Last Checked: Tue, 01/23/2024 03:23 PM`, `Status: Nothing new downloaded`.
-    - Channels listed in 21.0 UI: `Essentials`, `New Features`, `Maintenance Releases (E)`, `Help`, `Enterprise Accountant`.
-  - Diagnosis:
-    1. In `test_update_all.ps1`, `Task.Factory.StartNew` had `catch {}` which suppressed any background exceptions from `agent.DoUpdateNow`.
-    2. Enterprise 21.0 channels may have different internal channel names (e.g. `Maintenance Releases (E)`, `Enterprise Accountant`, or `belacct`) or Intuit 2021 update servers may be offline (QB 2021 sunset May 2024).
-    3. Update `test_update_all.ps1` to unmask `updateTask.Exception`, query `serviceMgr.error(ch, out err)`, and inspect `channel.log` / `Qbchan.dat` for Enterprise 21.0.
-- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (PAUSED FOR VERIFICATION)
+- **Step 6.7 FINDINGS & VERIFICATION (CRITICAL DIAGNOSIS)**:
+  - User clicked "Get Updates" in manual QB 2021 Enterprise GUI:
+    - Actively downloading: `New Features` (1.9 MB), `Maintenance Releases (E)` (95.4 MB), `Critical Fixes` (186 MB).
+    - Total ~283 MB of active patches being downloaded by official Intuit updater.
+  - Root Cause of Headless Updater False Negative (`- No updates`):
+    1. `DoUpdateNow` launches background transfer in `qbupdate.exe` and returns immediately.
+    2. Because `updateTask` completed its initial COM dispatch in 1s, the script loop exited at 1s and immediately called `agent.StopUpdating(...)`, prematurely killing the active download!
+    3. The channel for Enterprise Maintenance is `EPatch` / `Belacct`, and Critical Fixes is `FSPUpgrade` / `SUpgrade`.
+    4. Downloads of 280+ MB require active progress polling (inspecting download directory or `qbupdate.exe` process or `InstallPending`), NOT an immediate `StopUpdating`.
+  - Action Plan:
+    1. Allow the manual GUI update to complete on RASMASTER1 and inspect the resulting files, `Qbchan.dat`, and version.
+    2. Inspect what `qbupdate.exe` and `ServiceManager` methods were active during the GUI update.
+- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (PAUSED FOR INVESTIGATION)
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
 
 
