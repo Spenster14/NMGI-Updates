@@ -404,8 +404,14 @@
   - 24 `qbchan.dat` files found across all installed QuickBooks editions (`C:\ProgramData\Intuit\<Edition>\Components\QBUpdate\Qbchan.dat`).
   - Active patch channels confirmed: `Patch`, `EPatch`, `SPatch`, `FPatch` (plus `Payroll`, `NewFeatures`, etc.).
   - `QBInstanceFinder`'s `GetInstallation` overload caused PowerShell adapter key collision; direct `IDispatch` or C# reflection avoids this entirely.
-- [ ] **Step 6.5**: Safe first call: Query `GetInstallationFromPath`, bind `cServiceManager.Initialize(ver, flavor, appPath)`, and cleanly disconnect via `ApplicationExit()` (no updates triggered). (ACTIVE) Script: `experiments/qb/test_bind.ps1`.
-- [ ] **Step 6.6**: Real update, ONE channel, on test PC (backup first).
+- [x] **Step 6.5**: Safe first call: Query `GetInstallationFromPath`, bind `cServiceManager.Initialize(ver, flavor, appPath)`, and cleanly disconnect via `ApplicationExit()` (no updates triggered). Script: `experiments/qb/test_bind.ps1`.
+- **Step 6.5 FINDINGS (RASMASTER1, QB 2024 Accountant v34 Release 21)**:
+  - `QBInstanceFinder` resolved exact parameters: `majorVersion: 34`, `flavor: "accountant"`, `exePath: "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe"`, `releaseNum: 21`.
+  - Identified pure `IUnknown` vtable requirement for `IServiceManager` and `IAgent` (bypassing `IDispatch`).
+  - `cServiceManager.Initialize(34, "accountant", "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe")` executed and bound to QuickBooks 2024 with zero errors.
+  - `serviceMgr.InstallPending("Patch", out isPending)` executed cleanly.
+  - `cServiceManager.ApplicationExit()` cleanly unbound and shut down without error.
+- [ ] **Step 6.6**: Real update, ONE channel (`Patch`), on test PC (backup `Components` folder first). Script: `experiments/qb/test_update_one.ps1`. (ACTIVE)
 - [ ] **Step 6.7**: Channel loop, timeouts, cleanup.
 - [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`.
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
