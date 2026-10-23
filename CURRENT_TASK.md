@@ -376,8 +376,12 @@
   - InstanceFinder: `QBInstanceFinder.InstalledInstanceFinder.1` `{77AD5847-AE1B-4193-9F15-6E9B2D811E4D}`, `.InstalledInstanceInfo.1`, `.RunningInstanceFinder.1`, `.InstanceFinderUtil.1` (in-proc `QBInstanceFinder.dll`, both views).
   - Agent2003 CLSID has NO TypeLib key (unknown whether IDispatch is supported -> Step 6.2 tells us).
   - QB 2024 = `QuickBooks.Application.34` (`qbw.exe`, Ent 24.0 is same engine); 2023 = v33; 2022 = v32. Legacy 2010-2021 are 32-bit (`qbw32.exe`).
-- [ ] **Step 6.2**: Instantiate each COM object from 64-bit and 32-bit hosts; no update calls. (ACTIVE) Scripts: `experiments/qb/com_instantiate.ps1` (zero-dependency native PowerShell testing both 64-bit and 32-bit COM), `experiments/qb/com_instantiate.ahk` / compiled `.exe` -> `com_instantiate.txt`.
-- [ ] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.).
+- [x] **Step 6.2**: Instantiate each COM object from 64-bit and 32-bit hosts; no update calls. Script: `experiments/qb/com_instantiate.ps1`.
+- **Step 6.2 FINDINGS (RASMASTER1, both 64-bit and 32-bit)**:
+  - All 6 components instantiate cleanly via ProgID: `Agent2003`, `ChNotify`, `ServiceManager2003`, `Services2003`, `InstalledInstanceFinder`, `InstanceFinderUtil`.
+  - `InstalledInstanceFinder` methods confirmed: `GetInstallationFromPath(path)`, `GetInstallation(...)`, `GetMatchingInstallation(...)`.
+  - `InstanceFinderUtil` methods confirmed: `CloseQBInBackground(int)`, `GetQBExeVersionInfo(string)`, etc.
+- [ ] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.) via `LoadTypeLibEx` on `qbupdate.exe`, `QBUServiceMgr.dll`, and `QBInstanceFinder.dll`. (ACTIVE) Script: `experiments/qb/dump_typelib.ps1`.
 - [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse.
 - [ ] **Step 6.5**: Safe first call: `Initialize` + `ApplicationExit` only.
 - [ ] **Step 6.6**: Real update, ONE channel, on test PC (backup first).
