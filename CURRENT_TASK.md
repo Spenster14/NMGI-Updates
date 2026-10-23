@@ -370,7 +370,13 @@
 *Goal: Update QuickBooks patches without opening QB, using Intuit COM objects (ServiceMgr / QBDAgent / QBInstanceFinder). Full plan: `qb_headless_plan.md` in artifacts. Kill criteria: COM objects missing, or DoUpdateNow needs interactive QB.*
 
 - [x] **Step 6.1**: COM recon (READ-ONLY) - scratch script scanning registry (64/32-bit views) for QBAgent/ServiceMgr/QBInstanceFinder ProgIDs, CLSIDs, server paths; output to text file. Script: `experiments/qb/com_recon.ps1`. Dev PC has no QuickBooks (0 Intuit COM objects); MUST be re-run on the QB test PC (output `com_recon.txt` next to script).
-- [ ] **Step 6.2**: Instantiate each COM object from AHK (64-bit and 32-bit); no update calls.
+- **Step 6.1 FINDINGS (RASMASTER1, QB 2022/2023/2024 64-bit + Ent 22/23/24 + legacy 32-bit 2010-2021)**:
+  - Agent: ProgID `QBDAgent2003.Agent2003.1`, CLSID `{20A10BD4-0FF4-45e8-87EF-D2708E99CEAA}`, **LocalServer32** (out-of-process) `...\Common Files\Intuit\QuickBooks\QBUpdate\qbupdate.exe`; registered in BOTH 64-bit and 32-bit views. Related: `QBDAgent.ChNotify.1` (TypeLib `{20A10BD3-64C9-4aeb-8C2B-EDED0B6958F5}`).
+  - ServiceMgr: ProgID `QBDServiceMgr2003.ServiceManager2003.1`, CLSID `{D83A0655-59E2-44a5-B1F0-CB07B9B972F2}`, **InprocServer32** `...\QBUpdate\QBUServiceMgr.dll` in both views (caller bitness must match the DLL). Also `QBDServiceMgr2003.Services2003.1` / `Service2003.1`.
+  - InstanceFinder: `QBInstanceFinder.InstalledInstanceFinder.1` `{77AD5847-AE1B-4193-9F15-6E9B2D811E4D}`, `.InstalledInstanceInfo.1`, `.RunningInstanceFinder.1`, `.InstanceFinderUtil.1` (in-proc `QBInstanceFinder.dll`, both views).
+  - Agent2003 CLSID has NO TypeLib key (unknown whether IDispatch is supported -> Step 6.2 tells us).
+  - QB 2024 = `QuickBooks.Application.34` (`qbw.exe`, Ent 24.0 is same engine); 2023 = v33; 2022 = v32. Legacy 2010-2021 are 32-bit (`qbw32.exe`).
+- [ ] **Step 6.2**: Instantiate each COM object from AHK (64-bit and 32-bit); no update calls. (ACTIVE) Scripts: `experiments/qb/com_instantiate.ahk`, `experiments/qb/run_com_instantiate.ps1` -> `com_instantiate.txt`.
 - [ ] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.).
 - [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse.
 - [ ] **Step 6.5**: Safe first call: `Initialize` + `ApplicationExit` only.
