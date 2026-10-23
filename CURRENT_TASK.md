@@ -399,8 +399,12 @@
     - `ChannelDownloadDir(channelName, pVal)`
   - `IInstalledInstanceFinder` (`QBInstanceFinder.dll`):
     - `GetInstallationFromPath(qbExePath)` -> returns `IInstalledInstanceInfo` object exposing `majorVersion`, `flavor`, `flavorID`, `exePath`, `releaseNumber`, `IsRunning()`.
-- [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse of channel names and log tail across QB editions on RASMASTER1. (ACTIVE) Script: `experiments/qb/find_channels.ps1`.
-- [ ] **Step 6.5**: Safe first call: `Initialize` + `ApplicationExit` only.
+- [x] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse of channel names and log tail across QB editions on RASMASTER1. Script: `experiments/qb/find_channels.ps1`.
+- **Step 6.4 FINDINGS (RASMASTER1)**:
+  - 24 `qbchan.dat` files found across all installed QuickBooks editions (`C:\ProgramData\Intuit\<Edition>\Components\QBUpdate\Qbchan.dat`).
+  - Active patch channels confirmed: `Patch`, `EPatch`, `SPatch`, `FPatch` (plus `Payroll`, `NewFeatures`, etc.).
+  - `QBInstanceFinder`'s `GetInstallation` overload caused PowerShell adapter key collision; direct `IDispatch` or C# reflection avoids this entirely.
+- [ ] **Step 6.5**: Safe first call: Query `GetInstallationFromPath`, bind `cServiceManager.Initialize(ver, flavor, appPath)`, and cleanly disconnect via `ApplicationExit()` (no updates triggered). (ACTIVE) Script: `experiments/qb/test_bind.ps1`.
 - [ ] **Step 6.6**: Real update, ONE channel, on test PC (backup first).
 - [ ] **Step 6.7**: Channel loop, timeouts, cleanup.
 - [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`.
