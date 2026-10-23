@@ -4,9 +4,9 @@ param(
     [switch]$ChildWorker
 )
 
-# Step 6.7 - Multi-channel headless update loop across all patch channels
-# Iterates through maintenance channels ("Patch", "EPatch", "SPatch", "FPatch"), monitors progress,
-# calls agent.Install() if updates are downloaded/pending, and returns standardized status.
+# Step 6.7 - Multi-channel headless update loop with dynamic channel discovery
+# Discovers active update channels from Qbchan.dat, monitors transfer progress,
+# invokes agent.Install() when pending updates are ready, and unbinds cleanly.
 
 $scriptDir = $PSScriptRoot
 $outFile = Join-Path $scriptDir "update_all_report.txt"
@@ -58,6 +58,22 @@ public interface IAgent
 
 public class QBHeadlessEngine
 {
+    private static long GetDirectorySize(string dirPath)
+    {
+        if (string.IsNullOrEmpty(dirPath) || !Directory.Exists(dirPath)) return 0;
+        try
+        {
+            long size = 0;
+            var di = new DirectoryInfo(dirPath);
+            foreach (var fi in di.GetFiles("*", SearchOption.AllDirectories))
+            {
+                size += fi.Length;
+            }
+            return size;
+        }
+        catch { return 0; }
+    }
+
     public static string RunFullUpdate(string exePath, string[] channels, int channelTimeoutSeconds)
     {
         var output = new System.Text.StringBuilder();
@@ -111,18 +127,37 @@ public class QBHeadlessEngine
             // 4. Iterate Channels
             foreach (string ch in channels)
             {
-                output.AppendLine(string.Format("\n>>> Processing Channel: {0} <<<", ch));
+                output.AppendLine(string.Format("\n>>> Checking Channel: {0} <<<", ch));
                 DateTime chStart = DateTime.Now;
 
+                // Check if already pending from prior run
+                int existingPending = 0;
+                try { serviceMgr.InstallPending(ch, out existingPending); } catch {}
+                if (existingPending > 0)
+                {
+                    output.AppendLine(string.Format("   Channel '{0}' already has {1} update(s) pending install.", ch, existingPending));
+                    totalPending += existingPending;
+                    continue;
+                }
+
+                // Query download directory for this channel
+                string chDownloadDir = null;
+                try { serviceMgr.ChannelDownloadDir(ch, out chDownloadDir); } catch {}
+                long lastDirBytes = GetDirectorySize(chDownloadDir);
+
+                // Initiate download
                 string taskError = null;
-                Task updateTask = Task.Factory.StartNew(() =>
+                Task.Factory.StartNew(() =>
                 {
                     try { agent.DoUpdateNow(ver, flavor, path, ch, 0); }
                     catch (Exception exTask) { taskError = exTask.ToString(); }
                 });
 
-                // Wait for channel completion or timeout
+                // Monitor transfer patiently
                 int waited = 0;
+                int quietSeconds = 0;
+                bool downloadComplete = false;
+
                 while (waited < channelTimeoutSeconds)
                 {
                     System.Threading.Thread.Sleep(1000);
@@ -134,34 +169,44 @@ public class QBHeadlessEngine
                         break;
                     }
 
-                    // Check channel error code
-                    int chErr = 0;
-                    try { serviceMgr.error(ch, out chErr); } catch {}
-                    if (chErr != 0)
-                    {
-                        output.AppendLine(string.Format("   [serviceMgr.error @ {0}s] Channel '{1}' returned error code: {2}", waited, ch, chErr));
-                    }
-
                     // Check if pending updates appeared
                     int pending = 0;
                     try { serviceMgr.InstallPending(ch, out pending); } catch {}
                     if (pending > 0)
                     {
-                        output.AppendLine(string.Format("   [Pending Detected @ {0}s] Channel '{1}' has updates pending ({2})", waited, ch, pending));
+                        output.AppendLine(string.Format("   [Updates Ready @ {0}s] Channel '{1}' finished downloading ({2} pending).", waited, ch, pending));
                         totalPending += pending;
+                        downloadComplete = true;
                         break;
                     }
 
-                    // Check if update task finished early
-                    if (updateTask.IsCompleted)
+                    // Check channel error code
+                    int chErr = 0;
+                    try { serviceMgr.error(ch, out chErr); } catch {}
+                    if (chErr != 0)
                     {
-                        output.AppendLine(string.Format("   Channel check completed at {0}s.", waited));
-                        break;
+                        output.AppendLine(string.Format("   [serviceMgr.error @ {0}s] Channel '{1}' error code: {2}", waited, ch, chErr));
+                    }
+
+                    // Track directory byte growth
+                    long currentDirBytes = GetDirectorySize(chDownloadDir);
+                    if (currentDirBytes > lastDirBytes)
+                    {
+                        output.AppendLine(string.Format("   [Transferring @ {0}s] Channel '{1}': {2:0.0} MB downloaded...", waited, ch, currentDirBytes / (1024.0 * 1024.0)));
+                        lastDirBytes = currentDirBytes;
+                        quietSeconds = 0;
+                    }
+                    else
+                    {
+                        quietSeconds++;
+                        // If no new bytes transferred for 8 seconds after initial 4 seconds, channel check is complete
+                        if (waited >= 4 && quietSeconds >= 8)
+                        {
+                            break;
+                        }
                     }
                 }
 
-                // Stop updating for this channel
-                try { agent.StopUpdating(ver, flavor, path, 0); } catch {}
                 int finalPending = 0;
                 try { serviceMgr.InstallPending(ch, out finalPending); } catch {}
                 int finalErr = 0;
@@ -172,16 +217,16 @@ public class QBHeadlessEngine
             // 5. If updates were downloaded/pending, trigger Install()
             if (totalPending > 0)
             {
-                output.AppendLine(string.Format("\nInstalling {0} pending update(s)...", totalPending));
+                output.AppendLine(string.Format("\nInstalling {0} pending update(s) headlessly...", totalPending));
                 try
                 {
                     agent.Install(ver, flavor, path);
                     anyUpdatesInstalled = true;
-                    output.AppendLine("   [SUCCESS] agent.Install() completed!");
+                    output.AppendLine("   [SUCCESS] agent.Install() executed successfully!");
                 }
                 catch (Exception exInst)
                 {
-                    output.AppendLine("   (Install notice: " + exInst.Message + ")");
+                    output.AppendLine("   (agent.Install notice: " + exInst.Message + ")");
                 }
             }
 
@@ -222,6 +267,55 @@ try {
     Write-Warning "QBHeadlessEngine notice: $($_.Exception.Message)"
 }
 
+function Get-ActiveQBChannels($targetExe) {
+    # Resolve target ProgramData folder from executable path
+    $parent = Split-Path -Parent $targetExe
+    $dirName = Split-Path -Leaf $parent
+    $progData = Join-Path $env:ProgramData "Intuit\$dirName"
+    $chanFile = Join-Path $progData "Components\QBUpdate\Qbchan.dat"
+
+    $channels = @()
+    if (Test-Path $chanFile) {
+        $content = Get-Content $chanFile -ErrorAction SilentlyContinue
+        $currentSection = ""
+        $isActive = $false
+        $isHidden = $false
+
+        foreach ($line in $content) {
+            $line = $line.Trim()
+            if ($line -match '^\[(.*)\]$') {
+                if ($currentSection -and $isActive -and -not $isHidden) {
+                    if ($currentSection -ne "ChannelInfo" -and $currentSection -ne "ChannelList") {
+                        $channels += $currentSection
+                    }
+                }
+                $currentSection = $matches[1]
+                $isActive = $false
+                $isHidden = $false
+            } elseif ($line -match '^ActiveEnabled\s*=\s*1') {
+                $isActive = $true
+            } elseif ($line -match '^HiddenEnabled\s*=\s*1') {
+                $isHidden = $true
+            }
+        }
+        if ($currentSection -and $isActive -and -not $isHidden) {
+            if ($currentSection -ne "ChannelInfo" -and $currentSection -ne "ChannelList") {
+                $channels += $currentSection
+            }
+        }
+    }
+
+    # If no channels detected from Qbchan.dat, use prioritized defaults based on edition
+    if ($channels.Count -eq 0) {
+        if ($targetExe -match "Enterprise") {
+            $channels = @("EPatch", "ULIP0", "NewFeatures", "Belacct")
+        } else {
+            $channels = @("SPatch", "Patch", "ULIP0", "NewFeatures", "Accountant")
+        }
+    }
+
+    return $channels
+}
 
 $candidates = @(
     "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe",
@@ -265,8 +359,6 @@ if ($Path) {
     }
 }
 
-$patchChannels = @("Patch", "EPatch", "SPatch", "FPatch")
-
 if ($targets.Count -eq 0) {
     Write-Host "No QuickBooks executables found on this machine." -ForegroundColor Red
     exit 0
@@ -274,7 +366,8 @@ if ($targets.Count -eq 0) {
 
 if ($ChildWorker) {
     # Child worker called for 32-bit architecture dispatch
-    $subReport = [QBHeadlessEngine]::RunFullUpdate($targets[0], $patchChannels, 15)
+    $activeChannels = Get-ActiveQBChannels $targets[0]
+    $subReport = [QBHeadlessEngine]::RunFullUpdate($targets[0], $activeChannels, 180)
     Write-Output $subReport
     exit 0
 }
@@ -302,13 +395,15 @@ foreach ($targetExe in $targets) {
         continue
     }
 
-    # Run through the 4 patch channels with 15-second timeout per channel
-    $subReport = [QBHeadlessEngine]::RunFullUpdate($targetExe, $patchChannels, 15)
+    # Discover active channels for this target edition
+    $activeChannels = Get-ActiveQBChannels $targetExe
+    Write-Host "Discovered $($activeChannels.Count) active update channels: $($activeChannels -join ', ')" -ForegroundColor Cyan
+
+    # Run full update with patient download monitoring (180s max timeout per channel)
+    $subReport = [QBHeadlessEngine]::RunFullUpdate($targetExe, $activeChannels, 180)
     $fullReport.AppendLine($subReport)
     Write-Host $subReport
 }
 
 $fullReport.ToString() | Out-File -FilePath $outFile -Encoding UTF8
 Write-Host "`nAll $($targets.Count) installation(s) completed. Report written to $outFile" -ForegroundColor Green
-
-
