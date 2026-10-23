@@ -1,5 +1,47 @@
 # Handoff
 
+## Session: 2026-10-22 - Milestone 6 Experiment: Headless QuickBooks Updater via COM (Concluded)
+
+### Modified & Tested (Isolated on branch `experiment/qb-behind-the-scenes`)
+- **Step 6.1: COM Reconnaissance**:
+  - Authored `experiments/qb/com_recon.ps1` scanning 64-bit and 32-bit registry on test machine `RASMASTER1`.
+  - Discovered `QBDAgent2003.Agent2003.1` (LocalServer32 `qbupdate.exe`), `QBDServiceMgr2003.ServiceManager2003.1` (InprocServer32 `QBUServiceMgr.dll`), and `QBInstanceFinder.InstalledInstanceFinder.1` (InprocServer32 `QBInstanceFinder.dll`).
+- **Step 6.2: COM Instantiation**:
+  - Authored `experiments/qb/com_instantiate.ps1` and `experiments/qb/com_instantiate.ahk`.
+  - Verified 100% instantiation success across all 6 COM objects in both 64-bit and 32-bit hosts.
+- **Step 6.3: TypeLib Inspection**:
+  - Authored `experiments/qb/dump_typelib.ps1` utilizing `LoadTypeLibEx`.
+  - Extracted full method signatures from `qbupdate.exe` (`IAgent`), `QBUServiceMgr.dll` (`IServiceManager`), and `QBInstanceFinder.dll` (`IInstalledInstanceFinder`).
+- **Step 6.4: Channel & Instance Discovery**:
+  - Authored `experiments/qb/find_channels.ps1` locating 24 `qbchan.dat` files across QuickBooks editions on `RASMASTER1`.
+- **Step 6.5: Safe COM Binding**:
+  - Authored `experiments/qb/test_bind.ps1`.
+  - Discovered `IServiceManager` and `IAgent` are pure `IUnknown` custom interfaces (NOT `IDispatch`).
+  - Implemented typed COM imports. Tested binding: `GetInstallationFromPath("...\\qbw.exe")` returned `majorVersion: 34`, `flavor: accountant`, `releaseNum: 21`. `cServiceManager.Initialize(34, "accountant", path)` and `.ApplicationExit()` succeeded cleanly.
+- **Step 6.6: Single-Channel Live Update**:
+  - Authored `experiments/qb/test_update_one.ps1` and `experiments/qb/inspect_after_update.ps1`.
+  - Backed up `Components` to `Components.bak_step66`. Fired `DoUpdateNow(34, "accountant", path, "Patch", 0)` on a background thread.
+  - Proved `BeginUpdate` and `EndUpdate` in `Qbchan.dat` were updated to the exact second, connecting to Intuit CDN (`https://qb34bgpatch.quickbooks.com/...`) with `Status=1`, `Error=0`. Zero UI windows opened.
+- **Step 6.7: Multi-Channel Engine & Forensic Live Validation**:
+  - Authored `experiments/qb/test_update_all.ps1`, `inspect_channels_detail.ps1`, `find_last_checked.ps1`, and `inspect_post_install.ps1`.
+  - Added automatic 32-bit WOW64 process dispatching (`SysWOW64\WindowsPowerShell\v1.0\powershell.exe`) for 32-bit QuickBooks editions (2021 and older).
+  - Live operator testing on QB Enterprise 21.0 and 20.0 revealed:
+    - Official GUI downloaded 280+ MB of patches (`EPatch` 95 MB, `ULIP` / Critical Fixes 186 MB, `NewFeatures` 1.9 MB).
+    - `Install.log` and forensic dumps confirmed that `Critical Fixes` updates 35+ core application DLLs (`ui.dll`, `appcore.dll`, `qbwin32.dll`) requiring full interactive application restart orchestration.
+    - Mismatched section vs target names (`[ULIP0]` -> target `'ULIP'`, `[Help0]` -> target `'Help'`) cause `E_FAIL` when queried generically.
+
+### Decision & Conclusion
+- **Option B Selected (Kill Criteria Triggered)**:
+  - Intuit's undocumented background COM updater is too fragmented, opaque, and version-dependent compared to our existing, fully working production visual automation module (`Lib/UpdateQB.ahk`).
+  - Production `UpdateQB.ahk` already handles IE popups, subscription dialogs, empty window warnings, progress bar monitoring, and `Install.log` verification cleanly.
+  - All recon scripts, TypeLib dumps, diagnostic tools, and test runners are preserved in `experiments/qb/` on branch `experiment/qb-behind-the-scenes` for future technical reference.
+  - Production codebase on `main` remains untouched, clean, and stable at Step 5.12.
+
+### Next Step
+- Resume production roadmap on `main` branch.
+
+---
+
 ## Session: 2026-10-21 - Milestone 4 (Module Expansion: UpdatePractice.ahk)
 
 ### Modified

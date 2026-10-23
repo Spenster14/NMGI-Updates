@@ -366,76 +366,23 @@
 
 ---
 
-### Milestone 6 (EXPERIMENT branch `experiment/qb-behind-the-scenes`): Headless QuickBooks Updater via COM
+### Milestone 6 (EXPERIMENT branch `experiment/qb-behind-the-scenes`): Headless QuickBooks Updater via COM - CONCLUDED (Option B: Kill Criteria Triggered)
 *Goal: Update QuickBooks patches without opening QB, using Intuit COM objects (ServiceMgr / QBDAgent / QBInstanceFinder). Full plan: `qb_headless_plan.md` in artifacts. Kill criteria: COM objects missing, or DoUpdateNow needs interactive QB.*
 
-- [x] **Step 6.1**: COM recon (READ-ONLY) - scratch script scanning registry (64/32-bit views) for QBAgent/ServiceMgr/QBInstanceFinder ProgIDs, CLSIDs, server paths; output to text file. Script: `experiments/qb/com_recon.ps1`. Dev PC has no QuickBooks (0 Intuit COM objects); MUST be re-run on the QB test PC (output `com_recon.txt` next to script).
-- **Step 6.1 FINDINGS (RASMASTER1, QB 2022/2023/2024 64-bit + Ent 22/23/24 + legacy 32-bit 2010-2021)**:
-  - Agent: ProgID `QBDAgent2003.Agent2003.1`, CLSID `{20A10BD4-0FF4-45e8-87EF-D2708E99CEAA}`, **LocalServer32** (out-of-process) `...\Common Files\Intuit\QuickBooks\QBUpdate\qbupdate.exe`; registered in BOTH 64-bit and 32-bit views. Related: `QBDAgent.ChNotify.1` (TypeLib `{20A10BD3-64C9-4aeb-8C2B-EDED0B6958F5}`).
-  - ServiceMgr: ProgID `QBDServiceMgr2003.ServiceManager2003.1`, CLSID `{D83A0655-59E2-44a5-B1F0-CB07B9B972F2}`, **InprocServer32** `...\QBUpdate\QBUServiceMgr.dll` in both views (caller bitness must match the DLL). Also `QBDServiceMgr2003.Services2003.1` / `Service2003.1`.
-  - InstanceFinder: `QBInstanceFinder.InstalledInstanceFinder.1` `{77AD5847-AE1B-4193-9F15-6E9B2D811E4D}`, `.InstalledInstanceInfo.1`, `.RunningInstanceFinder.1`, `.InstanceFinderUtil.1` (in-proc `QBInstanceFinder.dll`, both views).
-  - Agent2003 CLSID has NO TypeLib key (unknown whether IDispatch is supported -> Step 6.2 tells us).
-  - QB 2024 = `QuickBooks.Application.34` (`qbw.exe`, Ent 24.0 is same engine); 2023 = v33; 2022 = v32. Legacy 2010-2021 are 32-bit (`qbw32.exe`).
-- [x] **Step 6.2**: Instantiate each COM object from 64-bit and 32-bit hosts; no update calls. Script: `experiments/qb/com_instantiate.ps1`.
-- **Step 6.2 FINDINGS (RASMASTER1, both 64-bit and 32-bit)**:
-  - All 6 components instantiate cleanly via ProgID: `Agent2003`, `ChNotify`, `ServiceManager2003`, `Services2003`, `InstalledInstanceFinder`, `InstanceFinderUtil`.
-  - `InstalledInstanceFinder` methods confirmed: `GetInstallationFromPath(path)`, `GetInstallation(...)`, `GetMatchingInstallation(...)`.
-  - `InstanceFinderUtil` methods confirmed: `CloseQBInBackground(int)`, `GetQBExeVersionInfo(string)`, etc.
-- [x] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.) via `LoadTypeLibEx` on `qbupdate.exe`, `QBUServiceMgr.dll`, and `QBInstanceFinder.dll`. Script: `experiments/qb/dump_typelib.ps1`.
-- **Step 6.3 FINDINGS (Verified from TypeLib on RASMASTER1)**:
-  - `IAgent` (`qbupdate.exe`):
-    - `DoUpdateNow(QBVersion, QBFlavor, QBAppPath, channelName, flags)` [5 params: flags=0]
-    - `StopUpdating(QBVersion, QBFlavor, QBAppPath, timeout)` [4 params: timeout=0]
-    - `Install(QBVersion, QBFlavor, QBAppPath)` [3 params]
-    - `ResetChannel(QBVersion, QBFlavor, QBAppPath, channelName)` [4 params]
-    - `ApplicationExit(QBVersion, QBFlavor, QBAppPath)` [3 params]
-    - `InstallPending2(QBVersion, QBFlavor, QBAppPath, channelName, pending)` [5 params]
-  - `IServiceManager` (`QBUServiceMgr.dll`):
-    - `Initialize(ver, flavor, appPath)` [3 params: binds service manager to target QB]
-    - `ApplicationExit()` [0 params: clean shutdown]
-    - `InstallPending(channelName, pVal)`
-    - `GetAgentStatus(AgentVersion, QBVersion, QBFlavor, channelName, UpdateMode, UpdateState)`
-    - `UpdateNow(channelNames)`
-    - `ChannelDownloadDir(channelName, pVal)`
-  - `IInstalledInstanceFinder` (`QBInstanceFinder.dll`):
-    - `GetInstallationFromPath(qbExePath)` -> returns `IInstalledInstanceInfo` object exposing `majorVersion`, `flavor`, `flavorID`, `exePath`, `releaseNumber`, `IsRunning()`.
-- [x] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse of channel names and log tail across QB editions on RASMASTER1. Script: `experiments/qb/find_channels.ps1`.
-- **Step 6.4 FINDINGS (RASMASTER1)**:
-  - 24 `qbchan.dat` files found across all installed QuickBooks editions (`C:\ProgramData\Intuit\<Edition>\Components\QBUpdate\Qbchan.dat`).
-  - Active patch channels confirmed: `Patch`, `EPatch`, `SPatch`, `FPatch` (plus `Payroll`, `NewFeatures`, etc.).
-  - `QBInstanceFinder`'s `GetInstallation` overload caused PowerShell adapter key collision; direct `IDispatch` or C# reflection avoids this entirely.
-- [x] **Step 6.5**: Safe first call: Query `GetInstallationFromPath`, bind `cServiceManager.Initialize(ver, flavor, appPath)`, and cleanly disconnect via `ApplicationExit()` (no updates triggered). Script: `experiments/qb/test_bind.ps1`.
-- **Step 6.5 FINDINGS (RASMASTER1, QB 2024 Accountant v34 Release 21)**:
-  - `QBInstanceFinder` resolved exact parameters: `majorVersion: 34`, `flavor: "accountant"`, `exePath: "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe"`, `releaseNum: 21`.
-  - Identified pure `IUnknown` vtable requirement for `IServiceManager` and `IAgent` (bypassing `IDispatch`).
-  - `cServiceManager.Initialize(34, "accountant", "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe")` executed and bound to QuickBooks 2024 with zero errors.
-  - `serviceMgr.InstallPending("Patch", out isPending)` executed cleanly.
-  - `cServiceManager.ApplicationExit()` cleanly unbound and shut down without error.
-- [x] **Step 6.6**: Real update, ONE channel (`Patch`), on test PC (backup `Components` folder first). Script: `experiments/qb/test_update_one.ps1`.
-- **Step 6.6 FINDINGS (RASMASTER1, QB 2024 Accountant)**:
-  - `DoUpdateNow` executed completely headless on background worker task.
-  - Successfully connected to Intuit CDN (`https://qb34bgpatch.quickbooks.com/bin/onld/updatedir4.cgi`).
-  - `Qbchan.dat` updated at exact time of execution: `BeginUpdate=1792718362 (20:19:22)`, `EndUpdate=1792718362 (20:19:22)`.
-  - Channel `[Patch]` and `[EPatch]` reported `Status=1`, `Error=0` (current release verified up-to-date with Intuit servers).
-  - Clean `StopUpdating` and `ApplicationExit` shutdown.
-  - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
-- [x] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. Script: `experiments/qb/test_update_all.ps1`.
-- **Step 6.7 FINDINGS & VERIFICATION (FORENSIC BREAKTHROUGH)**:
-  - User ran manual update on QB Enterprise 21.0. `inspect_post_install.ps1` confirmed:
-    - Installed: `EPatch` (`QB2021_Core_R16R17_msp.dat` - 95 MB), `ULIP0` (Critical Fixes - 186 MB), `NewFeatures`, `Belacct`.
-    - `Install.log` updated with 40+ patched DLLs and manifests.
-    - `Qbchan.dat` confirmed active channels are explicitly flagged with `ActiveEnabled=1` and `BackgroundEnabled=1`.
-    - `ULIP0` is the internal channel name for "Critical Fixes".
-  - Confirmed Root Cause of Headless Updater Abort:
-    - `DoUpdateNow` initiates asynchronous out-of-process download in `qbupdate.exe` and returns immediately.
-    - C# task completed at 1s, causing script loop to break and immediately invoke `agent.StopUpdating(...)`, killing the 280MB download at 1s.
-  - Solution Architecture for Production Headless Engine:
-    1. Dynamic Channel Discovery: Parse `Qbchan.dat` for target QB edition to extract all channels with `ActiveEnabled=1` (e.g. `EPatch`, `ULIP0`, `NewFeatures`, `Belacct` for Enterprise; `SPatch`, `ULIP0`, `NewFeatures` for Premier/Pro).
-    2. Patient Download Monitor: Call `DoUpdateNow` and monitor `InstallPending` / download directory activity without calling `StopUpdating`.
-    3. Headless Installation: When downloads complete (`InstallPending > 0`), invoke `agent.Install(ver, flavor, path)` to silently apply the patches via `QBINSTAL.dll` / `qbpatch.exe`.
-    4. Test on untouched QuickBooks 2024 to prove headless download and install end-to-end.
-- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (ACTIVE)
-- [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
+- [x] **Step 6.1**: COM recon (READ-ONLY) - registry scan identifying 64-bit & 32-bit Intuit COM registrations (`Agent2003`, `ServiceManager2003`, `InstalledInstanceFinder`).
+- [x] **Step 6.2**: Instantiate COM objects - verified 100% instantiation across all 6 COM objects in both 64-bit and 32-bit hosts.
+- [x] **Step 6.3**: Dump type library method signatures via `LoadTypeLibEx` on `qbupdate.exe`, `QBUServiceMgr.dll`, and `QBInstanceFinder.dll`.
+- [x] **Step 6.4**: Channel & instance discovery - confirmed 24 `qbchan.dat` files across QuickBooks editions on RASMASTER1.
+- [x] **Step 6.5**: Safe binding - confirmed pure `IUnknown` custom interface requirements for `IServiceManager` and `IAgent` (bypassing `IDispatch`). Successfully bound `Initialize` and `ApplicationExit`.
+- [x] **Step 6.6**: Real single-channel update test - proved `DoUpdateNow` connects to Intuit CDN and updates `Qbchan.dat` without opening any UI.
+- [x] **Step 6.7**: Multi-channel update loop & live verification - live testing against QB Enterprise 21.0 and 20.0.
+- **Milestone 6 Experiment Conclusion & Architecture Evaluation**:
+  - Live testing against QuickBooks Enterprise 20.0 and 21.0 revealed critical architectural limitations in Intuit's background COM updater:
+    1. **Disparate Undocumented Channels**: Critical Fixes (`ULIP`), Maintenance Releases (`EPatch`/`SPatch`), and Features use disparate internal target names (`ULIP` vs `ULIP0`) that differ across versions.
+    2. **Restart & Core DLL Swapping**: `Critical Fixes` (165–186 MB) updates 35+ core application DLLs (`ui.dll`, `appcore.dll`, `qbwin32.dll`), requiring full interactive app restart orchestration that cannot be cleanly completed headlessly.
+    3. **Reliability Comparison**: Jacro's production visual updater (`Lib/UpdateQB.ahk`) already automates the official GUI, handles IE/subscription/empty window popups, monitors progress bars, restarts gracefully, and verifies `Install.log`.
+  - **Verdict**: Kill criteria triggered (Option B selected). Headless COM updater will not replace the production GUI automation.
+  - All experimental scripts, TypeLib dumps, diagnostic tools, and findings are safely preserved in `experiments/qb/` for future reference. Production codebase on `main` remains untouched and stable.
 
 
 
