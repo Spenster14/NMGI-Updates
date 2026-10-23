@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+#pragma warning disable 0219, 0414
+
 [ComImport]
 [Guid("d83a0652-b057-4f0f-a3fd-0bab62edc517")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -156,7 +158,6 @@ public class QBHeadlessEngine
                 // Monitor transfer patiently
                 int waited = 0;
                 int quietSeconds = 0;
-                bool downloadComplete = false;
 
                 while (waited < channelTimeoutSeconds)
                 {
@@ -176,7 +177,6 @@ public class QBHeadlessEngine
                     {
                         output.AppendLine(string.Format("   [Updates Ready @ {0}s] Channel '{1}' finished downloading ({2} pending).", waited, ch, pending));
                         totalPending += pending;
-                        downloadComplete = true;
                         break;
                     }
 
