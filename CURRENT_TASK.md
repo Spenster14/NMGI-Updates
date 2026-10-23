@@ -411,8 +411,15 @@
   - `cServiceManager.Initialize(34, "accountant", "C:\Program Files\Intuit\QuickBooks 2024\qbw.exe")` executed and bound to QuickBooks 2024 with zero errors.
   - `serviceMgr.InstallPending("Patch", out isPending)` executed cleanly.
   - `cServiceManager.ApplicationExit()` cleanly unbound and shut down without error.
-- [ ] **Step 6.6**: Real update, ONE channel (`Patch`), on test PC (backup `Components` folder first). Script: `experiments/qb/test_update_one.ps1`. (ACTIVE)
-- [ ] **Step 6.7**: Channel loop, timeouts, cleanup.
+- [x] **Step 6.6**: Real update, ONE channel (`Patch`), on test PC (backup `Components` folder first). Script: `experiments/qb/test_update_one.ps1`.
+- **Step 6.6 FINDINGS (RASMASTER1, QB 2024 Accountant)**:
+  - `DoUpdateNow` executed completely headless on background worker task.
+  - Successfully connected to Intuit CDN (`https://qb34bgpatch.quickbooks.com/bin/onld/updatedir4.cgi`).
+  - `Qbchan.dat` updated at exact time of execution: `BeginUpdate=1792718362 (20:19:22)`, `EndUpdate=1792718362 (20:19:22)`.
+  - Channel `[Patch]` and `[EPatch]` reported `Status=1`, `Error=0` (current release verified up-to-date with Intuit servers).
+  - Clean `StopUpdating` and `ApplicationExit` shutdown.
+  - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
+- [ ] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. (ACTIVE) Script: `experiments/qb/test_update_all.ps1`.
 - [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`.
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
 
