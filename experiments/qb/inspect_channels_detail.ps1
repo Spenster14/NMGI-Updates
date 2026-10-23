@@ -57,7 +57,7 @@ foreach ($t in $targets) {
 
         $lines.Add("Channels found in Qbchan.dat: $($sections.Count)")
         foreach ($s in $sections) {
-            $lines.Add(string.Format("   [{0}] Target='{1}' Status='{2}' LastRun='{3}' Source='{4}'", $s.Section, $s.Target, $s.Status, $s.LastRun, $s.Source))
+            $lines.Add("   [$($s.Section)] Target='$($s.Target)' Status='$($s.Status)' LastRun='$($s.LastRun)' Source='$($s.Source)'")
         }
     } else {
         $lines.Add("Qbchan.dat not found at $chanFile")
