@@ -420,6 +420,13 @@
   - Clean `StopUpdating` and `ApplicationExit` shutdown.
   - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
 - [ ] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. (ACTIVE) Script: `experiments/qb/test_update_all.ps1`.
+- **Step 6.7 FINDINGS & HARDENING (RASMASTER1)**:
+  - User tested with `-Path "...\QuickBooks 2021\QBW32PremierAccountant.exe"`.
+  - Confirmed: `-Path` tests a single target; running without `-Path` (or `-All`) tests all found installations.
+  - Identified that Intuit COM (`QBInstanceFinder.GetInstallationFromPath`) expects core engine executable (`qbw32.exe` or `qbw.exe`), not flavor wrappers (`QBW32PremierAccountant.exe`).
+  - Hardening `test_update_all.ps1`:
+    1. Auto-resolve flavor wrapper executables (`QBW32*.exe` / `QBW*.exe`) to adjacent `qbw32.exe` or `qbw.exe`.
+    2. Unwrap `ex.InnerException` in `QBHeadlessEngine` C# catch block for detailed diagnostic errors.
 - [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`.
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
 

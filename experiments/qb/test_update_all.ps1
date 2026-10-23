@@ -177,7 +177,8 @@ public class QBHeadlessEngine
         }
         catch (Exception ex)
         {
-            output.AppendLine("\nFINAL STATUS:  - Error (" + ex.Message + ")");
+            string msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            output.AppendLine("\nFINAL STATUS:  - Error (" + msg + ")");
         }
         finally
         {
@@ -212,14 +213,30 @@ $candidates = @(
 
 $targets = @()
 if ($Path) {
-    if (Test-Path $Path) { $targets += $Path }
+    if (Test-Path $Path) {
+        # If user passed a flavor launcher (e.g. QBW32PremierAccountant.exe), resolve to underlying qbw32.exe or qbw.exe
+        $dir = Split-Path -Parent $Path
+        $leaf = Split-Path -Leaf $Path
+        if ($leaf -ne "qbw.exe" -and $leaf -ne "qbw32.exe") {
+            $qbw32 = Join-Path $dir "qbw32.exe"
+            $qbw = Join-Path $dir "qbw.exe"
+            if (Test-Path $qbw32) {
+                Write-Host "Auto-resolving launcher '$leaf' to core engine: $qbw32" -ForegroundColor DarkCyan
+                $Path = $qbw32
+            } elseif (Test-Path $qbw) {
+                Write-Host "Auto-resolving launcher '$leaf' to core engine: $qbw" -ForegroundColor DarkCyan
+                $Path = $qbw
+            }
+        }
+        $targets += $Path
+    }
     else { Write-Host "Specified path not found: $Path" -ForegroundColor Red; exit 1 }
 } elseif ($All) {
     foreach ($c in $candidates) {
         if (Test-Path $c) { $targets += $c }
     }
 } else {
-    # Default: if neither -Path nor -All is given, ask or default to updating all found
+    # Default: if neither -Path nor -All is given, default to updating all found
     foreach ($c in $candidates) {
         if (Test-Path $c) { $targets += $c }
     }
