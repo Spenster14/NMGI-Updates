@@ -420,20 +420,16 @@
   - Clean `StopUpdating` and `ApplicationExit` shutdown.
   - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
 - [x] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. Script: `experiments/qb/test_update_all.ps1`.
-- **Step 6.7 FINDINGS & VERIFICATION (RASMASTER1 - 100% SUCCESS)**:
-  - Tested 32-bit: `QuickBooks Enterprise Solutions 21.0` (`QBW32EnterpriseAccountant.exe` -> `qbw32.exe`).
-    - Auto-resolved launcher wrapper to core engine.
-    - Successfully resolved `Version=31, Flavor=belacct, Release=16`.
-    - Auto-dispatched to 32-bit engine (`SysWOW64`).
-    - Successfully bound `ServiceManager2003`, instantiated `Agent2003`, and checked channels `Patch`, `EPatch`, `SPatch`, `FPatch` with zero errors.
-    - Result: `FINAL STATUS:  - No updates`.
-  - Tested 64-bit: `QuickBooks 2024` (`qbw.exe`).
-    - Successfully resolved `Version=34, Flavor=accountant, Release=21`.
-    - Executed in 64-bit engine.
-    - Successfully bound `ServiceManager2003`, instantiated `Agent2003`, and checked channels `Patch`, `EPatch`, `SPatch`, `FPatch` with zero errors.
-    - Result: `FINAL STATUS:  - No updates`.
-  - Zero UI windows opened in either test. 100% headless background updating fully proven across both 32-bit and 64-bit architectures!
-- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (ACTIVE)
+- **Step 6.7 FINDINGS & VERIFICATION**:
+  - User tested `QuickBooks Enterprise Solutions 21.0` and inspected GUI:
+    - F2 Product Information: `QuickBooks Enterprise Solutions: Accountant 21.0 Release R16P` (R16_17).
+    - Update QuickBooks Desktop -> Update Now: `Last Checked: Tue, 01/23/2024 03:23 PM`, `Status: Nothing new downloaded`.
+    - Channels listed in 21.0 UI: `Essentials`, `New Features`, `Maintenance Releases (E)`, `Help`, `Enterprise Accountant`.
+  - Diagnosis:
+    1. In `test_update_all.ps1`, `Task.Factory.StartNew` had `catch {}` which suppressed any background exceptions from `agent.DoUpdateNow`.
+    2. Enterprise 21.0 channels may have different internal channel names (e.g. `Maintenance Releases (E)`, `Enterprise Accountant`, or `belacct`) or Intuit 2021 update servers may be offline (QB 2021 sunset May 2024).
+    3. Update `test_update_all.ps1` to unmask `updateTask.Exception`, query `serviceMgr.error(ch, out err)`, and inspect `channel.log` / `Qbchan.dat` for Enterprise 21.0.
+- [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`. (PAUSED FOR VERIFICATION)
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
 
 

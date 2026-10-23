@@ -114,10 +114,11 @@ public class QBHeadlessEngine
                 output.AppendLine(string.Format("\n>>> Processing Channel: {0} <<<", ch));
                 DateTime chStart = DateTime.Now;
 
+                string taskError = null;
                 Task updateTask = Task.Factory.StartNew(() =>
                 {
                     try { agent.DoUpdateNow(ver, flavor, path, ch, 0); }
-                    catch {}
+                    catch (Exception exTask) { taskError = exTask.ToString(); }
                 });
 
                 // Wait for channel completion or timeout
@@ -126,6 +127,20 @@ public class QBHeadlessEngine
                 {
                     System.Threading.Thread.Sleep(1000);
                     waited++;
+
+                    if (taskError != null)
+                    {
+                        output.AppendLine(string.Format("   [DoUpdateNow Exception @ {0}s] {1}", waited, taskError));
+                        break;
+                    }
+
+                    // Check channel error code
+                    int chErr = 0;
+                    try { serviceMgr.error(ch, out chErr); } catch {}
+                    if (chErr != 0)
+                    {
+                        output.AppendLine(string.Format("   [serviceMgr.error @ {0}s] Channel '{1}' returned error code: {2}", waited, ch, chErr));
+                    }
 
                     // Check if pending updates appeared
                     int pending = 0;
@@ -147,7 +162,11 @@ public class QBHeadlessEngine
 
                 // Stop updating for this channel
                 try { agent.StopUpdating(ver, flavor, path, 0); } catch {}
-                output.AppendLine(string.Format("   Channel '{0}' finished in {1:0.0}s.", ch, (DateTime.Now - chStart).TotalSeconds));
+                int finalPending = 0;
+                try { serviceMgr.InstallPending(ch, out finalPending); } catch {}
+                int finalErr = 0;
+                try { serviceMgr.error(ch, out finalErr); } catch {}
+                output.AppendLine(string.Format("   Channel '{0}' finished in {1:0.0}s. (Pending={2}, Error={3})", ch, (DateTime.Now - chStart).TotalSeconds, finalPending, finalErr));
             }
 
             // 5. If updates were downloaded/pending, trigger Install()
