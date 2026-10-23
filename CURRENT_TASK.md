@@ -381,8 +381,25 @@
   - All 6 components instantiate cleanly via ProgID: `Agent2003`, `ChNotify`, `ServiceManager2003`, `Services2003`, `InstalledInstanceFinder`, `InstanceFinderUtil`.
   - `InstalledInstanceFinder` methods confirmed: `GetInstallationFromPath(path)`, `GetInstallation(...)`, `GetMatchingInstallation(...)`.
   - `InstanceFinderUtil` methods confirmed: `CloseQBInBackground(int)`, `GetQBExeVersionInfo(string)`, etc.
-- [ ] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.) via `LoadTypeLibEx` on `qbupdate.exe`, `QBUServiceMgr.dll`, and `QBInstanceFinder.dll`. (ACTIVE) Script: `experiments/qb/dump_typelib.ps1`.
-- [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse.
+- [x] **Step 6.3**: Dump type library method signatures (`Initialize`, `DoUpdateNow`, etc.) via `LoadTypeLibEx` on `qbupdate.exe`, `QBUServiceMgr.dll`, and `QBInstanceFinder.dll`. Script: `experiments/qb/dump_typelib.ps1`.
+- **Step 6.3 FINDINGS (Verified from TypeLib on RASMASTER1)**:
+  - `IAgent` (`qbupdate.exe`):
+    - `DoUpdateNow(QBVersion, QBFlavor, QBAppPath, channelName, flags)` [5 params: flags=0]
+    - `StopUpdating(QBVersion, QBFlavor, QBAppPath, timeout)` [4 params: timeout=0]
+    - `Install(QBVersion, QBFlavor, QBAppPath)` [3 params]
+    - `ResetChannel(QBVersion, QBFlavor, QBAppPath, channelName)` [4 params]
+    - `ApplicationExit(QBVersion, QBFlavor, QBAppPath)` [3 params]
+    - `InstallPending2(QBVersion, QBFlavor, QBAppPath, channelName, pending)` [5 params]
+  - `IServiceManager` (`QBUServiceMgr.dll`):
+    - `Initialize(ver, flavor, appPath)` [3 params: binds service manager to target QB]
+    - `ApplicationExit()` [0 params: clean shutdown]
+    - `InstallPending(channelName, pVal)`
+    - `GetAgentStatus(AgentVersion, QBVersion, QBFlavor, channelName, UpdateMode, UpdateState)`
+    - `UpdateNow(channelNames)`
+    - `ChannelDownloadDir(channelName, pVal)`
+  - `IInstalledInstanceFinder` (`QBInstanceFinder.dll`):
+    - `GetInstallationFromPath(qbExePath)` -> returns `IInstalledInstanceInfo` object exposing `majorVersion`, `flavor`, `flavorID`, `exePath`, `releaseNumber`, `IsRunning()`.
+- [ ] **Step 6.4**: Locate `channel.log` / `qbchan.dat`; read-only parse of channel names and log tail across QB editions on RASMASTER1. (ACTIVE) Script: `experiments/qb/find_channels.ps1`.
 - [ ] **Step 6.5**: Safe first call: `Initialize` + `ApplicationExit` only.
 - [ ] **Step 6.6**: Real update, ONE channel, on test PC (backup first).
 - [ ] **Step 6.7**: Channel loop, timeouts, cleanup.
