@@ -421,12 +421,16 @@
   - ZERO QuickBooks windows opened. 100% headless background execution confirmed working.
 - [ ] **Step 6.7**: Multi-channel update loop (`Patch`, `EPatch`, `SPatch`, `FPatch`), timeouts, cleanup, and conditional `agent.Install()`. (ACTIVE) Script: `experiments/qb/test_update_all.ps1`.
 - **Step 6.7 FINDINGS & HARDENING (RASMASTER1)**:
-  - User tested with `-Path "...\QuickBooks 2021\QBW32PremierAccountant.exe"`.
-  - Confirmed: `-Path` tests a single target; running without `-Path` (or `-All`) tests all found installations.
-  - Identified that Intuit COM (`QBInstanceFinder.GetInstallationFromPath`) expects core engine executable (`qbw32.exe` or `qbw.exe`), not flavor wrappers (`QBW32PremierAccountant.exe`).
+  - User tested with `-Path "...\QuickBooks 2021\QBW32PremierAccountant.exe"` and `-Path "...\Enterprise Solutions 21.0\QBW32EnterpriseAccountant.exe"`.
+  - Wrapper resolution verified: `QBW32EnterpriseAccountant.exe` auto-resolved to `qbw32.exe`. `QBInstanceFinder` resolved `Version=31, Flavor=accountant, Release=17`.
+  - Diagnosis of `E_FAIL` in `serviceMgr.Initialize(31, ...)`:
+    - 64-bit PowerShell loads 64-bit `QBUServiceMgr.dll`.
+    - QB 2021 (v31) is pure 32-bit, installed in `C:\Program Files (x86)` with registry in `WOW6432Node`.
+    - 64-bit `QBUServiceMgr.dll` queries 64-bit registry (`HKLM\SOFTWARE\Intuit\...`) where v31 does not exist, throwing `E_FAIL`.
+    - 32-bit QuickBooks requires 32-bit `QBUServiceMgr.dll` running in a 32-bit process (`SysWOW64\WindowsPowerShell\v1.0\powershell.exe`).
   - Hardening `test_update_all.ps1`:
-    1. Auto-resolve flavor wrapper executables (`QBW32*.exe` / `QBW*.exe`) to adjacent `qbw32.exe` or `qbw.exe`.
-    2. Unwrap `ex.InnerException` in `QBHeadlessEngine` C# catch block for detailed diagnostic errors.
+    1. Added diagnostic caller bitness logging and explicit step reporting.
+    2. Added automatic architecture dispatching: if running in 64-bit PowerShell and target is 32-bit (`qbw32.exe` / `Program Files (x86)`), seamlessly dispatch that installation via `SysWOW64\WindowsPowerShell\v1.0\powershell.exe`.
 - [ ] **Step 6.8**: `Lib/QBHeadless.ahk` module with fallback to `UpdateQB.ahk`.
 - [ ] **Step 6.9**: Opt-in INI wiring (default OFF), smoke test, compile, commit.
 

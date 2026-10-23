@@ -1,6 +1,7 @@
 param(
     [string]$Path = "",
-    [switch]$All
+    [switch]$All,
+    [switch]$ChildWorker
 )
 
 # Step 6.7 - Multi-channel headless update loop across all patch channels
@@ -87,11 +88,14 @@ public class QBHeadlessEngine
             object rel = infoType.InvokeMember("releaseNumber", BindingFlags.GetProperty, null, info, null);
 
             output.AppendLine(string.Format("Resolved: Version={0}, Flavor={1}, Release={2}", ver, flavor, rel));
+            output.AppendLine(string.Format("Engine Process: {0}-bit", IntPtr.Size * 8));
 
             // 2. Initialize ServiceManager
             Type mgrType = Type.GetTypeFromProgID("QBDServiceMgr2003.ServiceManager2003.1");
+            if (mgrType == null) throw new Exception("QBDServiceMgr2003.ServiceManager2003.1 not found");
             rawMgr = Activator.CreateInstance(mgrType);
             serviceMgr = (IServiceManager)rawMgr;
+            output.AppendLine(string.Format("Calling ServiceManager.Initialize({0}, \"{1}\", \"{2}\")...", ver, flavor, path));
             serviceMgr.Initialize(ver, flavor, path);
             output.AppendLine("ServiceManager bound successfully.");
 
@@ -249,6 +253,13 @@ if ($targets.Count -eq 0) {
     exit 0
 }
 
+if ($ChildWorker) {
+    # Child worker called for 32-bit architecture dispatch
+    $subReport = [QBHeadlessEngine]::RunFullUpdate($targets[0], $patchChannels, 15)
+    Write-Output $subReport
+    exit 0
+}
+
 Write-Host "Found $($targets.Count) QuickBooks installation(s) to process:" -ForegroundColor Cyan
 foreach ($t in $targets) { Write-Host "   -> $t" }
 
@@ -259,6 +270,19 @@ foreach ($targetExe in $targets) {
     Write-Host "Processing: $targetExe" -ForegroundColor Yellow
     Write-Host "========================================================" -ForegroundColor Yellow
 
+    # Check bitness compatibility
+    $is32BitTarget = ($targetExe -match "\(x86\)") -or ($targetExe -match "qbw32\.exe")
+    $is64BitProcess = [IntPtr]::Size -eq 8
+    $wow64Ps = "$env:SystemRoot\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
+
+    if ($is32BitTarget -and $is64BitProcess -and (Test-Path $wow64Ps)) {
+        Write-Host "Target is 32-bit QuickBooks (2021 or older); dispatching to 32-bit PowerShell engine..." -ForegroundColor Magenta
+        $subReport = & $wow64Ps -ExecutionPolicy Bypass -File $PSCommandPath -Path $targetExe -ChildWorker
+        $fullReport.AppendLine($subReport)
+        Write-Host $subReport
+        continue
+    }
+
     # Run through the 4 patch channels with 15-second timeout per channel
     $subReport = [QBHeadlessEngine]::RunFullUpdate($targetExe, $patchChannels, 15)
     $fullReport.AppendLine($subReport)
@@ -267,4 +291,5 @@ foreach ($targetExe in $targets) {
 
 $fullReport.ToString() | Out-File -FilePath $outFile -Encoding UTF8
 Write-Host "`nAll $($targets.Count) installation(s) completed. Report written to $outFile" -ForegroundColor Green
+
 
