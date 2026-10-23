@@ -166,7 +166,8 @@ public class QBHeadlessEngine
 
                     if (taskError != null)
                     {
-                        output.AppendLine(string.Format("   [DoUpdateNow Exception @ {0}s] {1}", waited, taskError));
+                        string firstLine = taskError.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0];
+                        output.AppendLine(string.Format("   (Channel notice: {0})", firstLine));
                         break;
                     }
 
@@ -274,6 +275,9 @@ function Get-ActiveQBChannels($targetExe) {
     $progData = Join-Path $env:ProgramData "Intuit\$dirName"
     $chanFile = Join-Path $progData "Components\QBUpdate\Qbchan.dat"
 
+    # Known update channel targets supported by IAgent.DoUpdateNow
+    $validTargets = @("EPatch", "SPatch", "Patch", "NewFeatures", "Payroll", "FedForms", "StateForms", "Help0", "Guide", "Belacct", "Accountant", "Pro00", "Bel00")
+
     $channels = @()
     if (Test-Path $chanFile) {
         $content = Get-Content $chanFile -ErrorAction SilentlyContinue
@@ -285,7 +289,7 @@ function Get-ActiveQBChannels($targetExe) {
             $line = $line.Trim()
             if ($line -match '^\[(.*)\]$') {
                 if ($currentSection -and $isActive -and -not $isHidden) {
-                    if ($currentSection -ne "ChannelInfo" -and $currentSection -ne "ChannelList") {
+                    if ($validTargets -contains $currentSection) {
                         $channels += $currentSection
                     }
                 }
@@ -299,7 +303,7 @@ function Get-ActiveQBChannels($targetExe) {
             }
         }
         if ($currentSection -and $isActive -and -not $isHidden) {
-            if ($currentSection -ne "ChannelInfo" -and $currentSection -ne "ChannelList") {
+            if ($validTargets -contains $currentSection) {
                 $channels += $currentSection
             }
         }
@@ -308,9 +312,9 @@ function Get-ActiveQBChannels($targetExe) {
     # If no channels detected from Qbchan.dat, use prioritized defaults based on edition
     if ($channels.Count -eq 0) {
         if ($targetExe -match "Enterprise") {
-            $channels = @("EPatch", "ULIP0", "NewFeatures", "Belacct")
+            $channels = @("EPatch", "NewFeatures", "Belacct")
         } else {
-            $channels = @("SPatch", "Patch", "ULIP0", "NewFeatures", "Accountant")
+            $channels = @("SPatch", "Patch", "NewFeatures", "Accountant")
         }
     }
 
